@@ -20,6 +20,8 @@ export const minikitConfig = {
     description: "Build streaks and connect with the community through daily GM interactions on Base blockchain",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
     iconUrl: `${ROOT_URL}/onepulse-icon.png`,
+    imageUrl: `${ROOT_URL}/onepulse-hero.png`,
+    buttonTitle: "Send GM",
     splashImageUrl: `${ROOT_URL}/onepulse-hero.png`,
     splashBackgroundColor: "#000000",
     homeUrl: ROOT_URL,

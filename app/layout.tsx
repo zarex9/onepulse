@@ -8,7 +8,7 @@ const frame = {
   version: minikitConfig.miniapp.version,
   imageUrl: minikitConfig.miniapp.heroImageUrl,
   button: {
-    title: `Send GM`,
+    title: minikitConfig.miniapp.buttonTitle,
     action: {
       type: "launch_frame",
       name: `${minikitConfig.miniapp.name}`,
