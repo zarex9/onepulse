@@ -25,7 +25,7 @@ export const minikitConfig = {
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "social",
-    tags: ["gm", "daily", "community", "streaks", "base"],
+    tags: ["base", "baseapp", "miniapp", "gm", "daily"],
     heroImageUrl: `${ROOT_URL}/onepulse-hero.png`,
     tagline: "One GM at a time",
     ogTitle: "OnePulse - Daily GM Community",

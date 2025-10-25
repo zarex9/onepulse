@@ -32,9 +32,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <button className={styles.closeButton} type="button">
-        ✕
-      </button>
       <div className={styles.content}>
         <div className={styles.waitlistForm}>
           <h1 className={styles.title}>
