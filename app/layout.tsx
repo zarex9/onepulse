@@ -1,36 +1,49 @@
-import { Inter, Source_Code_Pro } from "next/font/google";
+import { Nunito, Nunito_Sans } from "next/font/google";
 import { SafeArea } from "@coinbase/onchainkit/minikit";
 import { minikitConfig } from "../minikit.config";
 import { RootProvider } from "./rootProvider";
 import "./globals.css";
 
+const frame = {
+  version: minikitConfig.miniapp.version,
+  imageUrl: minikitConfig.miniapp.heroImageUrl,
+  button: {
+    title: `Launch ${minikitConfig.miniapp.name}`,
+    action: {
+      type: "launch_frame",
+      name: `Launch ${minikitConfig.miniapp.name}`,
+      url: minikitConfig.miniapp.homeUrl,
+      splashImageUrl: minikitConfig.miniapp.splashImageUrl,
+      splashBackgroundColor: minikitConfig.miniapp.splashBackgroundColor
+    }
+  }
+};
+
 export async function generateMetadata() {
   return {
     title: minikitConfig.miniapp.name,
     description: minikitConfig.miniapp.description,
+    openGraph: {
+      title: minikitConfig.miniapp.name,
+      description: minikitConfig.miniapp.description,
+      images: [minikitConfig.miniapp.heroImageUrl],
+      url: minikitConfig.miniapp.homeUrl,
+      siteName: minikitConfig.miniapp.name
+    },
     other: {
-      "fc:frame": JSON.stringify({
-        version: minikitConfig.miniapp.version,
-        imageUrl: minikitConfig.miniapp.heroImageUrl,
-        button: {
-          title: `Launch ${minikitConfig.miniapp.name}`,
-          action: {
-            name: `Launch ${minikitConfig.miniapp.name}`,
-            type: "launch_frame",
-          },
-        },
-      }),
+      "fc:frame": JSON.stringify(frame),
+      "fc:miniapp": JSON.stringify(frame),
     },
   };
 }
 
-const inter = Inter({
-  variable: "--font-inter",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
 });
 
-const sourceCodePro = Source_Code_Pro({
-  variable: "--font-source-code-pro",
+const nunitoSans = Nunito_Sans({
+  variable: "--font-nunito-sans",
   subsets: ["latin"],
 });
 
@@ -42,7 +55,7 @@ export default function RootLayout({
   return (
     <RootProvider>
       <html lang="en">
-        <body className={`${inter.variable} ${sourceCodePro.variable}`}>
+        <body className={`${nunito.variable} ${nunitoSans.variable}`}>
           <SafeArea>{children}</SafeArea>
         </body>
       </html>

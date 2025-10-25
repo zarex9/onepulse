@@ -1,6 +1,6 @@
 "use client";
 
-import Provider from "@/components/providers/WagmiProvider";
+import Provider from "@/components/providers/wagmiProvider";
 import { ReactNode } from "react";
 import { base } from "wagmi/chains";
 import { OnchainKitProvider } from "@coinbase/onchainkit";

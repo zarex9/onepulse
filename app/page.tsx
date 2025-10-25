@@ -7,7 +7,7 @@ import {
   TransactionStatus,
   TransactionToast,
 } from "@coinbase/onchainkit/transaction";
-import { ConnectWallet } from "@coinbase/onchainkit/wallet";
+import { WalletComponents } from "@/components/wallet";
 import { useAccount } from "wagmi";
 import { isAddress } from "viem";
 import { minikitConfig } from "../minikit.config";
@@ -16,7 +16,7 @@ import { dailyGMAbi } from "../lib/abi/dailyGM";
 import styles from "./page.module.css";
 
 export default function Home() {
-  const { isFrameReady, setFrameReady, context } = useMiniKit();
+  const { isFrameReady, setFrameReady } = useMiniKit();
   const { isConnected } = useAccount();
   const [recipient, setRecipient] = useState("");
 
@@ -38,8 +38,7 @@ export default function Home() {
             {minikitConfig.miniapp.name.toUpperCase()}
           </h1>
           <p className={styles.subtitle}>
-            Hey {context?.user?.displayName || "there"}, say GM on Base and
-            start your streak.
+            Say GM, build streaks, and grow your blockchain presence on Base.
           </p>
 
           <div
@@ -52,7 +51,7 @@ export default function Home() {
               marginBottom: "1.25rem",
             }}
           >
-            <ConnectWallet />
+            <WalletComponents />
           </div>
 
           {!isContractReady && (
