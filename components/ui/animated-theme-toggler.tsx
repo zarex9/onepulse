@@ -45,25 +45,14 @@ export const AnimatedThemeToggler = ({
     if (!buttonRef.current) return
 
     const nextTheme = isDark ? "light" : "dark"
-    const runTransition = (cb: () => void) => {
-      interface DocWithViewTransition extends Document {
-        startViewTransition?: (cb: () => void) => { ready: Promise<void> }
-      }
-      const doc = document as DocWithViewTransition
-      if (typeof doc.startViewTransition === "function") {
-        return doc.startViewTransition(cb).ready
-      }
-      cb()
-      return Promise.resolve()
-    }
 
-    await runTransition(() => {
+     await document.startViewTransition(() => {
       flushSync(() => {
         setIsDark(nextTheme === "dark")
         // Set class deterministically to avoid double toggles
         document.documentElement.classList.toggle("dark", nextTheme === "dark")
       })
-    })
+    }).ready
 
     const { top, left, width, height } =
       buttonRef.current.getBoundingClientRect()

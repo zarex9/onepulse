@@ -26,6 +26,7 @@
         "wagmi": "^2.18.2",
       },
       "devDependencies": {
+        "@eslint/eslintrc": "^3.3.1",
         "@farcaster/quick-auth": "^0.0.8",
         "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
         "@next/eslint-plugin-next": "^15.5.2",
