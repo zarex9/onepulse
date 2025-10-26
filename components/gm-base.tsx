@@ -53,7 +53,7 @@ export function GMBase() {
             />
           </ItemMedia>
           <ItemDescription>
-            Send GM, build streaks, and grow your onchain footprint on Base.
+            Boost your Base onchain footprint.
           </ItemDescription>
         </ItemContent>
         <ItemActions>

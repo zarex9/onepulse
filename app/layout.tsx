@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 
+import { TooltipProvider } from "@/components/ui/tooltip"
+
 import { minikitConfig } from "../minikit.config"
 import { RootProvider } from "./rootProvider"
 
@@ -56,9 +58,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geistMono.variable}`}>
+      <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
         <RootProvider>
-          <SafeArea>{children}</SafeArea>
+          <TooltipProvider delayDuration={0}>
+            <SafeArea>
+              {children}
+            </SafeArea>
+          </TooltipProvider>
         </RootProvider>
       </body>
     </html>

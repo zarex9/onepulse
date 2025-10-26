@@ -7,6 +7,7 @@ import { flushSync } from "react-dom"
 
 import { cn } from "@/lib/utils"
 import { useMetaColor } from "@/hooks/use-meta-color"
+import { Toggle } from "@/components/ui/toggle"
 
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<"button"> {
@@ -46,7 +47,7 @@ export const AnimatedThemeToggler = ({
 
     const nextTheme = isDark ? "light" : "dark"
 
-     await document.startViewTransition(() => {
+    await document.startViewTransition(() => {
       flushSync(() => {
         setIsDark(nextTheme === "dark")
         // Set class deterministically to avoid double toggles
@@ -86,10 +87,17 @@ export const AnimatedThemeToggler = ({
       ref={buttonRef}
       onClick={toggleTheme}
       className={cn(className)}
+      type="button"
       {...props}
     >
-      {isDark ? <Sun /> : <Moon />}
-      <span className="sr-only">Toggle theme</span>
+      <Toggle aria-label="Toggle theme" variant="outline">
+        {isDark ? (
+          <Sun />
+        ) : (
+          <Moon />
+        )}
+        Toggle theme
+      </Toggle>
     </button>
   )
 }
