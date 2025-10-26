@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
-import { sdk } from "@farcaster/miniapp-sdk"
 import { useTheme } from "next-themes"
 
 import { Particles } from "@/components/ui/particles"
