@@ -27,6 +27,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
             appearance: {
               name: process.env.NEXT_PUBLIC_PROJECT_NAME,
               mode: "auto",
+              theme: "base",
             },
             wallet: {
               display: "modal",

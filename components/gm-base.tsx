@@ -40,7 +40,7 @@ export function GMBase() {
   }
 
   return (
-    <div>
+    <div className="mt-4 space-y-4">
       <Item variant="outline">
         <ItemContent>
           <ItemMedia>
@@ -52,9 +52,7 @@ export function GMBase() {
               className="h-8 object-contain"
             />
           </ItemMedia>
-          <ItemDescription>
-            Boost your Base onchain footprint.
-          </ItemDescription>
+          <ItemDescription>Boost your Base onchain footprint.</ItemDescription>
         </ItemContent>
         <ItemActions>
           <ShinyButton onClick={() => setOpen(true)}>GM on Base</ShinyButton>

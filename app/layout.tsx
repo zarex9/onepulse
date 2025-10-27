@@ -61,9 +61,7 @@ export default function RootLayout({
       <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
         <RootProvider>
           <TooltipProvider delayDuration={0}>
-            <SafeArea>
-              {children}
-            </SafeArea>
+            <SafeArea>{children}</SafeArea>
           </TooltipProvider>
         </RootProvider>
       </body>
