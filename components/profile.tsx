@@ -130,7 +130,7 @@ export function Profile({
           )}
         </CardContent>
       </Card>
-      {isConnected && (
+      {isConnected && !user && (
         <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-[95%] max-w-lg p-4">
           <Button
             variant="outline"
