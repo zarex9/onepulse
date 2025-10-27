@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { isAddress } from "viem";
+import { NextRequest, NextResponse } from "next/server"
+import { isAddress } from "viem"
+
+import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const address = searchParams.get("address") || "";
-  if (!address) return NextResponse.json({ error: "address is required" }, { status: 400 });
-  if (!isAddress(address)) return NextResponse.json({ error: "invalid address" }, { status: 400 });
+  const { searchParams } = new URL(req.url)
+  const address = searchParams.get("address") || ""
+  if (!address)
+    return NextResponse.json({ error: "address is required" }, { status: 400 })
+  if (!isAddress(address))
+    return NextResponse.json({ error: "invalid address" }, { status: 400 })
 
-  const stats = await prisma.gmStatsByAddress.findUnique({ where: { address } });
+  const stats = await prisma.gmStatsByAddress.findUnique({ where: { address } })
   if (!stats) {
     return NextResponse.json({
       address,
@@ -16,7 +19,7 @@ export async function GET(req: NextRequest) {
       highestStreak: 0,
       allTimeGmCount: 0,
       lastGmDay: 0,
-    });
+    })
   }
 
   return NextResponse.json({
@@ -25,5 +28,5 @@ export async function GET(req: NextRequest) {
     highestStreak: stats.highestStreak,
     allTimeGmCount: stats.allTimeGmCount,
     lastGmDay: stats.lastGmDay,
-  });
+  })
 }

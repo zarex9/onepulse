@@ -1,14 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
-import { ConnectWallet } from "@coinbase/onchainkit/wallet"
 import {
   Transaction,
   TransactionButton,
   TransactionStatus,
   TransactionToast,
 } from "@coinbase/onchainkit/transaction"
+import { ConnectWallet } from "@coinbase/onchainkit/wallet"
 import { useQueryClient } from "@tanstack/react-query"
 import { isAddress } from "viem"
 import { useAccount, useReadContract } from "wagmi"
@@ -101,11 +101,11 @@ export function GMBase() {
     return () => clearInterval(id)
   }, [hasGmToday, targetSec])
 
-  const close = () => {
+  const close = useCallback(() => {
     setOpen(false)
     setMode("main")
     setRecipient("")
-  }
+  }, [])
 
   function SuccessReporter({
     status,
@@ -145,7 +145,7 @@ export function GMBase() {
       if (status === "success") {
         void report()
       }
-    }, [status])
+    }, [status, address, onReported, queryClient, refetchLastGmDay])
     return null
   }
 

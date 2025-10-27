@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
-import { WalletIsland } from "@coinbase/onchainkit/wallet"
 import { useTheme } from "next-themes"
 
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
