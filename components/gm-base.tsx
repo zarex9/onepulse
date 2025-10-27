@@ -5,11 +5,10 @@ import Image from "next/image"
 import {
   Transaction,
   TransactionButton,
-  TransactionStatus,
-  TransactionToast,
 } from "@coinbase/onchainkit/transaction"
 import { ConnectWallet } from "@coinbase/onchainkit/wallet"
 import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { isAddress } from "viem"
 import { useAccount, useReadContract } from "wagmi"
 
@@ -25,12 +24,14 @@ import {
 } from "@/components/ui/item"
 import { MagicCard } from "@/components/ui/magic-card"
 import { ShinyButton } from "@/components/ui/shiny-button"
+import { Spinner } from "@/components/ui/spinner"
 
 export function GMBase() {
   const { isConnected, address } = useAccount()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<"main" | "gmTo">("main")
   const [recipient, setRecipient] = useState("")
+  const [processing, setProcessing] = useState(false)
 
   const isContractReady = Boolean(DAILY_GM_ADDRESS && DAILY_GM_ADDRESS !== "")
   const isRecipientValid = recipient !== "" && isAddress(recipient)
@@ -105,14 +106,19 @@ export function GMBase() {
     setOpen(false)
     setMode("main")
     setRecipient("")
+    setProcessing(false)
   }, [])
 
   function SuccessReporter({
     status,
     onReported,
+    message,
+    txHash,
   }: {
     status: string
     onReported?: () => void
+    message?: string
+    txHash?: string
   }) {
     const didReport = useRef(false)
     const queryClient = useQueryClient()
@@ -120,11 +126,29 @@ export function GMBase() {
       const report = async () => {
         if (didReport.current) return
         if (!address) return
+        // Mark early to avoid duplicate toasts if effect re-runs
+        didReport.current = true
         try {
           await fetch("/api/gm/report", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ address }),
+          })
+        } catch {}
+        // Toast success once with optional "View tx" action
+        try {
+          const url = txHash ? `https://basescan.org/tx/${txHash}` : undefined
+          toast.success(message ?? "GM successful", {
+            id: `gm-success-${address}`,
+            duration: 3000,
+            ...(url
+              ? {
+                  action: {
+                    label: "View tx",
+                    onClick: () => window.open(url, "_blank", "noopener,noreferrer"),
+                  },
+                }
+              : {}),
           })
         } catch {}
         // Refresh cached stats for this address
@@ -139,13 +163,43 @@ export function GMBase() {
         try {
           await refetchLastGmDay()
         } catch {}
-        didReport.current = true
         onReported?.()
       }
       if (status === "success") {
         void report()
       }
-    }, [status, address, onReported, queryClient, refetchLastGmDay])
+    }, [status, address, onReported, queryClient, refetchLastGmDay, txHash])
+    return null
+  }
+
+  function ErrorReporter({
+    status,
+    message,
+    onRetry,
+  }: {
+    status: string
+    message?: string
+    onRetry?: () => void
+  }) {
+    const didToast = useRef(false)
+    useEffect(() => {
+      if (status === "error" && !didToast.current) {
+        // Mark early to avoid duplicates
+        didToast.current = true
+        toast.error(message ?? "Transaction canceled", {
+          id: `gm-error-${address ?? "unknown"}`,
+          duration: 5000,
+          ...(onRetry
+            ? {
+                action: {
+                  label: "Try again",
+                  onClick: () => onRetry?.(),
+                },
+              }
+            : {}),
+        })
+      }
+    }, [status, message, onRetry])
     return null
   }
 
@@ -182,7 +236,12 @@ export function GMBase() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={close} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => {
+              if (!processing) close()
+            }}
+          />
           <MagicCard
             className="relative z-10 w-full max-w-sm rounded-2xl p-4"
             gradientFrom="#0052FF"
@@ -193,55 +252,74 @@ export function GMBase() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Choose GM Type</h3>
                 <div className="grid gap-3">
-                  {/* GM */}
-                  {isConnected ? (
-                    <Transaction
-                      calls={[
-                        {
-                          abi: dailyGMAbi,
-                          address: DAILY_GM_ADDRESS as `0x${string}`,
-                          functionName: "gm",
-                        },
-                      ]}
-                    >
-                      <TransactionButton
-                        disabled={!isContractReady}
-                        render={({ onSubmit, isDisabled, status }) => (
+                  <Transaction
+                    calls={[
+                      {
+                        abi: dailyGMAbi,
+                        address: DAILY_GM_ADDRESS as `0x${string}`,
+                        functionName: "gm",
+                      },
+                    ]}
+                  >
+                    <TransactionButton
+                      disabled={!isContractReady}
+                      render={(args) => {
+                        const { onSubmit, isDisabled, status, context } = args as any
+                        const txHash =
+                          context?.transactionHash ||
+                          context?.receipt?.transactionHash ||
+                          context?.transactionReceipts?.[0]?.transactionHash
+                        return (
                           <>
+                            <ProcessingMirror
+                              status={String(status)}
+                              onChange={setProcessing}
+                            />
                             <Button
                               onClick={onSubmit}
                               disabled={isDisabled}
                               className="w-full"
                             >
-                              {status === "pending" ? "Processing..." : "GM"}
+                              {status === "pending" ? (
+                                <>
+                                  <Spinner />
+                                  Processing...
+                                </>
+                              ) : (
+                                "GM"
+                              )}
                             </Button>
                             <SuccessReporter
                               status={String(status)}
                               onReported={close}
+                              message="GM sent successfully"
+                              txHash={txHash}
+                            />
+                            <ErrorReporter
+                              status={String(status)}
+                              message="Transaction canceled"
+                              onRetry={onSubmit}
                             />
                           </>
-                        )}
-                      />
-                      <TransactionStatus />
-                      <TransactionToast />
-                    </Transaction>
-                  ) : (
-                    <Button disabled className="w-full">
-                      Connect wallet to GM
-                    </Button>
-                  )}
+                        )
+                      }}
+                    />
+                  </Transaction>
 
-                  {/* GM to a Fren */}
                   <Button
-                    disabled={!isConnected || !isContractReady}
+                    disabled={!isContractReady || processing}
                     onClick={() => setMode("gmTo")}
                     className="w-full"
                   >
                     GM to a Fren
                   </Button>
 
-                  {/* Cancel */}
-                  <Button variant="outline" onClick={close} className="w-full">
+                  <Button
+                    variant="outline"
+                    onClick={close}
+                    className="w-full"
+                    disabled={processing}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -254,27 +332,39 @@ export function GMBase() {
                   placeholder="0x..."
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
+                  disabled={processing}
                   className="w-full rounded-md border bg-transparent px-3 py-2"
                 />
                 {recipient && !isRecipientValid && (
                   <p className="text-sm text-red-500">Enter a valid address.</p>
                 )}
                 <div className="grid gap-3">
-                  {isConnected ? (
-                    <Transaction
-                      calls={[
-                        {
-                          abi: dailyGMAbi,
-                          address: DAILY_GM_ADDRESS as `0x${string}`,
-                          functionName: "gmTo",
-                          args: [recipient as `0x${string}`],
-                        },
-                      ]}
-                    >
-                      <TransactionButton
-                        disabled={!isRecipientValid || !isContractReady}
-                        render={({ onSubmit, isDisabled, status }) => (
+                  <Transaction
+                    calls={[
+                      {
+                        abi: dailyGMAbi,
+                        address: DAILY_GM_ADDRESS as `0x${string}`,
+                        functionName: "gmTo",
+                        args: [recipient as `0x${string}`],
+                      },
+                    ]}
+                  >
+                    <TransactionButton
+                      disabled={
+                        !isRecipientValid || !isContractReady || processing
+                      }
+                      render={(args) => {
+                        const { onSubmit, isDisabled, status, context } = args as any
+                        const txHash =
+                          context?.transactionHash ||
+                          context?.receipt?.transactionHash ||
+                          context?.transactionReceipts?.[0]?.transactionHash
+                        return (
                           <>
+                            <ProcessingMirror
+                              status={String(status)}
+                              onChange={setProcessing}
+                            />
                             <Button
                               onClick={onSubmit}
                               disabled={isDisabled}
@@ -285,21 +375,27 @@ export function GMBase() {
                             <SuccessReporter
                               status={String(status)}
                               onReported={close}
+                              message={
+                                recipient
+                                  ? `GM sent to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`
+                                  : "GM sent successfully"
+                              }
+                              txHash={txHash}
+                            />
+                            <ErrorReporter
+                              status={String(status)}
+                              message="Transaction canceled"
+                              onRetry={onSubmit}
                             />
                           </>
-                        )}
-                      />
-                      <TransactionStatus />
-                      <TransactionToast />
-                    </Transaction>
-                  ) : (
-                    <Button disabled className="w-full">
-                      Connect wallet to send
-                    </Button>
-                  )}
+                        )
+                      }}
+                    />
+                  </Transaction>
                   <Button
                     variant="outline"
                     onClick={() => setMode("main")}
+                    disabled={processing}
                     className="w-full"
                   >
                     Back
@@ -312,4 +408,17 @@ export function GMBase() {
       )}
     </div>
   )
+}
+
+function ProcessingMirror({
+  status,
+  onChange,
+}: {
+  status: string
+  onChange: (pending: boolean) => void
+}) {
+  useEffect(() => {
+    onChange(status === "pending")
+  }, [status, onChange])
+  return null
 }

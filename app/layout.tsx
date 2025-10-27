@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 
 import { minikitConfig } from "../minikit.config"
 import { RootProvider } from "./rootProvider"
@@ -63,6 +64,21 @@ export default function RootLayout({
           <TooltipProvider delayDuration={0}>
             <SafeArea>{children}</SafeArea>
           </TooltipProvider>
+          <Toaster
+            position="top-center"
+            richColors
+            closeButton
+            toastOptions={{
+              actionButtonStyle: {
+                background: "transparent",
+                border: "none",
+                padding: 0,
+                color: "var(--primary)",
+                boxShadow: "none",
+                textDecoration: "none",
+              },
+            }}
+          />
         </RootProvider>
       </body>
     </html>
