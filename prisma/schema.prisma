@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // On Vercel Postgres, prefer POSTGRES_PRISMA_URL for Prisma pool
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+model GmStatsByAddress {
+  address        String   @id @db.VarChar(42)
+  chainId        Int      @default(8453)
+  currentStreak  Int      @default(0)
+  highestStreak  Int      @default(0)
+  allTimeGmCount Int      @default(0)
+  lastGmDay      Int      @default(0)
+  lastTxHash     String?
+  fid            BigInt?
+  displayName    String?
+  username       String?
+  updatedAt      DateTime @default(now())
+
+  @@map("gm_stats_by_address")
+}
+
+model GmEventByAddress {
+  id          String   @id @default(uuid())
+  address     String   @db.VarChar(42)
+  chainId     Int      @default(8453)
+  gmDay       Int
+  txHash      String?  @unique
+  blockNumber BigInt?
+  occurredAt  DateTime @default(now())
+
+  @@index([address, gmDay])
+  @@map("gm_events_by_address")
+}
