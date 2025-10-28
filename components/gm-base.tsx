@@ -114,32 +114,33 @@ export function GMBase() {
     onReported,
     message,
     txHash,
+    address: addressProp,
+    refetchLastGmDay: refetchLastGmDayProp,
   }: {
     status: string
     onReported?: () => void
     message?: string
     txHash?: string
+    address?: string
+    refetchLastGmDay?: () => Promise<unknown>
   }) {
     const didReport = useRef(false)
     const queryClient = useQueryClient()
     useEffect(() => {
       const report = async () => {
         if (didReport.current) return
-        if (!address) return
         // Mark early to avoid duplicate toasts if effect re-runs
         didReport.current = true
-        try {
-          await fetch("/api/gm/report", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ address }),
-          })
-        } catch {}
         // Toast success once with optional "View tx" action
         try {
           const url = txHash ? `https://basescan.org/tx/${txHash}` : undefined
+          const toastId = txHash
+            ? `gm-success-${txHash}`
+            : addressProp
+            ? `gm-success-${addressProp}`
+            : `gm-success`
           toast.success(message ?? "GM successful", {
-            id: `gm-success-${address}`,
+            id: toastId,
             duration: 3000,
             ...(url
               ? {
@@ -151,24 +152,34 @@ export function GMBase() {
               : {}),
           })
         } catch {}
+        // Report only if we have an address
+        if (addressProp) {
+          try {
+            await fetch("/api/gm/report", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ address: addressProp }),
+            })
+          } catch {}
+        }
         // Refresh cached stats for this address
         try {
-          if (address) {
+          if (addressProp) {
             await queryClient.invalidateQueries({
-              queryKey: ["gm-stats", address],
+              queryKey: ["gm-stats", addressProp],
             })
           }
         } catch {}
         // Update onchain lastGMDay so CTA refreshes
         try {
-          await refetchLastGmDay()
+          await refetchLastGmDayProp?.()
         } catch {}
         onReported?.()
       }
       if (status === "success") {
         void report()
       }
-    }, [status, address, onReported, queryClient, refetchLastGmDay, txHash])
+    }, [status, addressProp, onReported, queryClient, refetchLastGmDayProp, txHash, message])
     return null
   }
 
@@ -263,8 +274,21 @@ export function GMBase() {
                   >
                     <TransactionButton
                       disabled={!isContractReady}
-                      render={(args) => {
-                        const { onSubmit, isDisabled, status, context } = args as any
+                      render={({
+                        onSubmit,
+                        isDisabled,
+                        status,
+                        context,
+                      }: {
+                        onSubmit: () => void
+                        isDisabled: boolean
+                        status: "default" | "success" | "error" | "pending"
+                        context?: {
+                          transactionHash?: string
+                          receipt?: { transactionHash?: string }
+                          transactionReceipts?: Array<{ transactionHash?: string }>
+                        }
+                      }) => {
                         const txHash =
                           context?.transactionHash ||
                           context?.receipt?.transactionHash ||
@@ -294,6 +318,8 @@ export function GMBase() {
                               onReported={close}
                               message="GM sent successfully"
                               txHash={txHash}
+                              address={address}
+                              refetchLastGmDay={refetchLastGmDay}
                             />
                             <ErrorReporter
                               status={String(status)}
@@ -353,8 +379,21 @@ export function GMBase() {
                       disabled={
                         !isRecipientValid || !isContractReady || processing
                       }
-                      render={(args) => {
-                        const { onSubmit, isDisabled, status, context } = args as any
+                      render={({
+                        onSubmit,
+                        isDisabled,
+                        status,
+                        context,
+                      }: {
+                        onSubmit: () => void
+                        isDisabled: boolean
+                        status: "default" | "success" | "error" | "pending"
+                        context?: {
+                          transactionHash?: string
+                          receipt?: { transactionHash?: string }
+                          transactionReceipts?: Array<{ transactionHash?: string }>
+                        }
+                      }) => {
                         const txHash =
                           context?.transactionHash ||
                           context?.receipt?.transactionHash ||
@@ -381,6 +420,8 @@ export function GMBase() {
                                   : "GM sent successfully"
                               }
                               txHash={txHash}
+                              address={address}
+                              refetchLastGmDay={refetchLastGmDay}
                             />
                             <ErrorReporter
                               status={String(status)}
