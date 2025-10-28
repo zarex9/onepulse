@@ -13,7 +13,7 @@ const frame = {
   version: minikitConfig.miniapp.version,
   imageUrl: minikitConfig.miniapp.heroImageUrl,
   button: {
-    title: minikitConfig.miniapp.buttonTitle,
+    title: "GM on Base",
     action: {
       type: "launch_frame",
       name: `${minikitConfig.miniapp.name}`,
@@ -26,18 +26,32 @@ const frame = {
 
 export async function generateMetadata() {
   return {
-    title: minikitConfig.miniapp.name,
-    description: minikitConfig.miniapp.description,
+    title: minikitConfig.miniapp.ogTitle || minikitConfig.miniapp.name,
+    description: minikitConfig.miniapp.ogDescription || minikitConfig.miniapp.description,
     openGraph: {
-      title: minikitConfig.miniapp.name,
-      description: minikitConfig.miniapp.description,
+      title: minikitConfig.miniapp.ogTitle || minikitConfig.miniapp.name,
+      description:
+        minikitConfig.miniapp.ogDescription || minikitConfig.miniapp.description,
       images: [minikitConfig.miniapp.heroImageUrl],
       url: minikitConfig.miniapp.homeUrl,
       siteName: minikitConfig.miniapp.name,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: minikitConfig.miniapp.ogTitle || minikitConfig.miniapp.name,
+      description:
+        minikitConfig.miniapp.ogDescription || minikitConfig.miniapp.description,
+      images: [minikitConfig.miniapp.heroImageUrl],
+    },
     other: {
       "fc:frame": JSON.stringify(frame),
       "fc:miniapp": JSON.stringify(frame),
+      "fc:miniapp:subtitle": minikitConfig.miniapp.subtitle,
+      "fc:miniapp:description": minikitConfig.miniapp.description,
+      "fc:miniapp:tags": JSON.stringify(minikitConfig.miniapp.tags),
+      "fc:miniapp:tagline": minikitConfig.miniapp.tagline,
+      "fc:miniapp:og:title": minikitConfig.miniapp.ogTitle,
+      "fc:miniapp:og:description": minikitConfig.miniapp.ogDescription,
     },
   }
 }
