@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Unplug } from "lucide-react"
 import { useAccount, useDisconnect } from "wagmi"
@@ -30,7 +30,7 @@ export type MiniAppUser = {
   pfpUrl?: string
 }
 
-export function Profile({
+export const Profile = React.memo(function Profile({
   user,
   onDisconnected,
 }: {
@@ -135,6 +135,7 @@ export function Profile({
           <Button
             variant="outline"
             className="w-full"
+            aria-label="Disconnect wallet"
             onClick={() => {
               disconnect()
               onDisconnected?.()
@@ -146,4 +147,4 @@ export function Profile({
       )}
     </div>
   )
-}
+})

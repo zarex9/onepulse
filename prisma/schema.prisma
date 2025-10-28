@@ -36,3 +36,18 @@ model GmEventByAddress {
   @@index([address, gmDay])
   @@map("gm_events_by_address")
 }
+
+/// Stores per-user notification token+url per client app (fid+appFid).
+model NotificationDetails {
+  id            String   @id @default(uuid())
+  fid           BigInt
+  appFid        Int
+  url           String   @db.VarChar(1024)
+  token         String   @db.VarChar(256)
+  lastNotifiedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([fid, appFid])
+  @@map("notification_details")
+}

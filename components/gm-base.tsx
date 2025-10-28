@@ -1,20 +1,24 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import {
   Transaction,
   TransactionButton,
+  TransactionToast,
+  TransactionToastAction,
+  TransactionToastIcon,
+  TransactionToastLabel,
 } from "@coinbase/onchainkit/transaction"
 import { ConnectWallet } from "@coinbase/onchainkit/wallet"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 import { isAddress } from "viem"
 import { useAccount, useReadContract } from "wagmi"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
 import { DAILY_GM_ADDRESS } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import {
   Item,
   ItemActions,
@@ -22,11 +26,11 @@ import {
   ItemDescription,
   ItemMedia,
 } from "@/components/ui/item"
-import { MagicCard } from "@/components/ui/magic-card"
-import { ShinyButton } from "@/components/ui/shiny-button"
 import { Spinner } from "@/components/ui/spinner"
 
-export function GMBase() {
+type TransactionStatus = "default" | "success" | "error" | "pending"
+
+export const GMBase = React.memo(function GMBase() {
   const { isConnected, address } = useAccount()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<"main" | "gmTo">("main")
@@ -67,8 +71,9 @@ export function GMBase() {
         targetSec: 0,
       }
     }
-    const lastDay = Number((lastGmDayData as unknown as bigint) ?? 0n)
+    const lastDay = Number((lastGmDayData as bigint) ?? 0n)
     const nowSec = Math.floor(Date.now() / 1000)
+    // currentDay is the Unix day index in UTC
     const currentDay = Math.floor(nowSec / 86400)
     const already = lastDay >= currentDay
     const nextDayStartSec = (currentDay + 1) * 86400
@@ -94,7 +99,7 @@ export function GMBase() {
     }
     const tick = () => {
       const nowSec = Math.floor(Date.now() / 1000)
-      const ms = (targetSec - nowSec) * 1000
+      const ms = Math.max(0, (targetSec - nowSec) * 1000)
       setCountdown(fmt(ms))
     }
     tick()
@@ -131,28 +136,6 @@ export function GMBase() {
         if (didReport.current) return
         // Mark early to avoid duplicate toasts if effect re-runs
         didReport.current = true
-        // Toast success once with optional "View tx" action
-        try {
-          const url = txHash ? `https://basescan.org/tx/${txHash}` : undefined
-          const toastId = txHash
-            ? `gm-success-${txHash}`
-            : addressProp
-              ? `gm-success-${addressProp}`
-              : `gm-success`
-          toast.success(message ?? "GM successful", {
-            id: toastId,
-            duration: 3000,
-            ...(url
-              ? {
-                  action: {
-                    label: "View tx",
-                    onClick: () =>
-                      window.open(url, "_blank", "noopener,noreferrer"),
-                  },
-                }
-              : {}),
-          })
-        } catch {}
         // Report only if we have an address
         if (addressProp) {
           try {
@@ -192,37 +175,6 @@ export function GMBase() {
     return null
   }
 
-  function ErrorReporter({
-    status,
-    message,
-    onRetry,
-  }: {
-    status: string
-    message?: string
-    onRetry?: () => void
-  }) {
-    const didToast = useRef(false)
-    useEffect(() => {
-      if (status === "error" && !didToast.current) {
-        // Mark early to avoid duplicates
-        didToast.current = true
-        toast.error(message ?? "Transaction canceled", {
-          id: `gm-error-${address ?? "unknown"}`,
-          duration: 5000,
-          ...(onRetry
-            ? {
-                action: {
-                  label: "Try again",
-                  onClick: () => onRetry?.(),
-                },
-              }
-            : {}),
-        })
-      }
-    }, [status, message, onRetry])
-    return null
-  }
-
   return (
     <div className="mt-4 space-y-4">
       <Item variant="outline">
@@ -240,14 +192,14 @@ export function GMBase() {
         </ItemContent>
         <ItemActions>
           {isConnected ? (
-            <ShinyButton
+            <Button
               disabled={gmDisabled}
               onClick={() => {
                 if (!gmDisabled) setOpen(true)
               }}
             >
               {hasGmToday ? `GM in ${countdown}` : ctaText}
-            </ShinyButton>
+            </Button>
           ) : (
             <ConnectWallet>Connect Wallet</ConnectWallet>
           )}
@@ -262,12 +214,7 @@ export function GMBase() {
               if (!processing) close()
             }}
           />
-          <MagicCard
-            className="relative z-10 w-full max-w-sm rounded-2xl p-4"
-            gradientFrom="#0052FF"
-            gradientTo="#80B3FF"
-            gradientColor="rgba(0,82,255,0.15)"
-          >
+          <Card className="relative z-10 w-full max-w-sm rounded-2xl p-4">
             {mode === "main" ? (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Choose GM Type</h3>
@@ -291,7 +238,7 @@ export function GMBase() {
                       }: {
                         onSubmit: () => void
                         isDisabled: boolean
-                        status: "default" | "success" | "error" | "pending"
+                        status: TransactionStatus
                         context?: {
                           transactionHash?: string
                           receipt?: { transactionHash?: string }
@@ -299,6 +246,7 @@ export function GMBase() {
                             transactionHash?: string
                           }>
                         }
+                        error?: Error | null
                       }) => {
                         const txHash =
                           context?.transactionHash ||
@@ -307,13 +255,14 @@ export function GMBase() {
                         return (
                           <>
                             <ProcessingMirror
-                              status={String(status)}
+                              status={status}
                               onChange={setProcessing}
                             />
                             <Button
                               onClick={onSubmit}
                               disabled={isDisabled}
                               className="w-full"
+                              aria-busy={status === "pending"}
                             >
                               {status === "pending" ? (
                                 <>
@@ -332,21 +281,22 @@ export function GMBase() {
                               address={address}
                               refetchLastGmDay={refetchLastGmDay}
                             />
-                            <ErrorReporter
-                              status={String(status)}
-                              message="Transaction canceled"
-                              onRetry={onSubmit}
-                            />
                           </>
                         )
                       }}
                     />
+                    <TransactionToast position="top-center">
+                      <TransactionToastIcon />
+                      <TransactionToastLabel />
+                      <TransactionToastAction />
+                    </TransactionToast>
                   </Transaction>
 
                   <Button
                     disabled={!isContractReady || processing}
                     onClick={() => setMode("gmTo")}
                     className="w-full"
+                    aria-disabled={!isContractReady || processing}
                   >
                     GM to a Fren
                   </Button>
@@ -356,6 +306,7 @@ export function GMBase() {
                     onClick={close}
                     className="w-full"
                     disabled={processing}
+                    aria-disabled={processing}
                   >
                     Cancel
                   </Button>
@@ -371,9 +322,22 @@ export function GMBase() {
                   onChange={(e) => setRecipient(e.target.value)}
                   disabled={processing}
                   className="w-full rounded-md border bg-transparent px-3 py-2"
+                  aria-label="Recipient wallet address"
+                  aria-invalid={recipient !== "" && !isRecipientValid}
+                  aria-describedby={
+                    recipient !== "" && !isRecipientValid
+                      ? "recipient-error"
+                      : undefined
+                  }
                 />
                 {recipient && !isRecipientValid && (
-                  <p className="text-sm text-red-500">Enter a valid address.</p>
+                  <p
+                    id="recipient-error"
+                    className="text-sm text-red-500"
+                    role="alert"
+                  >
+                    Enter a valid address.
+                  </p>
                 )}
                 <div className="grid gap-3">
                   <Transaction
@@ -398,7 +362,7 @@ export function GMBase() {
                       }: {
                         onSubmit: () => void
                         isDisabled: boolean
-                        status: "default" | "success" | "error" | "pending"
+                        status: TransactionStatus
                         context?: {
                           transactionHash?: string
                           receipt?: { transactionHash?: string }
@@ -406,6 +370,7 @@ export function GMBase() {
                             transactionHash?: string
                           }>
                         }
+                        error?: Error | null
                       }) => {
                         const txHash =
                           context?.transactionHash ||
@@ -414,13 +379,14 @@ export function GMBase() {
                         return (
                           <>
                             <ProcessingMirror
-                              status={String(status)}
+                              status={status}
                               onChange={setProcessing}
                             />
                             <Button
                               onClick={onSubmit}
                               disabled={isDisabled}
                               className="w-full"
+                              aria-busy={status === "pending"}
                             >
                               {status === "pending" ? "Sending..." : "Send GM"}
                             </Button>
@@ -436,43 +402,44 @@ export function GMBase() {
                               address={address}
                               refetchLastGmDay={refetchLastGmDay}
                             />
-                            <ErrorReporter
-                              status={String(status)}
-                              message="Transaction canceled"
-                              onRetry={onSubmit}
-                            />
                           </>
                         )
                       }}
                     />
+                    <TransactionToast position="top-center">
+                      <TransactionToastIcon />
+                      <TransactionToastLabel />
+                      <TransactionToastAction />
+                    </TransactionToast>
                   </Transaction>
                   <Button
                     variant="outline"
                     onClick={() => setMode("main")}
                     disabled={processing}
                     className="w-full"
+                    aria-disabled={processing}
                   >
                     Back
                   </Button>
                 </div>
               </div>
             )}
-          </MagicCard>
+          </Card>
         </div>
       )}
     </div>
   )
-}
+})
 
-function ProcessingMirror({
+const ProcessingMirror = React.memo(function ProcessingMirror({
   status,
   onChange,
 }: {
-  status: string
+  status: TransactionStatus
   onChange: (pending: boolean) => void
 }) {
   useEffect(() => {
     onChange(status === "pending")
   }, [status, onChange])
   return null
-}
+})

@@ -1,13 +1,24 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Roboto_Mono } from "next/font/google"
+import { minikitConfig } from "@/minikit.config"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 
-import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-import { minikitConfig } from "../minikit.config"
 import { RootProvider } from "./rootProvider"
 
 import "./globals.css"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const roboto_mono = Roboto_Mono({
+  subsets: ["latin"],
+  variable: "--font-roboto-mono",
+  display: "swap",
+})
 
 const frame = {
   version: minikitConfig.miniapp.version,
@@ -59,43 +70,22 @@ export async function generateMetadata() {
   }
 }
 
-const geist = Geist({
-  variable: "--font-geist",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${roboto_mono.variable} antialiased`}
+      suppressHydrationWarning
+    >
+      <body>
         <RootProvider>
           <TooltipProvider delayDuration={0}>
             <SafeArea>{children}</SafeArea>
           </TooltipProvider>
-          <Toaster
-            position="top-center"
-            richColors
-            closeButton
-            toastOptions={{
-              actionButtonStyle: {
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                color: "var(--primary)",
-                boxShadow: "none",
-                textDecoration: "none",
-              },
-            }}
-          />
         </RootProvider>
       </body>
     </html>

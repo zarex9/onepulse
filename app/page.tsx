@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { useTheme } from "next-themes"
 
@@ -9,33 +9,38 @@ import { Particles } from "@/components/ui/particles"
 import { SparklesText } from "@/components/ui/sparkles-text"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GMBase } from "@/components/gm-base"
-import { Profile, type MiniAppUser } from "@/components/profile"
+import { Profile } from "@/components/profile"
 
 import { minikitConfig } from "../minikit.config"
 
 export default function Home() {
   const { isFrameReady, setFrameReady, context } = useMiniKit()
   const { resolvedTheme } = useTheme()
-  const [color, setColor] = useState("#ffffff")
+  const color = useMemo(
+    () => (resolvedTheme === "dark" ? "#ffffff" : "#0a0a0a"),
+    [resolvedTheme]
+  )
   const [tab, setTab] = useState("home")
 
   // Initialize the  miniapp
   useEffect(() => {
-    setColor(resolvedTheme === "dark" ? "#ffffff" : "#0a0a0a")
     if (!isFrameReady) {
       setFrameReady()
     }
-  }, [resolvedTheme, setFrameReady, isFrameReady])
+  }, [setFrameReady, isFrameReady])
+
+  const safeAreaStyle = useMemo(
+    () => ({
+      marginTop: context?.client?.safeAreaInsets?.top ?? 0,
+      marginBottom: context?.client?.safeAreaInsets?.bottom ?? 0,
+      marginLeft: context?.client?.safeAreaInsets?.left ?? 0,
+      marginRight: context?.client?.safeAreaInsets?.right ?? 0,
+    }),
+    [context?.client?.safeAreaInsets]
+  )
 
   return (
-    <div
-      style={{
-        marginTop: context?.client?.safeAreaInsets?.top ?? 0,
-        marginBottom: context?.client?.safeAreaInsets?.bottom ?? 0,
-        marginLeft: context?.client?.safeAreaInsets?.left ?? 0,
-        marginRight: context?.client?.safeAreaInsets?.right ?? 0,
-      }}
-    >
+    <div style={safeAreaStyle}>
       <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
         <div className="mt-3 mb-6 flex items-center justify-between">
           <SparklesText className="justify-left text-2xl">
@@ -64,7 +69,16 @@ export default function Home() {
             </TabsContent>
             <TabsContent value="profile">
               <Profile
-                user={context?.user as unknown as MiniAppUser}
+                user={
+                  context?.user
+                    ? {
+                        fid: context.user.fid,
+                        displayName: context.user.displayName ?? "",
+                        username: context.user.username ?? "",
+                        pfpUrl: context.user.pfpUrl,
+                      }
+                    : undefined
+                }
                 onDisconnected={() => setTab("home")}
               />
             </TabsContent>
