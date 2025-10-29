@@ -9,7 +9,7 @@ datasource db {
 }
 
 model GmStatsByAddress {
-  address        String   @id @db.VarChar(42)
+  address        String   @db.VarChar(42)
   chainId        Int      @default(8453)
   currentStreak  Int      @default(0)
   highestStreak  Int      @default(0)
@@ -21,6 +21,8 @@ model GmStatsByAddress {
   username       String?
   updatedAt      DateTime @default(now())
 
+  @@id([address, chainId])
+  @@unique([address, chainId], name: "address_chainId")
   @@map("gm_stats_by_address")
 }
 

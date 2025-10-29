@@ -6,14 +6,15 @@ import {
   Transaction,
   TransactionButton,
   TransactionToast,
-  TransactionToastAction,
   TransactionToastIcon,
   TransactionToastLabel,
+  useTransactionContext,
 } from "@coinbase/onchainkit/transaction"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTheme } from "next-themes"
 import { isAddress, type Address } from "viem"
 import { useChainId, useReadContract, useSwitchChain } from "wagmi"
+import { useShowCallsStatus } from "wagmi/experimental"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,11 @@ export type GMChainCardProps = {
   contractAddress: `0x${string}`
   isConnected: boolean
   address?: string
+  onStatusChange?: (status: {
+    chainId: number
+    hasGmToday: boolean
+    targetSec: number
+  }) => void
 }
 
 export const GMChainCard = React.memo(function GMChainCard({
@@ -46,6 +52,7 @@ export const GMChainCard = React.memo(function GMChainCard({
   contractAddress,
   isConnected,
   address,
+  onStatusChange,
 }: GMChainCardProps) {
   const { resolvedTheme } = useTheme()
   const [imgSrc, setImgSrc] = useState(iconSrc)
@@ -131,6 +138,15 @@ export const GMChainCard = React.memo(function GMChainCard({
     isPendingLastGm,
     name,
   ])
+
+  // Report status up to parent (for global "all done" logic)
+  const notifyStatus = useCallback(() => {
+    onStatusChange?.({ chainId, hasGmToday, targetSec })
+  }, [onStatusChange, chainId, hasGmToday, targetSec])
+
+  useEffect(() => {
+    notifyStatus()
+  }, [notifyStatus])
 
   // Live countdown if already GM'd today
   const [countdown, setCountdown] = useState("--:--:--")
@@ -246,27 +262,33 @@ export const GMChainCard = React.memo(function GMChainCard({
         {!isConnected ? (
           <ConnectWallet size="lg" className={`w-[16ch] ${chainBtnClasses}`} />
         ) : !onCorrectChain ? (
-          <Button
-            size="lg"
-            className={`w-[16ch] ${chainBtnClasses}`}
-            onClick={async () => {
-              try {
-                await switchChain({ chainId })
-              } catch (e) {
-                console.error("Failed to switch chain", e)
-              }
-            }}
-            disabled={isSwitching}
-            aria-busy={isSwitching}
-          >
-            {isSwitching ? (
-              <>
-                <Spinner /> Switching…
-              </>
-            ) : (
-              `Switch to ${name}`
-            )}
-          </Button>
+          hasGmToday ? (
+            <Button size="lg" className={`w-[16ch] ${chainBtnClasses}`} disabled>
+              {`GM in ${countdown}`}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              className={`w-[16ch] ${chainBtnClasses}`}
+              onClick={async () => {
+                try {
+                  await switchChain({ chainId })
+                } catch (e) {
+                  console.error("Failed to switch chain", e)
+                }
+              }}
+              disabled={isSwitching}
+              aria-busy={isSwitching}
+            >
+              {isSwitching ? (
+                <>
+                  <Spinner /> Switching…
+                </>
+              ) : (
+                `Switch to ${name}`
+              )}
+            </Button>
+          )
         ) : (
           <Button
             size="lg"
@@ -316,6 +338,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                         isDisabled: boolean
                         status: TransactionStatus
                         context?: {
+                          chainId?: number
                           transactionHash?: string
                           receipt?: { transactionHash?: string }
                           transactionReceipts?: Array<{
@@ -364,7 +387,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                     <TransactionToast position="top-center">
                       <TransactionToastIcon />
                       <TransactionToastLabel />
-                      <TransactionToastAction />
+                      <CustomTransactionToastAction />
                     </TransactionToast>
                   </Transaction>
 
@@ -486,7 +509,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                     <TransactionToast position="top-center">
                       <TransactionToastIcon />
                       <TransactionToastLabel />
-                      <TransactionToastAction />
+                      <CustomTransactionToastAction />
                     </TransactionToast>
                   </Transaction>
                   <Button
@@ -520,3 +543,64 @@ const ProcessingMirror = React.memo(function ProcessingMirror({
   }, [status, onChange])
   return null
 })
+
+function getExplorerUrl(chainId?: number) {
+  switch (chainId) {
+    case 42220:
+      return "https://celoscan.io"
+    case 10:
+      return "https://optimistic.etherscan.io"
+    case 8453:
+      return "https://basescan.org"
+    case 1:
+      return "https://etherscan.io"
+    default:
+      return "https://basescan.org"
+  }
+}
+
+const CustomTransactionToastAction = React.memo(
+  function CustomTransactionToastAction() {
+    const { chainId, errorMessage, onSubmit, transactionHash, transactionId } =
+      useTransactionContext()
+    const fallbackChainId = useChainId()
+    const accountChainId = chainId ?? fallbackChainId
+    const { showCallsStatus } = useShowCallsStatus()
+
+    if (errorMessage) {
+      return (
+        <button type="button" onClick={onSubmit}>
+          <span className="text-primary text-sm font-medium">
+            Try again
+          </span>
+        </button>
+      )
+    }
+
+    if (transactionId) {
+      return (
+        <button
+          type="button"
+          onClick={() => showCallsStatus({ id: transactionId })}
+        >
+          <span className="text-primary text-sm font-medium">
+            View transaction
+          </span>
+        </button>
+      )
+    }
+
+    if (transactionHash) {
+      const href = `${getExplorerUrl(accountChainId)}/tx/${transactionHash}`
+      return (
+        <a href={href} target="_blank" rel="noreferrer">
+          <span className="text-primary text-sm font-medium">
+            View transaction
+          </span>
+        </a>
+      )
+    }
+
+    return null
+  }
+)

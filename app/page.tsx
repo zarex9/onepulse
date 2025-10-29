@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { minikitConfig } from "@/minikit.config"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { useTheme } from "next-themes"
+import { useAccount } from "wagmi"
 
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { Particles } from "@/components/ui/particles"
@@ -10,11 +12,11 @@ import { SparklesText } from "@/components/ui/sparkles-text"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GMBase } from "@/components/gm-base"
 import { Profile } from "@/components/profile"
-
-import { minikitConfig } from "../minikit.config"
+import { DisconnectWallet } from "@/components/wallet"
 
 export default function Home() {
   const { isFrameReady, setFrameReady, context } = useMiniKit()
+  const { isConnected } = useAccount()
   const { resolvedTheme } = useTheme()
   const color = useMemo(
     () => (resolvedTheme === "dark" ? "#ffffff" : "#0a0a0a"),
@@ -79,11 +81,15 @@ export default function Home() {
                       }
                     : undefined
                 }
-                onDisconnected={() => setTab("home")}
               />
             </TabsContent>
           </Tabs>
         </div>
+        {isConnected && !context?.user && (
+          <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
+            <DisconnectWallet onDisconnected={() => tab === "profile" && setTab("home")} />
+          </div>
+        )}
       </div>
       <Particles
         className="absolute inset-0 z-0"

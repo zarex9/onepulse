@@ -1,6 +1,5 @@
 "use client"
-
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
@@ -20,8 +19,13 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { Spinner } from "@/components/ui/spinner"
-
-import { DisconnectWallet } from "./wallet"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export type MiniAppUser = {
   fid: number
@@ -32,12 +36,10 @@ export type MiniAppUser = {
 
 export const Profile = React.memo(function Profile({
   user,
-  onDisconnected,
 }: {
   user?: MiniAppUser
-  onDisconnected?: () => void
 }) {
-  const { address, isConnected } = useAccount()
+  const { address } = useAccount()
   type GmStats = {
     currentStreak: number
     highestStreak: number
@@ -54,25 +56,29 @@ export const Profile = React.memo(function Profile({
     []
   )
 
-  const { data: stats, isFetching } = useQuery<GmStats>({
-    queryKey: ["gm-stats", address ?? "no-address"],
+  const chains = [
+    { id: 8453, name: "Base" },
+    { id: 42220, name: "Celo" },
+    { id: 10, name: "Optimism" },
+  ] as const
+
+  const [selectedChainId, setSelectedChainId] = useState<number>(8453)
+
+  const { data: selectedStats, isFetching } = useQuery<GmStats>({
+    queryKey: ["gm-stats", address ?? "no-address", selectedChainId],
     enabled: Boolean(address),
     queryFn: async (): Promise<GmStats> => {
-      const res = await fetch(`/api/gm/stats?address=${address}`)
+      const res = await fetch(`/api/gm/stats?address=${address}&chainId=${selectedChainId}`)
       if (!res.ok) throw new Error("Failed to load stats")
       return res.json()
     },
-    // Avoid refetching on every tab switch and keep cache warm
-    staleTime: 60_000, // 1 minute
-    gcTime: 5 * 60_000, // 5 minutes
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    refetchOnMount: true, // only refetch if stale
-    // Show zeros instantly, but do NOT seed the cache; ensures immediate fetch on cache miss
+    refetchOnMount: true,
     placeholderData: defaultStats,
   })
-
-  const displayStats = stats ?? defaultStats
 
   // Note: We rely on the query key (which includes the address) to fetch on wallet change.
   // GM success flow already invalidates this key to refresh immediately after reporting.
@@ -96,27 +102,47 @@ export const Profile = React.memo(function Profile({
       )}
 
       <Card className="border-border">
-        <CardHeader>
-          <CardTitle>GM Streak</CardTitle>
-          <CardDescription>Your onchain GM progress</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>GM Streak</CardTitle>
+            <CardDescription>Select a chain to view your onchain GM stats</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="sr-only">Chain</span>
+            <Select
+              value={String(selectedChainId)}
+              onValueChange={(v) => setSelectedChainId(Number(v))}
+            >
+              <SelectTrigger size="sm" className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {chains.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-semibold">
-                {displayStats.currentStreak}
+                {(selectedStats ?? defaultStats).currentStreak}
               </div>
               <div className="text-muted-foreground text-xs">Current</div>
             </div>
             <div>
               <div className="text-2xl font-semibold">
-                {displayStats.highestStreak}
+                {(selectedStats ?? defaultStats).highestStreak}
               </div>
               <div className="text-muted-foreground text-xs">Highest</div>
             </div>
             <div>
               <div className="text-2xl font-semibold">
-                {displayStats.allTimeGmCount}
+                {(selectedStats ?? defaultStats).allTimeGmCount}
               </div>
               <div className="text-muted-foreground text-xs">All-time</div>
             </div>
@@ -129,11 +155,6 @@ export const Profile = React.memo(function Profile({
           )}
         </CardContent>
       </Card>
-      {isConnected && !user && (
-        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-[95%] max-w-lg p-4">
-          <DisconnectWallet onDisconnected={onDisconnected} />
-        </div>
-      )}
     </div>
   )
 })

@@ -22,7 +22,7 @@ export const minikitConfig = {
     name: "OnePulse",
     subtitle: "Daily GM on Base",
     description:
-      "Boost your Base onchain footprint and build streaks with OnePulse",
+      "Boost your onchain footprint and build streaks with OnePulse on Base, Celo, and Optimism",
     screenshotUrls: [`${ROOT_URL}/screenshot.png`],
     iconUrl: `${ROOT_URL}/icon.png`,
     splashImageUrl: `${ROOT_URL}/splash.png`,
@@ -30,12 +30,12 @@ export const minikitConfig = {
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "social",
-    tags: ["base", "baseapp", "miniapp", "gm", "daily"],
+    tags: ["base", "celo", "op", "gm", "daily"],
     heroImageUrl: `${ROOT_URL}/hero.png`,
     tagline: "Based onchain booster",
     ogTitle: "OnePulse",
     ogDescription:
-      "Boost your Base onchain footprint and build streaks with OnePulse",
+      "Boost your onchain footprint and build streaks with OnePulse on Base, Celo, and Optimism",
     ogImageUrl: `${ROOT_URL}/hero.png`,
     noindex: false,
   },

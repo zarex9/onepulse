@@ -56,8 +56,8 @@ export async function POST(req: Request) {
     })
 
     // Fetch current stats (or create with defaults)
-    const existing = await prisma.gmStatsByAddress.findUnique({
-      where: { address },
+    const existing = await prisma.gmStatsByAddress.findFirst({
+      where: { address, chainId },
     })
 
     let currentStreak = existing?.currentStreak ?? 0
@@ -82,33 +82,44 @@ export async function POST(req: Request) {
       lastGmDay = lastGmDayOnchain
     }
 
-    const saved = await prisma.gmStatsByAddress.upsert({
-      where: { address },
-      update: {
-        chainId,
-        currentStreak,
-        highestStreak,
-        allTimeGmCount,
-        lastGmDay,
-        lastTxHash: txHash ?? existing?.lastTxHash ?? null,
-        displayName: displayName ?? existing?.displayName ?? null,
-        username: username ?? existing?.username ?? null,
-        fid: typeof fid === "number" ? BigInt(fid) : (existing?.fid ?? null),
-      },
-      create: {
-        address,
-        chainId,
-        currentStreak,
-        highestStreak,
-        allTimeGmCount,
-        lastGmDay,
-        lastTxHash: txHash ?? null,
-        displayName: displayName ?? null,
-        username: username ?? null,
-        fid: typeof fid === "number" ? BigInt(fid) : null,
-      },
+    const updateData = {
+      chainId,
+      currentStreak,
+      highestStreak,
+      allTimeGmCount,
+      lastGmDay,
+      lastTxHash: txHash ?? existing?.lastTxHash ?? null,
+      displayName: displayName ?? existing?.displayName ?? null,
+      username: username ?? existing?.username ?? null,
+      fid: typeof fid === "number" ? BigInt(fid) : (existing?.fid ?? null),
+    }
+
+    const updateRes = await prisma.gmStatsByAddress.updateMany({
+      where: { address, chainId },
+      data: updateData,
     })
 
+    if (updateRes.count === 0) {
+      await prisma.gmStatsByAddress.create({
+        data: {
+          address,
+          chainId,
+          currentStreak,
+          highestStreak,
+          allTimeGmCount,
+          lastGmDay,
+          lastTxHash: txHash ?? null,
+          displayName: displayName ?? null,
+          username: username ?? null,
+          fid: typeof fid === "number" ? BigInt(fid) : null,
+        },
+      })
+    }
+
+    const saved = await prisma.gmStatsByAddress.findFirst({ where: { address, chainId } })
+    if (!saved) {
+      return NextResponse.json({ error: "save failed" }, { status: 500 })
+    }
     return NextResponse.json({
       address: saved.address,
       currentStreak: saved.currentStreak,
