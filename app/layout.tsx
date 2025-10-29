@@ -1,4 +1,5 @@
 import { Inter, Roboto_Mono } from "next/font/google"
+import { headers } from "next/headers"
 import { minikitConfig } from "@/minikit.config"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 
@@ -70,11 +71,14 @@ export async function generateMetadata() {
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const headersData = await headers()
+  const cookies = headersData.get("cookie")
+
   return (
     <html
       lang="en"
@@ -82,7 +86,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        <RootProvider>
+        <RootProvider cookies={cookies}>
           <TooltipProvider delayDuration={0}>
             <SafeArea>{children}</SafeArea>
           </TooltipProvider>

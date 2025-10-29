@@ -10,7 +10,13 @@ import "@coinbase/onchainkit/styles.css"
 
 import { ThemeProvider } from "next-themes"
 
-export function RootProvider({ children }: { children: ReactNode }) {
+export function RootProvider({
+  children,
+  cookies,
+}: {
+  children: ReactNode
+  cookies: string | null
+}) {
   return (
     <ThemeProvider
       attribute="class"
@@ -18,7 +24,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
       enableSystem
       storageKey="theme"
     >
-      <Provider>
+      <Provider cookies={cookies}>
         <OnchainKitProvider
           apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
           projectId={process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_ID!}

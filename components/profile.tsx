@@ -2,11 +2,9 @@
 
 import React, { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { Unplug } from "lucide-react"
-import { useAccount, useDisconnect } from "wagmi"
+import { useAccount } from "wagmi"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -23,6 +21,8 @@ import {
 } from "@/components/ui/item"
 import { Spinner } from "@/components/ui/spinner"
 
+import { DisconnectWallet } from "./wallet"
+
 export type MiniAppUser = {
   fid: number
   displayName: string
@@ -38,7 +38,6 @@ export const Profile = React.memo(function Profile({
   onDisconnected?: () => void
 }) {
   const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
   type GmStats = {
     currentStreak: number
     highestStreak: number
@@ -132,17 +131,7 @@ export const Profile = React.memo(function Profile({
       </Card>
       {isConnected && !user && (
         <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-[95%] max-w-lg p-4">
-          <Button
-            variant="outline"
-            className="w-full"
-            aria-label="Disconnect wallet"
-            onClick={() => {
-              disconnect()
-              onDisconnected?.()
-            }}
-          >
-            <Unplug className="mr-2 h-4 w-4" /> Disconnect
-          </Button>
+          <DisconnectWallet onDisconnected={onDisconnected} />
         </div>
       )}
     </div>

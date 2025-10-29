@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { createPublicClient, http, isAddress, type Address } from "viem"
-import { base } from "viem/chains"
+import { base, celo, optimism } from "viem/chains"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
-import { DAILY_GM_ADDRESS } from "@/lib/constants"
+import { getDailyGmAddress } from "@/lib/constants"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
@@ -32,18 +32,24 @@ export async function POST(req: Request) {
       )
     if (!isAddress(address))
       return NextResponse.json({ error: "invalid address" }, { status: 400 })
-    if (!DAILY_GM_ADDRESS)
+    const contractAddress = getDailyGmAddress(chainId)
+    if (!contractAddress)
       return NextResponse.json(
         { error: "DAILY_GM_ADDRESS not configured" },
         { status: 500 }
       )
 
-    // Create viem public client for Base
-    const client = createPublicClient({ chain: base, transport: http() })
+    // Resolve chain by id (support Base, Celo and Optimism)
+    const resolvedChain =
+      chainId === celo.id ? celo : chainId === optimism.id ? optimism : base
+    const client = createPublicClient({
+      chain: resolvedChain,
+      transport: http(),
+    })
 
     // Read onchain lastGMDay for the address
     const onchainLastGmDay = await client.readContract({
-      address: DAILY_GM_ADDRESS as Address,
+      address: contractAddress as Address,
       abi: dailyGMAbi,
       functionName: "lastGMDay",
       args: [address as Address],
