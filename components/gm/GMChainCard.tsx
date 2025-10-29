@@ -5,6 +5,7 @@ import Image from "next/image"
 import {
   Transaction,
   TransactionButton,
+  TransactionSponsor,
   TransactionToast,
   TransactionToastIcon,
   TransactionToastLabel,
@@ -43,6 +44,7 @@ export type GMChainCardProps = {
     hasGmToday: boolean
     targetSec: number
   }) => void
+  sponsored: boolean
 }
 
 export const GMChainCard = React.memo(function GMChainCard({
@@ -53,6 +55,7 @@ export const GMChainCard = React.memo(function GMChainCard({
   isConnected,
   address,
   onStatusChange,
+  sponsored = false,
 }: GMChainCardProps) {
   const { resolvedTheme } = useTheme()
   const [imgSrc, setImgSrc] = useState(iconSrc)
@@ -321,6 +324,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                 <h3 className="text-lg font-semibold">Choose GM Type</h3>
                 <div className="grid gap-3">
                   <Transaction
+                    isSponsored={sponsored}
                     chainId={chainId}
                     calls={[
                       {
@@ -388,6 +392,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                         )
                       }}
                     />
+                    {sponsored && <TransactionSponsor />}
                     <TransactionToast position="top-center">
                       <TransactionToastIcon />
                       <TransactionToastLabel />
@@ -444,6 +449,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                 )}
                 <div className="grid gap-3">
                   <Transaction
+                    isSponsored={sponsored}
                     chainId={chainId}
                     calls={[
                       {
@@ -510,6 +516,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                         )
                       }}
                     />
+                    {sponsored && <TransactionSponsor />}
                     <TransactionToast position="top-center">
                       <TransactionToastIcon />
                       <TransactionToastLabel />

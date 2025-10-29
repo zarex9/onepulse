@@ -23,6 +23,7 @@ export default function Home() {
     [resolvedTheme]
   )
   const [tab, setTab] = useState("home")
+  const isBaseApp = context?.client?.clientFid === 309857;
 
   // Initialize the  miniapp
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="home">
-              <GMBase />
+              <GMBase sponsored={isBaseApp} />
             </TabsContent>
             <TabsContent value="profile">
               <Profile

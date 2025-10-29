@@ -16,7 +16,11 @@ import { GMChainCard } from "@/components/gm/GMChainCard"
 
 import { Button } from "./ui/button"
 
-export const GMBase = React.memo(function GMBase() {
+export const GMBase = React.memo(function GMBase({
+  sponsored,
+}: {
+  sponsored: boolean
+}) {
   const { isConnected, address } = useAppKitAccount()
   // Use stable, theme-agnostic icons at SSR to avoid hydration mismatch.
   const celoIcon = "/celomark.png"
@@ -117,6 +121,7 @@ export const GMBase = React.memo(function GMBase() {
             isConnected={Boolean(isConnected)}
             address={address}
             onStatusChange={handleStatus}
+            sponsored={sponsored && c.id === 8453}
           />
         )
       })}
