@@ -1,4 +1,5 @@
 "use client"
+
 import React, { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
@@ -18,7 +19,6 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
-import { Spinner } from "@/components/ui/spinner"
 import {
   Select,
   SelectContent,
@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 
 export type MiniAppUser = {
   fid: number
@@ -68,7 +69,9 @@ export const Profile = React.memo(function Profile({
     queryKey: ["gm-stats", address ?? "no-address", selectedChainId],
     enabled: Boolean(address),
     queryFn: async (): Promise<GmStats> => {
-      const res = await fetch(`/api/gm/stats?address=${address}&chainId=${selectedChainId}`)
+      const res = await fetch(
+        `/api/gm/stats?address=${address}&chainId=${selectedChainId}`
+      )
       if (!res.ok) throw new Error("Failed to load stats")
       return res.json()
     },
@@ -105,7 +108,9 @@ export const Profile = React.memo(function Profile({
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle>GM Streak</CardTitle>
-            <CardDescription>Select a chain to view your onchain GM stats</CardDescription>
+            <CardDescription>
+              Select a chain to view your onchain GM stats
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <span className="sr-only">Chain</span>

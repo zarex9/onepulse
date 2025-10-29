@@ -263,7 +263,11 @@ export const GMChainCard = React.memo(function GMChainCard({
           <ConnectWallet size="lg" className={`w-[16ch] ${chainBtnClasses}`} />
         ) : !onCorrectChain ? (
           hasGmToday ? (
-            <Button size="lg" className={`w-[16ch] ${chainBtnClasses}`} disabled>
+            <Button
+              size="lg"
+              className={`w-[16ch] ${chainBtnClasses}`}
+              disabled
+            >
               {`GM in ${countdown}`}
             </Button>
           ) : (
@@ -570,9 +574,7 @@ const CustomTransactionToastAction = React.memo(
     if (errorMessage) {
       return (
         <button type="button" onClick={onSubmit}>
-          <span className="text-primary text-sm font-medium">
-            Try again
-          </span>
+          <span className="text-primary text-sm font-medium">Try again</span>
         </button>
       )
     }

@@ -87,7 +87,9 @@ export default function Home() {
         </div>
         {isConnected && !context?.user && (
           <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
-            <DisconnectWallet onDisconnected={() => tab === "profile" && setTab("home")} />
+            <DisconnectWallet
+              onDisconnected={() => tab === "profile" && setTab("home")}
+            />
           </div>
         )}
       </div>

@@ -116,7 +116,9 @@ export async function POST(req: Request) {
       })
     }
 
-    const saved = await prisma.gmStatsByAddress.findFirst({ where: { address, chainId } })
+    const saved = await prisma.gmStatsByAddress.findFirst({
+      where: { address, chainId },
+    })
     if (!saved) {
       return NextResponse.json({ error: "save failed" }, { status: 500 })
     }

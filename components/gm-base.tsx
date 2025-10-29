@@ -124,7 +124,7 @@ export const GMBase = React.memo(function GMBase() {
       {showCongrats && allDone && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 z-10"
+            className="absolute inset-0 z-10 bg-black/40"
             onClick={() => setShowCongrats(false)}
           />
           <Card className="relative z-20 w-full max-w-sm rounded-2xl text-center">
