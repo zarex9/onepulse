@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from "react"
-import { useAccount } from "wagmi"
+import { useAccount, useChainId } from "wagmi"
 
 import { useGmStats } from "@/hooks/use-gm-stats"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -66,7 +66,15 @@ export const Profile = React.memo(function Profile({
     return isSmartWallet ? list.filter((c) => c.id !== 42220) : list
   }, [isSmartWallet])
 
-  const [selectedChainId, setSelectedChainId] = useState<number>(8453)
+  const connectedChainId = useChainId()
+  // Default to the connected chain if it's supported; otherwise fallback to Base (8453)
+  const initialSelected = useMemo(() => {
+    return chains.some((c) => c.id === connectedChainId)
+      ? connectedChainId
+      : 8453
+  }, [chains, connectedChainId])
+  const [selectedChainId, setSelectedChainId] =
+    useState<number>(initialSelected)
   // Ensure selected chain remains valid if list changes
   useEffect(() => {
     if (!chains.find((c) => c.id === selectedChainId)) {
@@ -102,9 +110,7 @@ export const Profile = React.memo(function Profile({
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
             <CardTitle>GM Streak</CardTitle>
-            <CardDescription>
-              Select a chain to view your onchain GM stats
-            </CardDescription>
+            <CardDescription>View GM stats by chain</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <span className="sr-only">Chain</span>
