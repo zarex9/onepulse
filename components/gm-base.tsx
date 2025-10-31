@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import dynamic from "next/dynamic"
 import { useAccount } from "wagmi"
 
 import { DAILY_GM_ADDRESSES } from "@/lib/constants"
@@ -12,10 +13,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Confetti, type ConfettiRef } from "@/components/ui/confetti"
-import { GMChainCard } from "@/components/gm/GMChainCard"
+import type { ConfettiRef } from "@/components/ui/confetti"
+import { GMChainCard } from "@/components/gm-chain-card"
+import { DisconnectWallet } from "@/components/wallet"
 
-import { DisconnectWallet } from "./wallet"
+// Defer canvas-confetti until needed (modal open)
+const Confetti = dynamic(
+  () => import("@/components/ui/confetti").then((m) => m.Confetti),
+  { ssr: false }
+)
 
 export const GMBase = React.memo(function GMBase({
   isSmartWallet,
@@ -74,38 +80,23 @@ export const GMBase = React.memo(function GMBase({
     return targets.length ? Math.min(...targets) : 0
   }, [chains, statusMap])
 
-  const [countdown, setCountdown] = useState("--:--:--")
-  useEffect(() => {
-    if (!allDone || !nextTargetSec) return
-    const fmt = (ms: number) => {
-      const total = Math.max(0, Math.floor(ms / 1000))
-      const h = Math.floor(total / 3600)
-      const m = Math.floor((total % 3600) / 60)
-      const s = total % 60
-      const pad = (n: number) => String(n).padStart(2, "0")
-      return `${pad(h)}:${pad(m)}:${pad(s)}`
-    }
-    const tick = () => {
-      const nowSec = Math.floor(Date.now() / 1000)
-      const ms = Math.max(0, (nextTargetSec - nowSec) * 1000)
-      setCountdown(fmt(ms))
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [allDone, nextTargetSec])
+  // Countdown moved to an isolated child to avoid re-rendering the whole component every second
 
   // Confetti control
   const confettiRef = useRef<ConfettiRef>(null)
   const [showCongrats, setShowCongrats] = useState(false)
 
   useEffect(() => {
-    if (allDone) {
-      const id = setTimeout(() => {
-        setShowCongrats(true)
-        confettiRef.current?.fire()
-      }, 0)
-      return () => clearTimeout(id)
+    if (!allDone) return
+    let rafId: number | null = null
+    const id = setTimeout(() => {
+      setShowCongrats(true)
+      // Align confetti trigger to the next frame to reduce layout thrash
+      rafId = requestAnimationFrame(() => confettiRef.current?.fire())
+    }, 0)
+    return () => {
+      clearTimeout(id)
+      if (rafId) cancelAnimationFrame(rafId)
     }
   }, [allDone])
 
@@ -140,8 +131,9 @@ export const GMBase = React.memo(function GMBase({
             </CardHeader>
             <CardContent>
               <p>
-                You already completed GM on all chains, comeback in {countdown}{" "}
-                to continue your streaks!
+                You already completed GM on all chains, comeback in{" "}
+                <CountdownValue targetSec={nextTargetSec} /> to continue your
+                streaks!
               </p>
             </CardContent>
             <CardFooter>
@@ -158,4 +150,33 @@ export const GMBase = React.memo(function GMBase({
       )}
     </div>
   )
+})
+
+// Lightweight countdown that only updates itself once per second
+const CountdownValue = React.memo(function CountdownValue({
+  targetSec,
+}: {
+  targetSec: number
+}) {
+  const [text, setText] = useState("--:--:--")
+  useEffect(() => {
+    if (!targetSec) return
+    const format = (ms: number) => {
+      const total = Math.max(0, Math.floor(ms / 1000))
+      const h = Math.floor(total / 3600)
+      const m = Math.floor((total % 3600) / 60)
+      const s = total % 60
+      const pad = (n: number) => String(n).padStart(2, "0")
+      return `${pad(h)}:${pad(m)}:${pad(s)}`
+    }
+    const update = () => {
+      const nowSec = Math.floor(Date.now() / 1000)
+      const ms = Math.max(0, (targetSec - nowSec) * 1000)
+      setText(format(ms))
+    }
+    update()
+    const id = setInterval(update, 1000)
+    return () => clearInterval(id)
+  }, [targetSec])
+  return <>{text}</>
 })

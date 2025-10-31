@@ -142,27 +142,7 @@ export const GMChainCard = React.memo(function GMChainCard({
     notifyStatus()
   }, [notifyStatus])
 
-  // Live countdown if already GM'd today
-  const [countdown, setCountdown] = useState("--:--:--")
-  useEffect(() => {
-    if (!hasGmToday || !targetSec) return
-    const fmt = (ms: number) => {
-      const total = Math.max(0, Math.floor(ms / 1000))
-      const h = Math.floor(total / 3600)
-      const m = Math.floor((total % 3600) / 60)
-      const s = total % 60
-      const pad = (n: number) => String(n).padStart(2, "0")
-      return `${pad(h)}:${pad(m)}:${pad(s)}`
-    }
-    const tick = () => {
-      const nowSec = Math.floor(Date.now() / 1000)
-      const ms = Math.max(0, (targetSec - nowSec) * 1000)
-      setCountdown(fmt(ms))
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [hasGmToday, targetSec])
+  // Countdown moved into a lightweight child to avoid re-rendering the whole card every second
 
   const close = useCallback(() => {
     setOpen(false)
@@ -350,7 +330,7 @@ export const GMChainCard = React.memo(function GMChainCard({
               className={`w-[16ch] ${chainBtnClasses}`}
               disabled
             >
-              {`GM in ${countdown}`}
+              <CountdownText targetSec={targetSec} />
             </Button>
           ) : (
             <Button
@@ -389,7 +369,7 @@ export const GMChainCard = React.memo(function GMChainCard({
               if (!gmDisabled) setOpen(true)
             }}
           >
-            {hasGmToday ? `GM in ${countdown}` : ctaText}
+            {hasGmToday ? <CountdownText targetSec={targetSec} /> : ctaText}
           </Button>
         )}
       </ItemActions>
@@ -728,3 +708,40 @@ const CustomTransactionToastAction = React.memo(
     return null
   }
 )
+
+// Lightweight countdown display to minimize parent re-renders
+const CountdownText = React.memo(function CountdownText({
+  targetSec,
+}: {
+  targetSec: number
+}) {
+  const [text, setText] = useState("GM in --:--:--")
+  const rafRef = useRef<number | null>(null)
+  const intervalRef = useRef<number | null>(null)
+
+  const format = useCallback((ms: number) => {
+    const total = Math.max(0, Math.floor(ms / 1000))
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const s = total % 60
+    const pad = (n: number) => String(n).padStart(2, "0")
+    return `GM in ${pad(h)}:${pad(m)}:${pad(s)}`
+  }, [])
+
+  useEffect(() => {
+    const update = () => {
+      const nowSec = Math.floor(Date.now() / 1000)
+      const ms = Math.max(0, (targetSec - nowSec) * 1000)
+      setText(format(ms))
+    }
+    // Align the first paint, then tick every second
+    rafRef.current = window.requestAnimationFrame(() => update())
+    intervalRef.current = window.setInterval(update, 1000)
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [targetSec, format])
+
+  return <>{text}</>
+})

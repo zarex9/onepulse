@@ -27,8 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
-
-import { DisconnectWallet } from "./wallet"
+import { DisconnectWallet } from "@/components/wallet"
 
 export type MiniAppUser = {
   fid: number
