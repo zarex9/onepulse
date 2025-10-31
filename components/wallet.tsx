@@ -1,4 +1,4 @@
-import { useIsInMiniApp } from "@coinbase/onchainkit/minikit"
+import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { ConnectWallet as Connect } from "@coinbase/onchainkit/wallet"
 import { type VariantProps } from "class-variance-authority"
 import { Unplug } from "lucide-react"
@@ -26,11 +26,13 @@ function ConnectWallet({
 function DisconnectWallet({ onDisconnected }: { onDisconnected?: () => void }) {
   const { isConnected } = useAccount()
   const { disconnect } = useDisconnect()
-  const { isInMiniApp } = useIsInMiniApp()
+  const { context } = useMiniKit()
+
+  const isInMiniApp = Boolean(context?.user)
   return (
     isConnected &&
     !isInMiniApp && (
-      <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-[95%] max-w-lg p-4">
+      <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
         <Button
           variant="outline"
           className="w-full"
