@@ -4,7 +4,9 @@ import { base, celo, optimism } from "viem/chains"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
 import { getDailyGmAddress } from "@/lib/constants"
-import { prisma } from "@/lib/prisma"
+import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection"
+
+export const runtime = "nodejs" // require Node for WebSocket client
 
 export async function POST(req: Request) {
   try {
@@ -55,79 +57,31 @@ export async function POST(req: Request) {
       args: [address as Address],
     })
 
-    // Fetch current stats (or create with defaults)
-    const existing = await prisma.gmStatsByAddress.findFirst({
-      where: { address, chainId },
-    })
-
-    let currentStreak = existing?.currentStreak ?? 0
-    let highestStreak = existing?.highestStreak ?? 0
-    let allTimeGmCount = existing?.allTimeGmCount ?? 0
-    let lastGmDay = existing?.lastGmDay ?? 0
-
-    // Normalize bigint to number (contract returns bigint via viem)
     const lastGmDayOnchain = Number(onchainLastGmDay)
 
-    // Idempotent update logic
-    if (lastGmDayOnchain > lastGmDay) {
-      // Count how many days passed
-      const delta = lastGmDayOnchain - lastGmDay
-      if (delta === 1) {
-        currentStreak += 1
-      } else {
-        currentStreak = 1 // streak reset then first day again
-      }
-      highestStreak = Math.max(highestStreak, currentStreak)
-      allTimeGmCount += 1
-      lastGmDay = lastGmDayOnchain
-    }
-
-    const updateData = {
+    const updated = await callReportGm({
+      address,
       chainId,
-      currentStreak,
-      highestStreak,
-      allTimeGmCount,
-      lastGmDay,
-      lastTxHash: txHash ?? existing?.lastTxHash ?? null,
-      displayName: displayName ?? existing?.displayName ?? null,
-      username: username ?? existing?.username ?? null,
-      fid: typeof fid === "number" ? BigInt(fid) : (existing?.fid ?? null),
-    }
-
-    const updateRes = await prisma.gmStatsByAddress.updateMany({
-      where: { address, chainId },
-      data: updateData,
+      lastGmDayOnchain,
+      txHash,
+      fid: typeof fid === "number" ? BigInt(fid) : undefined,
+      displayName,
+      username,
     })
 
-    if (updateRes.count === 0) {
-      await prisma.gmStatsByAddress.create({
-        data: {
-          address,
-          chainId,
-          currentStreak,
-          highestStreak,
-          allTimeGmCount,
-          lastGmDay,
-          lastTxHash: txHash ?? null,
-          displayName: displayName ?? null,
-          username: username ?? null,
-          fid: typeof fid === "number" ? BigInt(fid) : null,
-        },
-      })
-    }
-
-    const saved = await prisma.gmStatsByAddress.findFirst({
-      where: { address, chainId },
-    })
-    if (!saved) {
-      return NextResponse.json({ error: "save failed" }, { status: 500 })
+    const row = updated ?? (await getGmRows(address, chainId)).at(0) ?? null
+    if (!row) {
+      return NextResponse.json(
+        { error: "spacetimedb_update_failed" },
+        { status: 500 }
+      )
     }
     return NextResponse.json({
-      address: saved.address,
-      currentStreak: saved.currentStreak,
-      highestStreak: saved.highestStreak,
-      allTimeGmCount: saved.allTimeGmCount,
-      lastGmDay: saved.lastGmDay,
+      address: row.address,
+      currentStreak: row.currentStreak,
+      highestStreak: row.highestStreak,
+      allTimeGmCount: row.allTimeGmCount,
+      lastGmDay: row.lastGmDay,
     })
   } catch (e) {
     console.error("/api/gm/report error", e)

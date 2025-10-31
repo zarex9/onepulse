@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useTheme } from "next-themes"
 import { isAddress, type Address } from "viem"
 import { useChainId, useReadContract, useSwitchChain } from "wagmi"
+import { base, celo, optimism } from "wagmi/chains"
 import { useShowCallsStatus } from "wagmi/experimental"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
@@ -96,7 +97,7 @@ export const GMChainCard = React.memo(function GMChainCard({
     refetch: refetchLastGmDay,
     isPending: isPendingLastGm,
   } = useReadContract({
-    chainId,
+    chainId: chainId as typeof base.id | typeof celo.id | typeof optimism.id,
     abi: dailyGMAbi,
     address: contractAddress,
     functionName: "lastGMDay",
@@ -279,7 +280,12 @@ export const GMChainCard = React.memo(function GMChainCard({
               className={`w-[16ch] ${chainBtnClasses}`}
               onClick={async () => {
                 try {
-                  await switchChain({ chainId })
+                  await switchChain({
+                    chainId: chainId as
+                      | typeof base.id
+                      | typeof celo.id
+                      | typeof optimism.id,
+                  })
                 } catch (e) {
                   console.error("Failed to switch chain", e)
                 }

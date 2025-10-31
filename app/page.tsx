@@ -42,7 +42,21 @@ export default function Home() {
   // Detect Coinbase Smart Wallet after connected
   useEffect(() => {
     if (!isConnected || !address) return
-    const userOperation = { sender: address } as RpcUserOperation<"0.6">
+    // Provide a minimal, well-formed ERC-4337 v0.6 UserOp so the checker
+    // doesn't access undefined fields (which causes substring errors)
+    const userOperation: RpcUserOperation<"0.6"> = {
+      sender: address as `0x${string}`,
+      nonce: "0x0",
+      initCode: "0x",
+      callData: "0x",
+      callGasLimit: "0x0",
+      verificationGasLimit: "0x0",
+      preVerificationGas: "0x0",
+      maxFeePerGas: "0x0",
+      maxPriorityFeePerGas: "0x0",
+      paymasterAndData: "0x",
+      signature: "0x",
+    }
     ;(async () => {
       try {
         const res = await isWalletACoinbaseSmartWallet({
@@ -114,6 +128,7 @@ export default function Home() {
                       }
                     : undefined
                 }
+                onDisconnected={() => setTab("home")}
               />
             </TabsContent>
           </Tabs>

@@ -1,45 +1,49 @@
-import { useAppKit, useDisconnect } from "@reown/appkit/react"
+import { useIsInMiniApp } from "@coinbase/onchainkit/minikit"
+import { ConnectWallet as Connect } from "@coinbase/onchainkit/wallet"
 import { type VariantProps } from "class-variance-authority"
 import { Unplug } from "lucide-react"
+import { useAccount, useDisconnect } from "wagmi"
 
+import { cn } from "@/lib/utils"
 import { Button, type buttonVariants } from "@/components/ui/button"
 
 type ButtonSize = VariantProps<typeof buttonVariants>["size"]
 function ConnectWallet({
-  size = "default" as ButtonSize,
+  size = "lg" as ButtonSize,
   className,
 }: {
   size?: ButtonSize
   className?: string
 }) {
-  const { open } = useAppKit()
-
+  const buttonSize = size === "lg" ? "size-lg" : "size-sm"
   return (
-    <Button
-      size={size}
-      className={className}
-      onClick={() => open({ view: "Connect", namespace: "eip155" })}
-    >
+    <Connect className={cn(className, buttonSize)} aria-label="Connect wallet">
       Connect Wallet
-    </Button>
+    </Connect>
   )
 }
 
 function DisconnectWallet({ onDisconnected }: { onDisconnected?: () => void }) {
+  const { isConnected } = useAccount()
   const { disconnect } = useDisconnect()
-
+  const { isInMiniApp } = useIsInMiniApp()
   return (
-    <Button
-      variant="outline"
-      className="w-full"
-      aria-label="Disconnect wallet"
-      onClick={async () => {
-        await disconnect({ namespace: "eip155" })
-        onDisconnected?.()
-      }}
-    >
-      <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
-    </Button>
+    isConnected &&
+    !isInMiniApp && (
+      <div className="fixed inset-x-0 bottom-0 z-50 mx-auto w-[95%] max-w-lg p-4">
+        <Button
+          variant="outline"
+          className="w-full"
+          aria-label="Disconnect wallet"
+          onClick={() => {
+            disconnect()
+            onDisconnected?.()
+          }}
+        >
+          <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
+        </Button>
+      </div>
+    )
   )
 }
 

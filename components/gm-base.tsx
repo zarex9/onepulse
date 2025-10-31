@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useAppKitAccount } from "@reown/appkit/react"
+import { useAccount } from "wagmi"
 
 import { DAILY_GM_ADDRESSES } from "@/lib/constants"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -14,16 +15,19 @@ import {
 import { Confetti, type ConfettiRef } from "@/components/ui/confetti"
 import { GMChainCard } from "@/components/gm/GMChainCard"
 
-import { Button } from "./ui/button"
+import { DisconnectWallet } from "./wallet"
 
 export const GMBase = React.memo(function GMBase({
   isSmartWallet,
   sponsored,
+  onDisconnected,
 }: {
   isSmartWallet?: boolean
   sponsored?: boolean
+  onDisconnected?: () => void
 }) {
-  const { isConnected, address } = useAppKitAccount()
+  const { isConnected, address } = useAccount()
+
   // Use stable, theme-agnostic icons at SSR to avoid hydration mismatch.
   const celoIcon = "/celomark.png"
   const opIcon = "/opmark.png"
@@ -128,7 +132,7 @@ export const GMBase = React.memo(function GMBase({
           />
         )
       })}
-
+      <DisconnectWallet onDisconnected={onDisconnected} />
       {showCongrats && allDone && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div

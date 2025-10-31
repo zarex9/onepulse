@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 
+import { DisconnectWallet } from "./wallet"
+
 export type MiniAppUser = {
   fid: number
   displayName: string
@@ -38,9 +40,11 @@ export type MiniAppUser = {
 export const Profile = React.memo(function Profile({
   user,
   isSmartWallet,
+  onDisconnected,
 }: {
   user?: MiniAppUser
   isSmartWallet?: boolean
+  onDisconnected?: () => void
 }) {
   const { address } = useAccount()
   type GmStats = {
@@ -172,6 +176,7 @@ export const Profile = React.memo(function Profile({
           )}
         </CardContent>
       </Card>
+      <DisconnectWallet onDisconnected={onDisconnected} />
     </div>
   )
 })

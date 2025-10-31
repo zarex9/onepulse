@@ -10,13 +10,9 @@ import "@coinbase/onchainkit/styles.css"
 
 import { ThemeProvider } from "next-themes"
 
-export function RootProvider({
-  children,
-  cookies,
-}: {
-  children: ReactNode
-  cookies: string | null
-}) {
+import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider"
+
+export function RootProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider
       attribute="class"
@@ -24,7 +20,7 @@ export function RootProvider({
       enableSystem
       storageKey="theme"
     >
-      <Provider cookies={cookies}>
+      <Provider>
         <OnchainKitProvider
           apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
           projectId={process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_ID!}
@@ -52,7 +48,7 @@ export function RootProvider({
             notificationProxyUrl: undefined,
           }}
         >
-          {children}
+          <SpacetimeDBProvider>{children}</SpacetimeDBProvider>
         </OnchainKitProvider>
       </Provider>
     </ThemeProvider>

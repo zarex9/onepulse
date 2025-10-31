@@ -1,7 +1,6 @@
 import { Metadata } from "next"
 import type { Viewport } from "next"
 import { Inter, Roboto_Mono } from "next/font/google"
-import { headers } from "next/headers"
 import { minikitConfig } from "@/minikit.config"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 import { Analytics } from "@vercel/analytics/next"
@@ -81,9 +80,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const headersData = await headers()
-  const cookies = headersData.get("cookie")
-
   return (
     <html
       lang="en"
@@ -91,7 +87,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        <RootProvider cookies={cookies}>
+        <RootProvider>
           <TooltipProvider delayDuration={0}>
             <SafeArea>
               {children}
