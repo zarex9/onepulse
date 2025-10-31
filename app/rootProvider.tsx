@@ -11,6 +11,7 @@ import "@coinbase/onchainkit/styles.css"
 import { ThemeProvider } from "next-themes"
 
 import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider"
+import { ColorSchemeSync } from "@/components/providers/color-scheme-sync"
 
 export function RootProvider({ children }: { children: ReactNode }) {
   return (
@@ -48,6 +49,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
             notificationProxyUrl: undefined,
           }}
         >
+          <ColorSchemeSync />
           <SpacetimeDBProvider>{children}</SpacetimeDBProvider>
         </OnchainKitProvider>
       </Provider>

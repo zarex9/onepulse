@@ -26,26 +26,30 @@ export const getDbConnection = (): DbConnection => {
 }
 
 const buildDbConnection = () => {
-  const uri = process.env.SPACETIMEDB_HOST_URL || "ws://127.0.0.1:3000"
+  const uri =
+    process.env.SPACETIMEDB_HOST ||
+    process.env.SPACETIMEDB_HOST_URL ||
+    "ws://127.0.0.1:3000"
   const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse"
-  console.log("[SpacetimeDB] Building connection...")
-  return DbConnection.builder()
+  const token = getAuthToken()
+  const builder = DbConnection.builder()
     .withUri(uri)
     .withModuleName(moduleName)
-    .withToken(getAuthToken())
     .onConnect(onConnect)
     .onDisconnect(onDisconnect)
     .onConnectError(onConnectError)
-    .build()
+
+  if (token) builder.withToken(token)
+
+  return builder.build()
 }
 
 const getAuthToken = () => {
-  return ""
+  return process.env.SPACETIMEDB_TOKEN || ""
 }
 
 export const disconnectDbConnection = () => {
   if (singletonConnection) {
-    console.log("[SpacetimeDB] Disconnecting...")
     singletonConnection.disconnect()
     singletonConnection = null
   }

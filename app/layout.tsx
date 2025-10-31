@@ -12,6 +12,8 @@ import { RootProvider } from "./rootProvider"
 
 import "./globals.css"
 
+import { cn } from "@/lib/utils"
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -68,7 +70,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
@@ -81,12 +84,14 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${roboto_mono.variable} antialiased`}
-      suppressHydrationWarning
-    >
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(
+          inter.variable,
+          roboto_mono.variable,
+          "font-sans antialiased"
+        )}
+      >
         <RootProvider>
           <TooltipProvider delayDuration={0}>
             <SafeArea>

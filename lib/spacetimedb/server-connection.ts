@@ -1,14 +1,18 @@
 import { DbConnection, type GmStatsByAddress } from "@/lib/module_bindings"
 
-// Server-only SpacetimeDB connection builder (no 'use client')
+// Server-only SpacetimeDB connection builder
 export function buildServerDbConnection(): DbConnection {
-  const uri = process.env.SPACETIMEDB_HOST_URL || "ws://127.0.0.1:3000"
+  const uri =
+    process.env.SPACETIMEDB_HOST ||
+    process.env.SPACETIMEDB_HOST_URL ||
+    "ws://127.0.0.1:3000"
   const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse"
-  return DbConnection.builder()
+  const token = process.env.SPACETIMEDB_TOKEN || ""
+  const builder = DbConnection.builder()
     .withUri(uri)
     .withModuleName(moduleName)
-    .withToken("")
-    .build()
+  if (token) builder.withToken(token)
+  return builder.build()
 }
 
 export async function subscribeOnce(
@@ -40,17 +44,20 @@ export async function connectServerDbConnection(
 ): Promise<DbConnection> {
   return await new Promise<DbConnection>((resolve, reject) => {
     let resolved = false
-    const uri = process.env.SPACETIMEDB_HOST_URL || "ws://127.0.0.1:3000"
+    const uri =
+      process.env.SPACETIMEDB_HOST ||
+      process.env.SPACETIMEDB_HOST_URL ||
+      "ws://127.0.0.1:3000"
     const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse"
+    const token = process.env.SPACETIMEDB_TOKEN || ""
     const timer = setTimeout(() => {
       if (!resolved) {
         reject(new Error("SpacetimeDB connect timeout"))
       }
     }, timeoutMs)
-    const built = DbConnection.builder()
+    const builder = DbConnection.builder()
       .withUri(uri)
       .withModuleName(moduleName)
-      .withToken("")
       .onConnect(() => {
         if (!resolved) {
           resolved = true
@@ -65,7 +72,8 @@ export async function connectServerDbConnection(
           reject(new Error("SpacetimeDB connect error"))
         }
       })
-      .build()
+    if (token) builder.withToken(token)
+    const built = builder.build()
   })
 }
 

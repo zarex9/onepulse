@@ -23,7 +23,6 @@ export const onConnect = (
   identity: Identity,
   token: string
 ) => {
-  console.log("[SpacetimeDB] Connection established.")
   connectionStatus.isConnected = true
   connectionStatus.error = null
   connectionStatus.identity = identity
@@ -34,14 +33,13 @@ export const onConnect = (
 }
 
 export const onDisconnect = () => {
-  console.warn("[SpacetimeDB] Disconnected.")
   connectionStatus.isConnected = false
   connectionStatus.isSubscribed = false
   notifyConnectionDisconnected()
 }
 
-export const onConnectError = (ctx: ErrorContext, error: Error) => {
-  console.error("[SpacetimeDB] Connection Error:", error)
+export const onConnectError = (_ctx: ErrorContext, error: Error) => {
+  void _ctx
   connectionStatus.isConnected = false
   connectionStatus.isSubscribed = false
   connectionStatus.error = error
@@ -52,21 +50,18 @@ export const subscribeToQueries = (conn: DbConnection, queries: string[]) => {
   conn
     ?.subscriptionBuilder()
     .onApplied(() => {
-      console.log("[SpacetimeDB] Subscribed to queries.")
       connectionStatus.isSubscribed = true
       notifySubscriptionApplied()
     })
     .onError(
       (
-        ctx: ErrorContextInterface<
+        _ctx: ErrorContextInterface<
           RemoteTables,
           RemoteReducers,
           SetReducerFlags
         >
       ) => {
-        console.error(
-          "[SpacetimeDB] Error subscribing to SpacetimeDB " + ctx.event
-        )
+        void _ctx
         connectionStatus.isSubscribed = false
         notifySubscriptionError()
       }

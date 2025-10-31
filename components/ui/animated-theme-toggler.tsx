@@ -47,14 +47,7 @@ export const AnimatedThemeToggler = ({
 
     const nextTheme = isDark ? "light" : "dark"
 
-    await document.startViewTransition(() => {
-      flushSync(() => {
-        setIsDark(nextTheme === "dark")
-        // Set class deterministically to avoid double toggles
-        document.documentElement.classList.toggle("dark", nextTheme === "dark")
-      })
-    }).ready
-
+    // Read layout before we make any DOM writes to avoid sync reflow
     const { top, left, width, height } =
       buttonRef.current.getBoundingClientRect()
     const x = left + width / 2
@@ -64,19 +57,32 @@ export const AnimatedThemeToggler = ({
       Math.max(top, window.innerHeight - top)
     )
 
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${maxRadius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration,
-        easing: "ease-in-out",
-        pseudoElement: "::view-transition-new(root)",
-      }
-    )
+    const vt = document.startViewTransition(() => {
+      flushSync(() => {
+        setIsDark(nextTheme === "dark")
+        // Set class deterministically to avoid double toggles
+        document.documentElement.classList.toggle("dark", nextTheme === "dark")
+      })
+    })
+
+    await vt.ready
+
+    // Defer animation kick-off to the next frame to separate reads/writes
+    requestAnimationFrame(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${maxRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        }
+      )
+    })
 
     // Update next-themes so resolvedTheme updates across the app
     setTheme(nextTheme)

@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import Image from "next/image"
 import {
   Transaction,
   TransactionButton,
@@ -12,7 +11,6 @@ import {
   useTransactionContext,
 } from "@coinbase/onchainkit/transaction"
 import { useQueryClient } from "@tanstack/react-query"
-import { useTheme } from "next-themes"
 import { isAddress, type Address } from "viem"
 import { useChainId, useReadContract, useSwitchChain } from "wagmi"
 import { base, celo, optimism } from "wagmi/chains"
@@ -20,7 +18,13 @@ import { useShowCallsStatus } from "wagmi/experimental"
 
 import { dailyGMAbi } from "@/lib/abi/dailyGM"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Item,
   ItemActions,
@@ -29,6 +33,7 @@ import {
   ItemMedia,
 } from "@/components/ui/item"
 import { Spinner } from "@/components/ui/spinner"
+import { Icons } from "@/components/icons"
 import { ConnectWallet } from "@/components/wallet"
 
 type TransactionStatus = "default" | "success" | "error" | "pending"
@@ -36,7 +41,6 @@ type TransactionStatus = "default" | "success" | "error" | "pending"
 export type GMChainCardProps = {
   chainId: number
   name: string
-  iconSrc?: string
   contractAddress: `0x${string}`
   isConnected: boolean
   address?: string
@@ -51,28 +55,12 @@ export type GMChainCardProps = {
 export const GMChainCard = React.memo(function GMChainCard({
   chainId,
   name,
-  iconSrc = "/basemark.png",
   contractAddress,
   isConnected,
   address,
   onStatusChange,
   sponsored = false,
 }: GMChainCardProps) {
-  const { resolvedTheme } = useTheme()
-  const [imgSrc, setImgSrc] = useState(iconSrc)
-  // After mount or theme change, swap to theme-specific variant for known chains (client-only to avoid SSR mismatch)
-  useEffect(() => {
-    const lower = name.toLowerCase()
-    if (lower === "celo") {
-      setImgSrc(
-        resolvedTheme === "light" ? "/celomark-dark.png" : "/celomark.png"
-      )
-    } else if (lower === "optimism") {
-      setImgSrc(resolvedTheme === "light" ? "/opmark-dark.png" : "/opmark.png")
-    } else {
-      setImgSrc(iconSrc)
-    }
-  }, [iconSrc, name, resolvedTheme])
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<"main" | "gmTo">("main")
   const [recipient, setRecipient] = useState("")
@@ -89,7 +77,9 @@ export const GMChainCard = React.memo(function GMChainCard({
       : ""
 
   const isContractReady = Boolean(contractAddress)
-  const isRecipientValid = recipient !== "" && isAddress(recipient)
+  const sanitizedRecipient = useMemo(() => recipient.trim(), [recipient])
+  const isRecipientValid =
+    sanitizedRecipient !== "" && isAddress(sanitizedRecipient)
 
   // Onchain: lastGMDay(address) on this chain
   const {
@@ -181,6 +171,94 @@ export const GMChainCard = React.memo(function GMChainCard({
     setProcessing(false)
   }, [])
 
+  // Focus trap helpers for the modal dialog
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const lastActiveRef = useRef<HTMLElement | null>(null)
+
+  const getFocusableElements = useCallback((container: HTMLElement) => {
+    const selectors = [
+      "a[href]",
+      "button:not([disabled])",
+      "textarea:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(",")
+    const nodes = Array.from(container.querySelectorAll<HTMLElement>(selectors))
+    return nodes.filter((el) => {
+      const style = window.getComputedStyle(el)
+      const notHidden =
+        style.visibility !== "hidden" && style.display !== "none"
+      const notAriaHidden = el.getAttribute("aria-hidden") !== "true"
+      return notHidden && notAriaHidden && !el.hasAttribute("disabled")
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const container = dialogRef.current
+    if (!container) return
+
+    // Save previously focused element
+    lastActiveRef.current = (document.activeElement as HTMLElement) ?? null
+
+    // Set initial focus
+    const focusables = getFocusableElements(container)
+    const target = focusables[0] ?? container
+    ;(target as HTMLElement).focus()
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (!processing) {
+          e.preventDefault()
+          close()
+        }
+        return
+      }
+      if (e.key !== "Tab") return
+      const list = getFocusableElements(container)
+      if (list.length === 0) {
+        e.preventDefault()
+        ;(container as HTMLElement).focus()
+        return
+      }
+      const first = list[0]
+      const last = list[list.length - 1]
+      const active = (document.activeElement as HTMLElement) ?? null
+      const isShift = e.shiftKey
+      if (isShift) {
+        if (!active || active === first || !container.contains(active)) {
+          e.preventDefault()
+          last.focus()
+        }
+      } else {
+        if (!active || active === last || !container.contains(active)) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    container.addEventListener("keydown", handleKeyDown)
+    return () => {
+      container.removeEventListener("keydown", handleKeyDown)
+      const prev = lastActiveRef.current
+      if (prev && typeof prev.focus === "function") {
+        prev.focus()
+      }
+    }
+  }, [open, close, getFocusableElements, processing])
+
+  // Prevent background scroll when modal is open (mobile friendly)
+  useEffect(() => {
+    if (!open) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open])
+
   function SuccessReporter({
     status,
     onReported,
@@ -242,23 +320,23 @@ export const GMChainCard = React.memo(function GMChainCard({
     <Item variant="outline">
       <ItemContent>
         <ItemMedia>
-          <Image
-            src={imgSrc}
-            alt={name}
-            width={96}
-            height={32}
-            className="h-8 object-contain"
-            onError={() => {
-              const lower = name.toLowerCase()
-              const fallback =
-                lower === "celo"
-                  ? "/celomark.png"
-                  : lower === "optimism"
-                    ? "/opmark.png"
-                    : "/basemark.png"
-              if (imgSrc !== fallback) setImgSrc(fallback)
-            }}
-          />
+          {(() => {
+            const lower = name.toLowerCase()
+            const Svg =
+              lower === "celo"
+                ? Icons.celo
+                : lower === "optimism"
+                  ? Icons.optimism
+                  : Icons.base
+            return (
+              <Svg
+                className="h-8 w-24 text-current"
+                role="img"
+                aria-label={`${name} wordmark`}
+                focusable={false}
+              />
+            )
+          })()}
         </ItemMedia>
         <ItemDescription>Boost your {name} onchain footprint.</ItemDescription>
       </ItemContent>
@@ -317,18 +395,31 @@ export const GMChainCard = React.memo(function GMChainCard({
       </ItemActions>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`gm-dialog-title-${chainId}`}
+          ref={dialogRef}
+        >
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => {
               if (!processing) close()
             }}
           />
-          <Card className="relative z-10 w-full max-w-sm rounded-2xl p-4">
+          <Card className="relative z-10 w-full max-w-sm p-4" tabIndex={-1}>
             {mode === "main" ? (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Choose GM Type</h3>
-                <div className="grid gap-3">
+              <>
+                <CardHeader>
+                  <CardTitle
+                    id={`gm-dialog-title-${chainId}`}
+                    className="text-center text-lg"
+                  >
+                    Choose GM Type
+                  </CardTitle>
+                </CardHeader>
+                <CardFooter className="flex-col gap-2">
                   <Transaction
                     isSponsored={sponsored}
                     chainId={chainId}
@@ -376,6 +467,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                               disabled={isDisabled}
                               className={`w-full ${chainBtnClasses}`}
                               aria-busy={status === "pending"}
+                              autoFocus
                             >
                               {status === "pending" ? (
                                 <>
@@ -424,36 +516,53 @@ export const GMChainCard = React.memo(function GMChainCard({
                   >
                     Cancel
                   </Button>
-                </div>
-              </div>
+                </CardFooter>
+              </>
             ) : (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Fren&#39;s Address</h3>
-                <input
-                  type="text"
-                  placeholder="0x..."
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  disabled={processing}
-                  className="w-full rounded-md border bg-transparent px-3 py-2"
-                  aria-label="Recipient wallet address"
-                  aria-invalid={recipient !== "" && !isRecipientValid}
-                  aria-describedby={
-                    recipient !== "" && !isRecipientValid
-                      ? "recipient-error"
-                      : undefined
-                  }
-                />
-                {recipient && !isRecipientValid && (
-                  <p
-                    id="recipient-error"
-                    className="text-sm text-red-500"
-                    role="alert"
+              <>
+                <CardHeader>
+                  <CardTitle
+                    id={`gm-dialog-title-${chainId}`}
+                    className="text-center text-lg"
                   >
-                    Enter a valid address.
-                  </p>
-                )}
-                <div className="grid gap-3">
+                    Fren&#39;s Address
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <input
+                    type="text"
+                    placeholder="0x..."
+                    value={recipient}
+                    onChange={(e) => setRecipient(e.target.value)}
+                    disabled={processing}
+                    className="w-full rounded-md border bg-transparent px-3 py-2"
+                    aria-label="Recipient wallet address"
+                    aria-invalid={
+                      sanitizedRecipient !== "" && !isRecipientValid
+                    }
+                    aria-describedby={
+                      sanitizedRecipient !== "" && !isRecipientValid
+                        ? "recipient-error"
+                        : undefined
+                    }
+                    autoComplete="off"
+                    spellCheck={false}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    inputMode="text"
+                    autoFocus
+                  />
+                  {sanitizedRecipient && !isRecipientValid && (
+                    <p
+                      id="recipient-error"
+                      className="text-sm text-red-500"
+                      role="alert"
+                    >
+                      Enter a valid address.
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="flex-col gap-2">
                   <Transaction
                     isSponsored={sponsored}
                     chainId={chainId}
@@ -462,7 +571,7 @@ export const GMChainCard = React.memo(function GMChainCard({
                         abi: dailyGMAbi,
                         address: contractAddress,
                         functionName: "gmTo",
-                        args: [recipient as `0x${string}`],
+                        args: [sanitizedRecipient as `0x${string}`],
                       },
                     ]}
                   >
@@ -538,8 +647,8 @@ export const GMChainCard = React.memo(function GMChainCard({
                   >
                     Back
                   </Button>
-                </div>
-              </div>
+                </CardFooter>
+              </>
             )}
           </Card>
         </div>
@@ -608,7 +717,7 @@ const CustomTransactionToastAction = React.memo(
     if (transactionHash) {
       const href = `${getExplorerUrl(accountChainId)}/tx/${transactionHash}`
       return (
-        <a href={href} target="_blank" rel="noreferrer">
+        <a href={href} target="_blank" rel="noopener noreferrer">
           <span className="text-primary text-sm font-medium">
             View transaction
           </span>

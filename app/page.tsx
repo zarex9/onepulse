@@ -14,13 +14,12 @@ import {
 import { base } from "viem/chains"
 import { useAccount } from "wagmi"
 
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { Particles } from "@/components/ui/particles"
-import { SparklesText } from "@/components/ui/sparkles-text"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GMBase } from "@/components/gm-base"
 import { Profile } from "@/components/profile"
 import { DisconnectWallet } from "@/components/wallet"
+import { ModeToggle } from "@/components/mode-toggle"
 
 const publicClient = createPublicClient({
   chain: base,
@@ -91,10 +90,10 @@ export default function Home() {
     <div style={safeAreaStyle}>
       <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
         <div className="mt-3 mb-6 flex items-center justify-between">
-          <SparklesText className="justify-left text-2xl">
+          <div className="justify-left text-2xl font-bold">
             {minikitConfig.miniapp.name}
-          </SparklesText>
-          <AnimatedThemeToggler />
+          </div>
+          <ModeToggle />
         </div>
         <div className="mt-4 mb-6">
           <Tabs value={tab} onValueChange={setTab}>
