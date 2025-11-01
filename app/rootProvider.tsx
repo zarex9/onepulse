@@ -6,7 +6,7 @@ import { base } from "wagmi/chains"
 
 import Provider from "@/components/providers/wagmi-provider"
 
-import "@coinbase/onchainkit/styles.css"
+import "@/styles/onchainkit.css"
 
 import { ThemeProvider } from "next-themes"
 

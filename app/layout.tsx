@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import type { Viewport } from "next"
-import { Inter, Roboto_Mono } from "next/font/google"
+import { Geist, Geist_Mono } from "next/font/google"
 import { minikitConfig } from "@/minikit.config"
 import { SafeArea } from "@coinbase/onchainkit/minikit"
 import { Analytics } from "@vercel/analytics/next"
@@ -14,15 +14,13 @@ import "./globals.css"
 
 import { cn } from "@/lib/utils"
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
   display: "swap",
 })
 
-const roboto_mono = Roboto_Mono({
+const geist_mono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-roboto-mono",
   display: "swap",
 })
 
@@ -87,8 +85,8 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          inter.variable,
-          roboto_mono.variable,
+          geist.className,
+          geist_mono.className,
           "font-sans antialiased"
         )}
       >

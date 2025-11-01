@@ -1,4 +1,8 @@
 const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    inlineCss: true,
+  },
   // Opt into Turbopack configuration (Next 16+)
   turbopack: {},
   // Ensure TypeScript in spacetimedb's dev export (./src/*.ts) is transpiled by Turbopack

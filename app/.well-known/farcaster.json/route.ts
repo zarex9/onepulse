@@ -44,12 +44,5 @@ export async function GET() {
       ogImageUrl: minikitConfig.miniapp.ogImageUrl,
     }),
   }
-  return Response.json(body, {
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      // Strongly discourage intermediaries and clients from caching the manifest
-      "Cache-Control":
-        "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0",
-    },
-  })
+  return Response.json(body)
 }

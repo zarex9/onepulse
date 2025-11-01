@@ -322,20 +322,16 @@ export const GMChainCard = React.memo(function GMChainCard({
       </ItemContent>
       <ItemActions>
         {!isConnected ? (
-          <ConnectWallet size="lg" className={`w-[16ch] ${chainBtnClasses}`} />
+          <ConnectWallet size="lg" className={`w-40 ${chainBtnClasses}`} />
         ) : !onCorrectChain ? (
           hasGmToday ? (
-            <Button
-              size="lg"
-              className={`w-[16ch] ${chainBtnClasses}`}
-              disabled
-            >
+            <Button size="lg" className={`w-40 ${chainBtnClasses}`} disabled>
               <CountdownText targetSec={targetSec} />
             </Button>
           ) : (
             <Button
               size="lg"
-              className={`w-[16ch] ${chainBtnClasses}`}
+              className={`w-40 ${chainBtnClasses}`}
               onClick={async () => {
                 try {
                   await switchChain({
@@ -363,7 +359,7 @@ export const GMChainCard = React.memo(function GMChainCard({
         ) : (
           <Button
             size="lg"
-            className={`w-[16ch] ${chainBtnClasses}`}
+            className={`w-40 ${chainBtnClasses}`}
             disabled={gmDisabled}
             onClick={() => {
               if (!gmDisabled) setOpen(true)
