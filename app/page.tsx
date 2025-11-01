@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { minikitConfig } from "@/minikit.config"
-import { useAddFrame, useMiniKit } from "@coinbase/onchainkit/minikit"
+import {
+  useAddFrame,
+  useIsInMiniApp,
+  useMiniKit,
+} from "@coinbase/onchainkit/minikit"
 import { Bookmark } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAccount } from "wagmi"
@@ -19,6 +23,7 @@ import { DisconnectWallet } from "@/components/wallet"
 export default function Home() {
   const addFrame = useAddFrame()
   const { isFrameReady, setFrameReady, context } = useMiniKit()
+  const { isInMiniApp } = useIsInMiniApp()
   const { address, isConnected } = useAccount()
   const { resolvedTheme } = useTheme()
   const color = useMemo(
@@ -87,7 +92,7 @@ export default function Home() {
             {minikitConfig.miniapp.name}
           </div>
           <div>
-            {isFrameReady && context?.client?.added !== true && (
+            {isFrameReady && isInMiniApp && context?.client?.added !== true && (
               <Button
                 variant={"outline"}
                 size={"sm"}
