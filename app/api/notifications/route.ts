@@ -6,9 +6,16 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { targetFids, notification, filters } = body || {}
 
-    if (!Array.isArray(targetFids) || targetFids.length === 0) {
+    // targetFids can be an empty array per Neynar docs. If provided, it must be an array of numbers.
+    if (typeof targetFids !== "undefined" && !Array.isArray(targetFids)) {
       return NextResponse.json(
-        { error: "targetFids must be a non-empty number array" },
+        { error: "targetFids must be an array when provided" },
+        { status: 400 }
+      )
+    }
+    if (Array.isArray(targetFids) && !targetFids.every((v) => Number.isInteger(v))) {
+      return NextResponse.json(
+        { error: "targetFids must contain only integers" },
         { status: 400 }
       )
     }
@@ -19,7 +26,9 @@ export async function POST(req: Request) {
       )
     }
 
-    const result = await sendNotification(targetFids, notification, filters)
+  // Normalize undefined to empty array so downstream call always gets an array.
+  const normalizedTargetFids: number[] = Array.isArray(targetFids) ? targetFids : []
+  const result = await sendNotification(normalizedTargetFids, notification, filters)
     const status = result.success ? 200 : 500
     return NextResponse.json(result, { status })
   } catch (err) {
