@@ -7,6 +7,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
+import dynamic from "next/dynamic"
 import { minikitConfig } from "@/minikit.config"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { sdk } from "@farcaster/miniapp-sdk"
@@ -14,16 +15,24 @@ import { Bookmark } from "lucide-react"
 import { useTheme } from "next-themes"
 import { toast } from "sonner"
 import { useAccount } from "wagmi"
+import { useReducedMotion } from "motion/react"
 
 import { detectCoinbaseSmartWallet } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Particles } from "@/components/ui/particles"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GMBase } from "@/components/gm-base"
 import { ModeToggle } from "@/components/mode-toggle"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { Profile } from "@/components/profile"
 import { DisconnectWallet } from "@/components/wallet"
+
+const Particles = dynamic(
+  () =>
+    import("@/components/ui/particles").then((mod) => ({
+      default: mod.Particles,
+    })),
+  { ssr: false, loading: () => null }
+)
 
 // SSR-safe onboarding visibility store using useSyncExternalStore
 const ONBOARDING_KEY = "onepulse:onboarded"
@@ -56,6 +65,7 @@ export default function Home() {
   const { isFrameReady, setFrameReady, context } = useMiniKit()
   const { address, isConnected } = useAccount()
   const { resolvedTheme } = useTheme()
+  const prefersReducedMotion = useReducedMotion()
   const color = useMemo(
     () => (resolvedTheme === "dark" ? "#ffffff" : "#0a0a0a"),
     [resolvedTheme]
@@ -63,6 +73,7 @@ export default function Home() {
   const [tab, setTab] = useState("home")
   const [isSmartWallet, setIsSmartWallet] = useState(false)
   const [inMiniApp, setInMiniApp] = useState(false)
+  const [showParticles, setShowParticles] = useState(false)
   const showOnboarding = useSyncExternalStore(
     subscribeOnboarding,
     getOnboardingSnapshot,
@@ -134,6 +145,59 @@ export default function Home() {
     }),
     [context?.client?.safeAreaInsets]
   )
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      let rafId: number | null = null
+      if (typeof window !== "undefined") {
+        rafId = window.requestAnimationFrame(() => setShowParticles(false))
+      }
+      return () => {
+        if (rafId != null) {
+          window.cancelAnimationFrame(rafId)
+        }
+      }
+    }
+
+    let cancelled = false
+    let idleHandle: number | null = null
+    let timeoutHandle: number | null = null
+
+    const schedule = () => {
+      if (!cancelled) {
+        setShowParticles(true)
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      const idleWindow = window as typeof window & {
+        requestIdleCallback?: (
+          callback: IdleRequestCallback,
+          options?: IdleRequestOptions
+        ) => number
+        cancelIdleCallback?: (handle: number) => void
+      }
+
+      if (idleWindow.requestIdleCallback) {
+        idleHandle = idleWindow.requestIdleCallback(schedule, { timeout: 800 })
+      } else {
+        timeoutHandle = window.setTimeout(schedule, 0)
+      }
+    }
+
+    return () => {
+      cancelled = true
+      if (idleHandle != null) {
+        const idleWindow = window as typeof window & {
+          cancelIdleCallback?: (handle: number) => void
+        }
+        idleWindow.cancelIdleCallback?.(idleHandle)
+      }
+      if (timeoutHandle != null) {
+        clearTimeout(timeoutHandle)
+      }
+    }
+  }, [prefersReducedMotion])
 
   return (
     <div style={safeAreaStyle}>
@@ -218,13 +282,15 @@ export default function Home() {
           </div>
         )}
       </div>
-      <Particles
-        className="absolute inset-0 z-0"
-        quantity={100}
-        ease={80}
-        color={color}
-        refresh
-      />
+      {!prefersReducedMotion && showParticles && (
+        <Particles
+          className="absolute inset-0 z-0"
+          quantity={100}
+          ease={80}
+          color={color}
+          refresh
+        />
+      )}
       {/* Onboarding modal */}
       <OnboardingModal
         open={showOnboarding}
