@@ -9,7 +9,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-import { RootProvider } from "./rootProvider"
+import { RootProvider } from "./root-provider"
 
 import "./globals.css"
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { createPublicClient, http, isAddress, type Address } from "viem"
 import { base, celo, optimism } from "viem/chains"
 
-import { dailyGMAbi } from "@/lib/abi/dailyGM"
+import { dailyGMAbi } from "@/lib/abi/daily-gm"
 import { getDailyGmAddress } from "@/lib/constants"
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection"
 

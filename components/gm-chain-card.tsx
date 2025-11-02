@@ -16,7 +16,7 @@ import { useChainId, useReadContract, useSwitchChain } from "wagmi"
 import { base, celo, optimism } from "wagmi/chains"
 import { useShowCallsStatus } from "wagmi/experimental"
 
-import { dailyGMAbi } from "@/lib/abi/dailyGM"
+import { dailyGMAbi } from "@/lib/abi/daily-gm"
 import { Button } from "@/components/ui/button"
 import {
   Card,

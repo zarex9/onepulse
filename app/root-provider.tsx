@@ -6,7 +6,7 @@ import { base } from "wagmi/chains"
 
 import Provider from "@/components/providers/wagmi-provider"
 
-import "@/styles/onchainkit.css"
+import "./onchainkit.css"
 
 import { ThemeProvider } from "next-themes"
 
@@ -30,7 +30,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
             appearance: {
               name: process.env.NEXT_PUBLIC_PROJECT_NAME,
               mode: "auto",
-              theme: "base",
+              theme: "custom",
             },
             wallet: {
               display: "modal",

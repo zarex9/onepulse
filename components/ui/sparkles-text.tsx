@@ -1,7 +1,15 @@
 "use client"
 
-import { CSSProperties, ReactElement, useEffect, useState } from "react"
-import { motion } from "motion/react"
+import {
+  CSSProperties,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -12,7 +20,6 @@ interface Sparkle {
   color: string
   delay: number
   scale: number
-  lifespan: number
 }
 
 const Sparkle: React.FC<Sparkle> = ({ id, x, y, color, delay, scale }) => {
@@ -92,52 +99,120 @@ export const SparklesText: React.FC<SparklesTextProps> = ({
   ...props
 }) => {
   const [sparkles, setSparkles] = useState<Sparkle[]>([])
+  const prefersReducedMotion = useReducedMotion()
+  const timeoutsRef = useRef<number[]>([])
+  const refreshSparkleRef = useRef<((index: number) => void) | null>(null)
+
+  const clearScheduledUpdates = useCallback(() => {
+    for (const timeoutId of timeoutsRef.current) {
+      window.clearTimeout(timeoutId)
+    }
+    timeoutsRef.current = []
+  }, [])
+
+  const generateSparkle = useCallback(() => {
+    const idSource =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2)
+    const starX = `${Math.random() * 100}%`
+    const starY = `${Math.random() * 100}%`
+    const color = Math.random() > 0.5 ? colors.first : colors.second
+    const delay = Math.random() * 2
+    const scale = Math.random() * 1 + 0.3
+    const lifespanMs = (Math.random() * 10 + 5) * 1000
+    const id = `${starX}-${starY}-${idSource}`
+    return {
+      sparkle: { id, x: starX, y: starY, color, delay, scale },
+      lifespanMs,
+    }
+  }, [colors.first, colors.second])
+
+  const scheduleRefresh = useCallback(
+    (index: number, delayMs: number) => {
+      if (prefersReducedMotion) return
+      const timeoutId = window.setTimeout(() => {
+        refreshSparkleRef.current?.(index)
+      }, delayMs)
+      timeoutsRef.current.push(timeoutId)
+    },
+    [prefersReducedMotion]
+  )
+
+  const refreshSparkle = useCallback(
+    (index: number) => {
+      const { sparkle, lifespanMs } = generateSparkle()
+      setSparkles((prev: Sparkle[]) => {
+        if (!prev[index]) return prev
+        const updated = [...prev]
+        updated[index] = sparkle
+        return updated
+      })
+      scheduleRefresh(index, lifespanMs)
+    },
+    [generateSparkle, scheduleRefresh]
+  )
 
   useEffect(() => {
-    const generateStar = (): Sparkle => {
-      const starX = `${Math.random() * 100}%`
-      const starY = `${Math.random() * 100}%`
-      const color = Math.random() > 0.5 ? colors.first : colors.second
-      const delay = Math.random() * 2
-      const scale = Math.random() * 1 + 0.3
-      const lifespan = Math.random() * 10 + 5
-      const id = `${starX}-${starY}-${Date.now()}`
-      return { id, x: starX, y: starY, color, delay, scale, lifespan }
+    refreshSparkleRef.current = refreshSparkle
+  }, [refreshSparkle])
+
+  useEffect(() => {
+    let rafId: number | null = null
+
+    if (prefersReducedMotion) {
+      rafId = window.requestAnimationFrame(() => {
+        clearScheduledUpdates()
+        setSparkles([])
+      })
+      return () => {
+        if (rafId != null) {
+          window.cancelAnimationFrame(rafId)
+        }
+        clearScheduledUpdates()
+      }
     }
 
-    const initializeStars = () => {
-      const newSparkles = Array.from({ length: sparklesCount }, generateStar)
-      setSparkles(newSparkles)
+    clearScheduledUpdates()
+    const entries = Array.from({ length: sparklesCount }, () =>
+      generateSparkle()
+    )
+
+    rafId = window.requestAnimationFrame(() => {
+      setSparkles(entries.map((entry) => entry.sparkle))
+      entries.forEach((entry, index) => {
+        scheduleRefresh(index, entry.lifespanMs)
+      })
+    })
+
+    return () => {
+      if (rafId != null) {
+        window.cancelAnimationFrame(rafId)
+      }
+      clearScheduledUpdates()
     }
+  }, [
+    generateSparkle,
+    scheduleRefresh,
+    clearScheduledUpdates,
+    sparklesCount,
+    prefersReducedMotion,
+  ])
 
-    const updateStars = () => {
-      setSparkles((currentSparkles) =>
-        currentSparkles.map((star) => {
-          if (star.lifespan <= 0) {
-            return generateStar()
-          } else {
-            return { ...star, lifespan: star.lifespan - 0.1 }
-          }
-        })
-      )
-    }
-
-    initializeStars()
-    const interval = setInterval(updateStars, 100)
-
-    return () => clearInterval(interval)
-  }, [colors.first, colors.second, sparklesCount])
+  const sparklingStyle = useMemo(
+    () =>
+      ({
+        "--sparkles-first-color": `${colors.first}`,
+        "--sparkles-second-color": `${colors.second}`,
+      }) as CSSProperties,
+    [colors.first, colors.second]
+  )
 
   return (
     <div
       className={cn("text-6xl font-bold", className)}
       {...props}
-      style={
-        {
-          "--sparkles-first-color": `${colors.first}`,
-          "--sparkles-second-color": `${colors.second}`,
-        } as CSSProperties
-      }
+      style={sparklingStyle}
     >
       <span className="relative inline-block">
         {sparkles.map((sparkle) => (
