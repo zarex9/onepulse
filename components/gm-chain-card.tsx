@@ -318,7 +318,7 @@ export const GMChainCard = React.memo(function GMChainCard({
             )
           })()}
         </ItemMedia>
-        <ItemDescription>Boost your {name} onchain footprint.</ItemDescription>
+        <ItemDescription>Amplify your {name} GM</ItemDescription>
       </ItemContent>
       <ItemActions>
         {!isConnected ? (
