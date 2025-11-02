@@ -62,6 +62,7 @@ export default function Home() {
   )
   const [tab, setTab] = useState("home")
   const [isSmartWallet, setIsSmartWallet] = useState(false)
+  const [inMiniApp, setInMiniApp] = useState(false)
   const showOnboarding = useSyncExternalStore(
     subscribeOnboarding,
     getOnboardingSnapshot,
@@ -69,7 +70,6 @@ export default function Home() {
   )
   const isBaseApp = context?.client?.clientFid === 309857
   const isFarcaster = context?.client?.clientFid === 1
-  const inMiniApp = Boolean(isBaseApp || isFarcaster)
 
   // Detect Coinbase Smart Wallet after connected
   useEffect(() => {
@@ -86,6 +86,22 @@ export default function Home() {
       setFrameReady()
     }
   }, [setFrameReady, isFrameReady])
+
+  // Detect if running inside a Farcaster Mini App (per docs)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const result = await sdk.isInMiniApp()
+        if (!cancelled) setInMiniApp(Boolean(result))
+      } catch {
+        if (!cancelled) setInMiniApp(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const dismissOnboarding = () => {
     try {
@@ -213,11 +229,9 @@ export default function Home() {
       <OnboardingModal
         open={showOnboarding}
         onClose={dismissOnboarding}
-        canSave={Boolean(
-          inMiniApp && isFrameReady && context?.client?.added !== true
-        )}
+        canSave={Boolean(isFrameReady && inMiniApp && context?.client?.added !== true)}
         onSave={
-          inMiniApp && isFrameReady && context?.client?.added !== true
+          isFrameReady && inMiniApp && context?.client?.added !== true
             ? handleAddMiniApp
             : undefined
         }

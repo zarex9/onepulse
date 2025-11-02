@@ -51,14 +51,13 @@ export function OnboardingModal({
       <Card
         role="dialog"
         aria-modal="true"
-        aria-labelledby="onboarding-title"
-        className="relative z-10 w-full max-w-sm"
+        aria-label="Welcome to OnePulse"
+        className="relative z-10 w-[95%] max-w-sm"
       >
         <CardHeader>
           <CardTitle>Welcome to OnePulse</CardTitle>
           <CardDescription>
-            Stay consistent across Base, Optimism, and Celo. Save OnePulse for
-            fast access and optional reminders.
+            Stay consistent across Base, Optimism, and Celo.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -69,11 +68,6 @@ export function OnboardingModal({
           </ul>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          {canSave && onSave && (
-            <Button type="button" onClick={onSave}>
-              Save now
-            </Button>
-          )}
           <Button
             type="button"
             ref={closeBtnRef}
@@ -82,6 +76,11 @@ export function OnboardingModal({
           >
             Got it
           </Button>
+          {canSave && onSave && (
+            <Button type="button" onClick={onSave}>
+              Save now
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
