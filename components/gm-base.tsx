@@ -6,14 +6,15 @@ import { useAccount } from "wagmi"
 
 import { DAILY_GM_ADDRESSES } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import type { ConfettiRef } from "@/components/ui/confetti"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { GMChainCard } from "@/components/gm-chain-card"
 
 const CONGRATS_KEY = "onepulse:last-congrats-day"
@@ -143,35 +144,39 @@ export const GMBase = React.memo(function GMBase({
           />
         )
       })}
-      {showCongrats && allDone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 z-10 bg-black/40"
-            onClick={() => setShowCongrats(false)}
-          />
-          <Card className="relative z-20 w-[95%] max-w-sm rounded-2xl text-center">
-            <CardHeader>
-              <CardTitle>Congratulations 🎉</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>
-                You already completed GM on all chains, comeback in{" "}
-                <CountdownValue targetSec={nextTargetSec} /> to continue your
-                streaks!
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={() => setShowCongrats(false)}>
-                Close
-              </Button>
-            </CardFooter>
-          </Card>
-          <Confetti
-            ref={confettiRef}
-            className="pointer-events-none absolute top-0 left-0 z-0 size-full"
-          />
-        </div>
-      )}
+      <Dialog
+        open={Boolean(showCongrats && allDone)}
+        onOpenChange={(val) => {
+          if (!val) setShowCongrats(false)
+        }}
+      >
+        <DialogContent className="text-center sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Congratulations 🎉</DialogTitle>
+            <DialogDescription className="sr-only">
+              You completed GM on all chains
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2">
+            <p>
+              You already completed GM on all chains, comeback in{" "}
+              <CountdownValue targetSec={nextTargetSec} /> to continue your
+              streaks!
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setShowCongrats(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+        <Confetti
+          ref={confettiRef}
+          className="pointer-events-none absolute top-0 left-0 z-0 size-full"
+        />
+      </Dialog>
     </div>
   )
 })

@@ -1,16 +1,14 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface OnboardingModalProps {
   open: boolean
@@ -25,64 +23,41 @@ export function OnboardingModal({
   canSave,
   onSave,
 }: OnboardingModalProps) {
-  const closeBtnRef = useRef<HTMLButtonElement | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-    // Focus the close button when opening for basic accessibility
-    const id = requestAnimationFrame(() => closeBtnRef.current?.focus())
-    return () => cancelAnimationFrame(id)
-  }, [open])
-
-  if (!open) return null
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      aria-hidden={!open}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Modal card */}
-      <Card
-        role="dialog"
-        aria-modal="true"
-        aria-label="Welcome to OnePulse"
-        className="relative z-10 w-[95%] max-w-sm"
-      >
-        <CardHeader>
-          <CardTitle>Welcome to OnePulse</CardTitle>
-          <CardDescription>
+    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Welcome to OnePulse</DialogTitle>
+          <DialogDescription>
             Stay consistent across Base, Optimism, and Celo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-2">
           <ul className="list-disc pl-5 text-sm">
             <li>Save OnePulse for one-tap access</li>
             <li>Open OnePulse to GM each day</li>
             <li>Track streaks in Profile</li>
           </ul>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            ref={closeBtnRef}
-            variant="outline"
-            onClick={onClose}
-          >
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} type="button">
             Got it
           </Button>
           {canSave && onSave && (
-            <Button type="button" onClick={onSave}>
+            <Button
+              type="button"
+              onClick={() => {
+                onSave()
+                onClose()
+              }}
+            >
               Save now
             </Button>
           )}
-        </CardFooter>
-      </Card>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
