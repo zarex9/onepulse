@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useAccount, useChainId } from "wagmi"
 
 import { useGmStats } from "@/hooks/use-gm-stats"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useProfileChains } from "@/hooks/use-profile-chains"
 import {
   Card,
   CardContent,
@@ -12,21 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Spinner } from "@/components/ui/spinner"
+import { ProfileStats } from "@/components/profile/profile-stats"
+import { ProfileChainSelector } from "@/components/profile/profile-chain-selector"
+import { ProfileIdentity } from "@/components/profile/profile-identity"
 import { DisconnectWallet } from "@/components/wallet"
 
 export type MiniAppUser = {
@@ -58,19 +46,7 @@ export const Profile = React.memo(function Profile({
     []
   )
 
-  const chains = useMemo(() => {
-    let list: Array<{ id: number; name: string }> = [
-      { id: 8453, name: "Base" },
-      { id: 42220, name: "Celo" },
-      { id: 10, name: "Optimism" },
-    ]
-    if (Array.isArray(allowedChainIds) && allowedChainIds.length > 0) {
-      list = list.filter((c) => allowedChainIds.includes(c.id))
-    } else if (isSmartWallet) {
-      list = list.filter((c) => c.id !== 42220)
-    }
-    return list
-  }, [allowedChainIds, isSmartWallet])
+  const chains = useProfileChains(allowedChainIds, isSmartWallet)
 
   const connectedChainId = useChainId()
   // Default to the connected chain if it's supported; otherwise fallback to Base (8453)
@@ -96,22 +72,7 @@ export const Profile = React.memo(function Profile({
 
   return (
     <div className="mt-4 space-y-4">
-      {user && (
-        <Item variant="outline">
-          <ItemMedia>
-            <Avatar className="size-16">
-              <AvatarImage src={user.pfpUrl} alt={user.displayName} />
-              <AvatarFallback>User</AvatarFallback>
-            </Avatar>
-          </ItemMedia>
-          <ItemContent>
-            <ItemTitle>{user.displayName}</ItemTitle>
-            <ItemDescription>@{user.username}</ItemDescription>
-            <ItemDescription>FID: {user.fid}</ItemDescription>
-          </ItemContent>
-        </Item>
-      )}
-
+      {user && <ProfileIdentity user={user} />}
       <Card className="border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
@@ -120,50 +81,20 @@ export const Profile = React.memo(function Profile({
           </div>
           <div className="flex items-center gap-2">
             <span className="sr-only">Chain</span>
-            <Select
-              value={String(selectedChainId)}
-              onValueChange={(v) => setSelectedChainId(Number(v))}
-            >
-              <SelectTrigger size="sm" className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="end">
-                {chains.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ProfileChainSelector
+              chains={chains}
+              selectedChainId={selectedChainId}
+              onChange={setSelectedChainId}
+            />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-semibold">
-                {(selectedStats ?? defaultStats).currentStreak}
-              </div>
-              <div className="text-muted-foreground text-xs">Current</div>
-            </div>
-            <div>
-              <div className="text-2xl font-semibold">
-                {(selectedStats ?? defaultStats).highestStreak}
-              </div>
-              <div className="text-muted-foreground text-xs">Highest</div>
-            </div>
-            <div>
-              <div className="text-2xl font-semibold">
-                {(selectedStats ?? defaultStats).allTimeGmCount}
-              </div>
-              <div className="text-muted-foreground text-xs">All-time</div>
-            </div>
-          </div>
-          {!isReady && address && (
-            <div className="text-muted-foreground mt-3 flex items-center gap-2 text-xs">
-              <Spinner className="size-3" />
-              <span>Updating…</span>
-            </div>
-          )}
+          <ProfileStats
+            stats={selectedStats}
+            defaultStats={defaultStats}
+            isReady={isReady}
+            address={address}
+          />
         </CardContent>
       </Card>
       <DisconnectWallet onDisconnected={onDisconnected} />
