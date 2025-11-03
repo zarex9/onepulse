@@ -1,3 +1,5 @@
+import { DbConnection, type GmStatsByAddress } from "@/lib/module_bindings"
+
 // Helper to resolve SpacetimeDB config from environment
 function getSpacetimeDbConfig() {
   return {
@@ -22,7 +24,6 @@ function createDbConnectionBuilder(config: {
   if (config.token) builder.withToken(config.token)
   return builder
 }
-import { DbConnection, type GmStatsByAddress } from "@/lib/module_bindings"
 
 // Server-only SpacetimeDB connection builder
 export function buildServerDbConnection(): DbConnection {
