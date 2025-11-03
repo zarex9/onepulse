@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { gmStatsByAddressStore } from "@/stores/gm-store"
 
 import type { GmStatsByAddress } from "@/lib/module_bindings"
 
@@ -9,9 +10,10 @@ import {
   groupRowsByAddress,
   normalizeAddress,
 } from "./gm-stats-helpers"
-
-import { useGmStatsFallback, useGmStatsSubscription } from "./use-gm-stats-internal"
-import { gmStatsByAddressStore } from "@/stores/gm-store"
+import {
+  useGmStatsFallback,
+  useGmStatsSubscription,
+} from "./use-gm-stats-internal"
 
 export type GmStats = {
   currentStreak: number

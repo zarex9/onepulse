@@ -12,9 +12,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { ProfileStats } from "@/components/profile/profile-stats"
 import { ProfileChainSelector } from "@/components/profile/profile-chain-selector"
 import { ProfileIdentity } from "@/components/profile/profile-identity"
+import { ProfileStats } from "@/components/profile/profile-stats"
 import { DisconnectWallet } from "@/components/wallet"
 
 export type MiniAppUser = {

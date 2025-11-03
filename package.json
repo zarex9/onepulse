@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format:fix": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+    "check": "bun lint && bun typecheck && bun format:check"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",
