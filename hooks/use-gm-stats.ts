@@ -1,10 +1,17 @@
 "use client"
 
-
 import { useMemo } from "react"
+
 import type { GmStatsByAddress } from "@/lib/module_bindings"
-import { normalizeAddress, groupRowsByAddress, deriveStatsForAddress } from "./gm-stats-helpers"
-import { useGmStatsSubscription, useGmStatsFallback } from "./use-gm-stats-internal"
+
+import {
+  deriveStatsForAddress,
+  groupRowsByAddress,
+  normalizeAddress,
+} from "./gm-stats-helpers"
+
+import { useGmStatsFallback, useGmStatsSubscription } from "./use-gm-stats-internal"
+import { gmStatsByAddressStore } from "@/stores/gm-store"
 
 export type GmStats = {
   currentStreak: number
@@ -12,7 +19,6 @@ export type GmStats = {
   allTimeGmCount: number
   lastGmDay: number
 }
-
 
 export const ZERO: GmStats = {
   currentStreak: 0,
@@ -23,7 +29,6 @@ export const ZERO: GmStats = {
 
 export const EMPTY_ROWS: GmStatsByAddress[] = []
 
-
 export function useGmStats(address?: string | null, chainId?: number) {
   const normalizedAddress = normalizeAddress(address)
   const snapshot = useGmStatsSubscription(address)
@@ -33,16 +38,19 @@ export function useGmStats(address?: string | null, chainId?: number) {
     return rowsByAddress.get(normalizedAddress) ?? EMPTY_ROWS
   }, [normalizedAddress, rowsByAddress])
   const fallbackStats = useGmStatsFallback(rowsForAddress, address, chainId)
-  const subDerived = useMemo(() =>
-    deriveStatsForAddress(rowsForAddress, normalizedAddress, ZERO, chainId),
+  const subDerived = useMemo(
+    () =>
+      deriveStatsForAddress(rowsForAddress, normalizedAddress, ZERO, chainId),
     [rowsForAddress, normalizedAddress, chainId]
   )
   const currentKey = `${address ?? ""}:${chainId ?? "all"}`
-  const fallbackForKey = fallbackStats && fallbackStats.key === currentKey ? fallbackStats.stats : undefined
+  const fallbackForKey =
+    fallbackStats && fallbackStats.key === currentKey
+      ? fallbackStats.stats
+      : undefined
   const stats: GmStats = subDerived ?? fallbackForKey ?? ZERO
   const isReady =
-    // @ts-expect-error: gmStatsByAddressStore is internal to hooks
-    (typeof window !== "undefined" && window.gmStatsByAddressStore?.isSubscribedForAddress?.(address)) ||
+    gmStatsByAddressStore.isSubscribedForAddress(address) ||
     Boolean(fallbackForKey)
   return { stats, isReady }
 }
