@@ -29,15 +29,6 @@ export function HomeTabs({
       ? [8453, 10]
       : [8453, 42220, 10]
 
-  const user = context?.user
-    ? {
-        fid: context.user.fid,
-        displayName: context.user.displayName ?? "",
-        username: context.user.username ?? "",
-        pfpUrl: context.user.pfpUrl,
-      }
-    : undefined
-
   return (
     <div className="mt-4 mb-6">
       <Tabs value={tab} onValueChange={onTabChange}>
@@ -58,7 +49,6 @@ export function HomeTabs({
         <TabsContent value="profile">
           <Profile
             isSmartWallet={isSmartWallet}
-            user={user}
             onDisconnected={onProfileDisconnected}
             allowedChainIds={allowedChainIds}
           />

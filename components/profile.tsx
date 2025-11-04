@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { ProfileChainSelector } from "@/components/profile/profile-chain-selector"
-import { ProfileIdentity } from "@/components/profile/profile-identity"
 import { ProfileStats } from "@/components/profile/profile-stats"
 import { DisconnectWallet } from "@/components/wallet"
 
@@ -25,12 +24,10 @@ export type MiniAppUser = {
 }
 
 export const Profile = React.memo(function Profile({
-  user,
   isSmartWallet,
   onDisconnected,
   allowedChainIds,
 }: {
-  user?: MiniAppUser
   isSmartWallet?: boolean
   onDisconnected?: () => void
   allowedChainIds?: number[]
@@ -72,7 +69,6 @@ export const Profile = React.memo(function Profile({
 
   return (
     <div className="mt-4 space-y-4">
-      {user && <ProfileIdentity user={user} />}
       <Card className="border-border">
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>

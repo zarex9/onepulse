@@ -64,17 +64,18 @@ const UserInfo = React.memo(function UserInfo({
   username?: string
   address?: string
 }) {
+  const showUsername = username && address === undefined
   return (
     <div className="flex flex-col">
       <span className="text-sm leading-none font-medium">{displayName}</span>
-      {username && (
+      {showUsername ?? (
         <span className="text-muted-foreground text-xs">@{username}</span>
       )}
-      {address && (
-        <span className="text-muted-foreground text-xs">
-          {truncateAddress(address)}
-        </span>
-      )}
+      : (
+      <span className="text-muted-foreground text-xs">
+        {truncateAddress(address)}
+      </span>
+      )
     </div>
   )
 })
@@ -157,8 +158,8 @@ const determineDisplayState = (
   isLoading: boolean
 ): DisplayState => {
   if (!user && !address) return "hidden"
-  if (address && isLoading) return "loading"
-  if (address) return "wallet"
+  if ((address || user) && isLoading) return "loading"
+  if (address && !user) return "wallet"
   return "miniapp"
 }
 
