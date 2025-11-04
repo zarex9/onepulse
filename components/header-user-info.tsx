@@ -36,13 +36,6 @@ const getDisplayName = (
   address: string
 ): string => userDisplayName || ensName || truncateAddress(address)
 
-// Check if we should show the secondary address line
-const shouldShowSecondaryAddress = (
-  isLoading: boolean,
-  ensName: string | null | undefined,
-  userDisplayName: string | undefined
-): boolean => Boolean(!isLoading && ensName && !userDisplayName)
-
 // Subcomponent for avatar display
 const UserAvatar = React.memo(function UserAvatar({
   url: avatarUrl,
@@ -64,17 +57,20 @@ const UserAvatar = React.memo(function UserAvatar({
 // Subcomponent for user info text
 const UserInfo = React.memo(function UserInfo({
   displayName,
+  username,
   address,
-  showSecondary,
 }: {
   displayName: string
-  address: string
-  showSecondary: boolean
+  username?: string
+  address?: string
 }) {
   return (
     <div className="flex flex-col">
       <span className="text-sm leading-none font-medium">{displayName}</span>
-      {showSecondary && (
+      {username && (
+        <span className="text-muted-foreground text-xs">@{username}</span>
+      )}
+      {address && (
         <span className="text-muted-foreground text-xs">
           {truncateAddress(address)}
         </span>
@@ -105,16 +101,10 @@ const getWalletConnectedDisplay = (
   user: HeaderUserInfoProps["user"],
   address: Address,
   ensName: GetNameReturnType | undefined,
-  ensAvatar: string | null | undefined,
-  isLoading: boolean
+  ensAvatar: string | null | undefined
 ) => ({
   avatarUrl: getAvatarUrl(user?.pfpUrl, ensAvatar),
   displayName: getDisplayName(user?.displayName, ensName, address),
-  showSecondary: shouldShowSecondaryAddress(
-    isLoading,
-    ensName,
-    user?.displayName
-  ),
 })
 
 // Render MiniApp user (no wallet connected)
@@ -123,10 +113,7 @@ const renderMiniAppUser = (user: HeaderUserInfoProps["user"]) => {
   return (
     <div className="flex items-center gap-2">
       <UserAvatar url={avatarUrl} name={displayName} />
-      <UserInfo displayName={displayName} address="" showSecondary={false} />
-      {username && (
-        <span className="text-muted-foreground text-xs">@{username}</span>
-      )}
+      <UserInfo displayName={displayName} username={username} />
     </div>
   )
 }
@@ -144,25 +131,19 @@ const renderWalletConnected = (
   user: HeaderUserInfoProps["user"],
   address: Address,
   ensName: GetNameReturnType | undefined,
-  ensAvatar: string | null | undefined,
-  isLoading: boolean
+  ensAvatar: string | null | undefined
 ) => {
-  const { avatarUrl, displayName, showSecondary } = getWalletConnectedDisplay(
+  const { avatarUrl, displayName } = getWalletConnectedDisplay(
     user,
     address,
     ensName,
-    ensAvatar,
-    isLoading
+    ensAvatar
   )
 
   return (
     <div className="flex items-center gap-2">
       <UserAvatar url={avatarUrl} name={displayName} />
-      <UserInfo
-        displayName={displayName}
-        address={address}
-        showSecondary={showSecondary}
-      />
+      <UserInfo displayName={displayName} address={address} />
     </div>
   )
 }
@@ -192,7 +173,7 @@ const renderByState = (
   if (state === "hidden") return null
   if (state === "miniapp") return renderMiniAppUser(user)
   if (state === "loading") return renderWalletLoading()
-  return renderWalletConnected(user, address!, ensName, ensAvatar, false)
+  return renderWalletConnected(user, address!, ensName, ensAvatar)
 }
 
 export const HeaderUserInfo = React.memo(function HeaderUserInfo({
