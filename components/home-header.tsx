@@ -1,13 +1,15 @@
 "use client"
 
-import { useCallback } from "react"
+import React, { useCallback } from "react"
 import { minikitConfig } from "@/minikit.config"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { Bookmark } from "lucide-react"
 import { toast } from "sonner"
+import { useAccount } from "wagmi"
 
 import { Button } from "@/components/ui/button"
+import { HeaderUserInfo } from "@/components/header-user-info"
 import { ModeToggle } from "@/components/mode-toggle"
 
 interface HomeHeaderProps {
@@ -16,50 +18,127 @@ interface HomeHeaderProps {
   onMiniAppAdded: () => void
 }
 
+interface UserInfo {
+  fid: number
+  displayName?: string
+  username?: string
+  pfpUrl?: string
+}
+
+interface ContextType {
+  user?: {
+    fid: number
+    displayName?: string
+    username?: string
+    pfpUrl?: string
+  }
+  client?: {
+    added?: boolean
+  }
+}
+
+// Extract user from context
+const extractUserFromContext = (
+  context: ContextType | undefined | null
+): UserInfo | undefined => {
+  return context?.user
+    ? {
+        fid: context.user.fid,
+        displayName: context.user.displayName,
+        username: context.user.username,
+        pfpUrl: context.user.pfpUrl,
+      }
+    : undefined
+}
+
+// Determine if save button should be shown
+const shouldShowSaveButton = (
+  isFrameReady: boolean,
+  inMiniApp: boolean,
+  clientAdded: boolean | undefined
+): boolean => isFrameReady && inMiniApp && clientAdded !== true
+
+// Handle mini app addition with notifications
+const handleAddMiniAppAction = async (onMiniAppAdded: () => void) => {
+  try {
+    const response = await sdk.actions.addMiniApp()
+
+    if (response.notificationDetails) {
+      toast.success("Mini App added")
+    } else {
+      toast.success("Mini App added without")
+    }
+    onMiniAppAdded()
+  } catch (error) {
+    toast.error(`Error: ${error}`)
+  }
+}
+
+// Subcomponent for right side (save button & theme toggle)
+interface HeaderRightProps {
+  showSaveButton: boolean
+  onSaveClick: () => void
+}
+
+const HeaderRight = React.memo(function HeaderRight({
+  showSaveButton,
+  onSaveClick,
+}: HeaderRightProps) {
+  return (
+    <div>
+      {showSaveButton && (
+        <Button
+          variant={"outline"}
+          size={"sm"}
+          className="mr-2"
+          onClick={onSaveClick}
+        >
+          <Bookmark />
+          Save
+        </Button>
+      )}
+      <ModeToggle />
+    </div>
+  )
+})
+
 export function HomeHeader({
   isFrameReady,
   inMiniApp,
   onMiniAppAdded,
 }: HomeHeaderProps) {
   const { context } = useMiniKit()
+  const { address } = useAccount()
 
-  const handleAddMiniApp = useCallback(async () => {
-    try {
-      const response = await sdk.actions.addMiniApp()
+  const handleAddMiniApp = useCallback(
+    () => handleAddMiniAppAction(onMiniAppAdded),
+    [onMiniAppAdded]
+  )
 
-      if (response.notificationDetails) {
-        toast.success("Mini App added with notifications enabled!")
-      } else {
-        toast.success("Mini App added without notifications")
-      }
-      onMiniAppAdded()
-    } catch (error) {
-      toast.error(`Error: ${error}`)
-    }
-  }, [onMiniAppAdded])
+  const user = extractUserFromContext(context)
+  const showSaveButton = shouldShowSaveButton(
+    isFrameReady,
+    inMiniApp,
+    context?.client?.added
+  )
 
-  const showSaveButton =
-    isFrameReady && inMiniApp && context?.client?.added !== true
+  // Show user info if user exists from Farcaster context OR if wallet is connected
+  // Otherwise show app name
+  const shouldShowUserInfo = !!user || !!address
 
   return (
     <div className="mt-3 mb-6 flex items-center justify-between">
-      <div className="justify-left text-2xl font-bold">
-        {minikitConfig.miniapp.name}
-      </div>
-      <div>
-        {showSaveButton && (
-          <Button
-            variant={"outline"}
-            size={"sm"}
-            className="mr-2"
-            onClick={handleAddMiniApp}
-          >
-            <Bookmark />
-            Save
-          </Button>
+      <div className="flex-1">
+        {shouldShowUserInfo ? (
+          <HeaderUserInfo user={user} address={address} />
+        ) : (
+          <div className="text-2xl font-bold">{minikitConfig.miniapp.name}</div>
         )}
-        <ModeToggle />
       </div>
+      <HeaderRight
+        showSaveButton={showSaveButton}
+        onSaveClick={handleAddMiniApp}
+      />
     </div>
   )
 }
