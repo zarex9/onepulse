@@ -222,13 +222,6 @@ interface InputFeedbackProps {
 const shouldShowResolvingMessage = (isResolving: boolean): boolean =>
   isResolving
 
-const shouldShowResolvedAddress = (
-  resolvedAddress: string | null,
-  sanitizedRecipient: string,
-  recipient: string
-): boolean =>
-  resolvedAddress !== null && sanitizedRecipient === recipient.trim()
-
 const shouldShowErrorMessage = (
   sanitizedRecipient: string,
   isRecipientValid: boolean,
@@ -239,22 +232,11 @@ const InputFeedback = React.memo(function InputFeedback({
   sanitizedRecipient,
   isRecipientValid,
   isResolving,
-  resolvedAddress,
   recipient,
 }: InputFeedbackProps) {
   if (shouldShowResolvingMessage(isResolving)) {
     return (
       <p className="mt-2 text-sm text-blue-500">Resolving {recipient}...</p>
-    )
-  }
-
-  if (
-    shouldShowResolvedAddress(resolvedAddress, sanitizedRecipient, recipient)
-  ) {
-    return (
-      <p className="mt-2 truncate text-xs text-green-600">
-        ✓ {resolvedAddress}
-      </p>
     )
   }
 

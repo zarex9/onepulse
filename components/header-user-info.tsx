@@ -93,10 +93,11 @@ const UserInfoSkeleton = React.memo(function UserInfoSkeleton() {
   )
 })
 
-// Extract display data for Farcaster user without wallet
-const getFarcasterUserDisplay = (user: HeaderUserInfoProps["user"]) => ({
+// Extract display data for MiniApp user without wallet
+const getMiniAppUserDisplay = (user: HeaderUserInfoProps["user"]) => ({
   displayName: user?.displayName || "Unknown",
   avatarUrl: user?.pfpUrl || undefined,
+  username: user?.username,
 })
 
 // Extract display data for wallet connected user with ENS resolution
@@ -116,13 +117,16 @@ const getWalletConnectedDisplay = (
   ),
 })
 
-// Render Farcaster user (no wallet connected)
-const renderFarcasterUser = (user: HeaderUserInfoProps["user"]) => {
-  const { displayName, avatarUrl } = getFarcasterUserDisplay(user)
+// Render MiniApp user (no wallet connected)
+const renderMiniAppUser = (user: HeaderUserInfoProps["user"]) => {
+  const { displayName, avatarUrl, username } = getMiniAppUserDisplay(user)
   return (
     <div className="flex items-center gap-2">
       <UserAvatar url={avatarUrl} name={displayName} />
       <UserInfo displayName={displayName} address="" showSecondary={false} />
+      {username && (
+        <span className="text-muted-foreground text-xs">@{username}</span>
+      )}
     </div>
   )
 }
@@ -164,7 +168,7 @@ const renderWalletConnected = (
 }
 
 // Determine component display state
-type DisplayState = "hidden" | "farcaster" | "loading" | "wallet"
+type DisplayState = "hidden" | "miniapp" | "loading" | "wallet"
 
 const determineDisplayState = (
   user: HeaderUserInfoProps["user"],
@@ -174,7 +178,7 @@ const determineDisplayState = (
   if (!user && !address) return "hidden"
   if (address && isLoading) return "loading"
   if (address) return "wallet"
-  return "farcaster"
+  return "miniapp"
 }
 
 // Map state to renderer
@@ -186,7 +190,7 @@ const renderByState = (
   ensAvatar: string | null | undefined
 ): React.ReactNode => {
   if (state === "hidden") return null
-  if (state === "farcaster") return renderFarcasterUser(user)
+  if (state === "miniapp") return renderMiniAppUser(user)
   if (state === "loading") return renderWalletLoading()
   return renderWalletConnected(user, address!, ensName, ensAvatar, false)
 }
