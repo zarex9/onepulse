@@ -114,8 +114,13 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
       <Button
         onClick={hook.handleClaim}
         disabled={hook.effectiveDisabled}
-        className="w-full"
-        variant={hook.claimState.status === "success" ? "default" : "default"}
+        className={`w-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl ${
+          hook.claimState.status === "success"
+            ? "bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+            : hook.effectiveDisabled
+            ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+            : "bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white hover:scale-[1.02] active:scale-[0.98]"
+        }`}
         aria-busy={hook.isLoading}
       >
         {hook.isLoading && <Spinner />}
@@ -126,12 +131,28 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
             : hook.buttonLabel}
       </Button>
       {hook.claimState.error && (
-        <p className="text-destructive mt-2 text-sm">{hook.claimState.error}</p>
+        <div className="mt-3 p-3 rounded-lg bg-linear-to-r from-red-50 to-pink-50 dark:from-red-950/20 dark:to-pink-950/20 border border-red-200 dark:border-red-800">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
+            <span className="text-lg">⚠️</span>
+            <div>
+              <p className="font-semibold text-sm">Claim Failed</p>
+              <p className="text-xs">{hook.claimState.error}</p>
+            </div>
+          </div>
+        </div>
       )}
       {hook.claimState.status === "success" && hook.claimState.txHash && (
-        <p className="mt-2 text-sm text-green-600">
-          Claimed {(Number(hook.reward) / 1e18).toFixed(2)} DEGEN
-        </p>
+        <div className="mt-3 p-3 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800">
+          <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+            <span className="text-lg">🎉</span>
+            <div>
+              <p className="font-semibold text-sm">Claim Successful!</p>
+              <p className="text-xs">
+                Received {(Number(hook.reward) / 1e18).toFixed(2)} DEGEN
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
