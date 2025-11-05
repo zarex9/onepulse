@@ -40,7 +40,8 @@ function buildClaimEligibilityArgs(
   fid: bigint | undefined,
   contractAddress: string
 ): readonly [`0x${string}`, bigint] | undefined {
-  if (!hasRequiredClaimEligibilityInputs(address, fid, contractAddress)) return undefined
+  if (!hasRequiredClaimEligibilityInputs(address, fid, contractAddress))
+    return undefined
   return [address as `0x${string}`, fid as bigint]
 }
 
@@ -50,7 +51,9 @@ function shouldQueryEligibility(
   fid: bigint | undefined,
   contractAddress: string
 ): boolean {
-  return enabled && hasRequiredClaimEligibilityInputs(address, fid, contractAddress)
+  return (
+    enabled && hasRequiredClaimEligibilityInputs(address, fid, contractAddress)
+  )
 }
 
 export function useClaimEligibility({
@@ -188,7 +191,8 @@ export function useDegenClaimSignature({
   const generateSignature = useCallback(
     async (fidToSign: bigint) => {
       // Validate required parameters before proceeding
-      const { address: validatedAddress, nonce: validatedNonce } = validateSignatureRequirements(address, nonce)
+      const { address: validatedAddress, nonce: validatedNonce } =
+        validateSignatureRequirements(address, nonce)
 
       const messageData = createClaimMessage(
         validatedAddress,

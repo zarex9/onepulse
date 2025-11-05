@@ -10,7 +10,8 @@ import {
   useClaimEligibility,
   useDegenClaimSignature,
 } from "@/hooks/use-degen-claim"
-import { Button } from "@/components/ui/button"
+import { Particles } from "@/components/ui/particles"
+import { ShinyButton } from "@/components/ui/shiny-button"
 import { Spinner } from "@/components/ui/spinner"
 
 // wagmiConfig is used in lib/degen-claim
@@ -111,15 +112,15 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
 
   return (
     <div className="w-full">
-      <Button
+      <ShinyButton
         onClick={hook.handleClaim}
         disabled={hook.effectiveDisabled}
-        className={`w-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl ${
+        className={`w-full font-medium transition-all duration-200 ${
           hook.claimState.status === "success"
-            ? "bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white"
+            ? "bg-green-600 text-white hover:bg-green-700"
             : hook.effectiveDisabled
-            ? "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-            : "bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 text-white hover:scale-[1.02] active:scale-[0.98]"
+              ? "cursor-not-allowed bg-muted text-muted-foreground"
+              : "bg-foreground text-background hover:bg-foreground/90"
         }`}
         aria-busy={hook.isLoading}
       >
@@ -129,30 +130,33 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
           : !hook.isSignatureReady
             ? "Preparing..."
             : hook.buttonLabel}
-      </Button>
+      </ShinyButton>
       {hook.claimState.error && (
-        <div className="mt-3 p-3 rounded-lg bg-linear-to-r from-red-50 to-pink-50 dark:from-red-950/20 dark:to-pink-950/20 border border-red-200 dark:border-red-800">
-          <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
-            <span className="text-lg">⚠️</span>
-            <div>
-              <p className="font-semibold text-sm">Claim Failed</p>
-              <p className="text-xs">{hook.claimState.error}</p>
+        <div className="mt-3 rounded-md border border-red-200 bg-red-50/50 p-3 dark:border-red-800 dark:bg-red-950/20">
+          <div className="flex items-start gap-2 text-red-700 dark:text-red-300">
+            <span className="text-sm">⚠️</span>
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Claim Failed</p>
+              <p className="text-xs opacity-90">{hook.claimState.error}</p>
             </div>
           </div>
         </div>
       )}
       {hook.claimState.status === "success" && hook.claimState.txHash && (
-        <div className="mt-3 p-3 rounded-lg bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800">
-          <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-            <span className="text-lg">🎉</span>
-            <div>
-              <p className="font-semibold text-sm">Claim Successful!</p>
-              <p className="text-xs">
-                Received {(Number(hook.reward) / 1e18).toFixed(2)} DEGEN
+        <div className="mt-3 rounded-md border border-green-200 bg-green-50/50 p-3 dark:border-green-800 dark:bg-green-950/20">
+          <div className="flex items-start gap-2 text-green-700 dark:text-green-300">
+            <span className="text-sm">✓</span>
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Claimed Successfully</p>
+              <p className="text-xs opacity-90">
+                Received {(Number(hook.reward) / 1e18).toFixed(0)} DEGEN
               </p>
             </div>
           </div>
         </div>
+      )}
+      {hook.claimState.status === "success" && (
+        <Particles className="pointer-events-none absolute inset-0 -z-10" />
       )}
     </div>
   )
