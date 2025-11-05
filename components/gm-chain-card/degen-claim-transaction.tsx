@@ -3,17 +3,17 @@
 import React, { useCallback, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useAccount, useChainId } from "wagmi"
-import { waitForTransactionReceipt, writeContract } from "wagmi/actions"
 
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
 import { getDailyRewardsAddress } from "@/lib/constants"
+import { performClaimFlow } from "@/lib/degen-claim"
 import {
   useClaimEligibility,
   useDegenClaimSignature,
 } from "@/hooks/use-degen-claim"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { config as wagmiConfig } from "@/components/providers/wagmi-provider"
+
+// wagmiConfig is used in lib/degen-claim
 
 interface DegenClaimTransactionProps {
   fid: bigint | undefined
@@ -36,42 +36,7 @@ function validateClaimInputs(
   return { isValid: true }
 }
 
-async function executeClaimTransaction(
-  address: `0x${string}`,
-  contractAddress: `0x${string}`,
-  fid: bigint,
-  signature: `0x${string}`,
-  deadline: bigint
-) {
-  return writeContract(wagmiConfig, {
-    address: contractAddress,
-    abi: dailyRewardsAbi,
-    functionName: "claim",
-    args: [fid, deadline, signature],
-    account: address,
-    chain: undefined,
-  })
-}
-
-async function reportClaimToBackend(
-  address: `0x${string}`,
-  fid: bigint,
-  txHash: `0x${string}`
-) {
-  try {
-    await fetch("/api/claims/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        address,
-        fid: Number(fid),
-        txHash,
-      }),
-    })
-  } catch (err) {
-    console.error("Failed to report claim:", err)
-  }
-}
+// (moved to lib/degen-claim.ts)
 
 function getClaimButtonLabel(
   isConnected: boolean,
@@ -87,101 +52,13 @@ function getClaimButtonLabel(
   return "Claim Rewards"
 }
 
-function useClaimState() {
-  const [status, setStatus] = useState<ClaimStatus>("idle")
-  const [error, setError] = useState<string | null>(null)
-  const [txHash, setTxHash] = useState<string | null>(null)
-
-  const resetState = () => {
-    setStatus("idle")
-    setTxHash(null)
-  }
-
-  return { status, error, setError, txHash, setTxHash, setStatus, resetState }
-}
-
-function useClaimHandler(
-  address: string | undefined,
-  fid: bigint | undefined,
-  contractAddress: `0x${string}` | "",
-  generateSignature: (
-    fid: bigint
-  ) => Promise<{ signature: `0x${string}`; deadline: bigint }>,
-  refetchEligibility: () => void,
-  queryClient: ReturnType<typeof useQueryClient>,
-  {
-    onSuccess,
-    onError,
-  }: { onSuccess?: (txHash: string) => void; onError?: (error: Error) => void },
-  {
-    setStatus,
-    setError,
-    setTxHash,
-    resetState,
-  }: ReturnType<typeof useClaimState>
-) {
-  return useCallback(async () => {
-    try {
-      const validation = validateClaimInputs(address, fid, contractAddress)
-      if (!validation.isValid) {
-        throw new Error(validation.error || "Invalid claim parameters")
-      }
-
-      setStatus("signing")
-      setError(null)
-      setTxHash(null)
-
-      const { signature, deadline } = await generateSignature(fid!)
-      setStatus("confirming")
-
-      const hash = await executeClaimTransaction(
-        address as `0x${string}`,
-        contractAddress as `0x${string}`,
-        fid!,
-        signature,
-        deadline
-      )
-
-      setTxHash(hash)
-      await waitForTransactionReceipt(wagmiConfig, { hash, confirmations: 1 })
-      await reportClaimToBackend(
-        address as `0x${string}`,
-        fid!,
-        hash as `0x${string}`
-      )
-
-      refetchEligibility()
-      queryClient.invalidateQueries({ queryKey: ["useReadContract"] })
-
-      setStatus("success")
-      onSuccess?.(hash)
-      setTimeout(resetState, 2000)
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err))
-      setStatus("error")
-      setError(error.message)
-      onError?.(error)
-      console.error("Claim error:", error)
-    }
-  }, [
-    address,
-    fid,
-    contractAddress,
-    generateSignature,
-    refetchEligibility,
-    queryClient,
-    onSuccess,
-    onError,
-    setStatus,
-    setError,
-    setTxHash,
-    resetState,
-  ])
-}
+// useClaimState and useClaimHandler are implemented inside the hook below to
+// keep top-level module complexity low.
 
 function useClaimSetup(fid: bigint | undefined, chainId: number) {
   const contractAddress = getDailyRewardsAddress(chainId)
-  const { generateSignature, isSigning, isNoncePending } = useDegenClaimSignature({ fid })
+  const { generateSignature, isSigning, isNoncePending, nonce } =
+    useDegenClaimSignature({ fid })
   const {
     canClaim,
     reward,
@@ -193,6 +70,7 @@ function useClaimSetup(fid: bigint | undefined, chainId: number) {
     generateSignature,
     isSigning,
     isNoncePending,
+    nonce,
     canClaim,
     reward,
     refetchEligibility,
@@ -208,13 +86,17 @@ function useClaimDisabledState(conditions: {
   hasContract: boolean
   isLoading: boolean
 }) {
-  return (
-    conditions.disabled ||
-    !conditions.isConnected ||
+  const isNotConnected = !conditions.isConnected
+  const missingPrereqs =
     !conditions.canClaim ||
     !conditions.hasAddress ||
     !conditions.hasFid ||
-    !conditions.hasContract ||
+    !conditions.hasContract
+
+  return (
+    conditions.disabled ||
+    isNotConnected ||
+    missingPrereqs ||
     conditions.isLoading
   )
 }
@@ -225,69 +107,206 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
   onError,
   disabled = false,
 }: DegenClaimTransactionProps) {
+  const hook = useDegenClaimTransaction({ fid, onSuccess, onError, disabled })
+
+  return (
+    <div className="w-full">
+      <Button
+        onClick={hook.handleClaim}
+        disabled={hook.effectiveDisabled}
+        className="w-full"
+        variant={hook.claimState.status === "success" ? "default" : "default"}
+        aria-busy={hook.isLoading}
+      >
+        {hook.isLoading && <Spinner />}
+        {hook.isNoncePending
+          ? "Loading..."
+          : !hook.isSignatureReady
+            ? "Preparing..."
+            : hook.buttonLabel}
+      </Button>
+      {hook.claimState.error && (
+        <p className="text-destructive mt-2 text-sm">{hook.claimState.error}</p>
+      )}
+      {hook.claimState.status === "success" && hook.claimState.txHash && (
+        <p className="mt-2 text-sm text-green-600">
+          Claimed {(Number(hook.reward) / 1e18).toFixed(2)} DEGEN
+        </p>
+      )}
+    </div>
+  )
+})
+
+function useDegenClaimTransaction({
+  fid,
+  onSuccess,
+  onError,
+  disabled = false,
+}: DegenClaimTransactionProps & { disabled?: boolean }) {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
   const queryClient = useQueryClient()
-  const claimState = useClaimState()
   const {
     contractAddress,
     generateSignature,
     isSigning,
     isNoncePending,
+    nonce,
     canClaim,
     reward,
     refetchEligibility,
   } = useClaimSetup(fid, chainId)
+  // Local hook state and handler are created inside this hook to reduce module-level
+  // complexity; these mirror the previous top-level utilities.
+  const [status, setStatus] = useState<ClaimStatus>("idle")
+  const [error, setError] = useState<string | null>(null)
+  const [txHash, setTxHash] = useState<string | null>(null)
 
-  const isLoading = isSigning || claimState.status === "confirming" || isNoncePending
+  const resetState = useCallback(() => {
+    setStatus("idle")
+    setTxHash(null)
+  }, [])
+
+  const isLoading = isSigning || status === "confirming" || isNoncePending
+
+  const hasAddress = !!address
+  const hasFid = !!fid
+  const hasContract = !!contractAddress
+
   const isDisabled = useClaimDisabledState({
     disabled,
     isConnected,
     canClaim,
-    hasAddress: !!address,
-    hasFid: !!fid,
-    hasContract: !!contractAddress,
+    hasAddress,
+    hasFid,
+    hasContract,
     isLoading,
   })
 
-  const handleClaim = useClaimHandler(
+  // If nonce is not yet available we should prevent signing to avoid
+  // the "Missing required parameters for signature" runtime error.
+  const isSignatureReady = nonce !== undefined && nonce !== null
+  const effectiveDisabled = isDisabled || !isSignatureReady
+
+  const handleClaim = useCallback(() => {
+    const handler = createHandleClaim({
+      address,
+      fid,
+      contractAddress,
+      generateSignature,
+      refetchEligibility,
+      queryClient,
+      setStatus,
+      setError,
+      setTxHash,
+      resetState,
+      onSuccess,
+      onError,
+    })
+
+    // Call the handler; errors are handled inside createHandleClaim
+    void handler()
+  }, [
     address,
     fid,
     contractAddress,
     generateSignature,
     refetchEligibility,
     queryClient,
-    { onSuccess, onError },
-    claimState
-  )
+    onSuccess,
+    onError,
+    resetState,
+  ])
 
   const buttonLabel = getClaimButtonLabel(
     isConnected,
     canClaim,
     isSigning,
-    claimState.status
+    status
   )
 
-  return (
-    <div className="w-full">
-      <Button
-        onClick={handleClaim}
-        disabled={isDisabled}
-        className="w-full"
-        variant={claimState.status === "success" ? "default" : "default"}
-        aria-busy={isLoading}
-      >
-        {isLoading && <Spinner />}
-        {isNoncePending ? "Loading..." : buttonLabel}
-      </Button>
-      {claimState.error && (
-        <p className="text-destructive mt-2 text-sm">{claimState.error}</p>
-      )}
-      {claimState.status === "success" && claimState.txHash && (
-        <p className="mt-2 text-sm text-green-600">
-          Claimed {(Number(reward) / 1e18).toFixed(2)} DEGEN
-        </p>
-      )}
-    </div>
-  )
-})
+  return {
+    handleClaim,
+    effectiveDisabled,
+    isLoading,
+    isNoncePending,
+    isSignatureReady,
+    buttonLabel,
+    claimState: { status, error, txHash, resetState },
+    reward,
+  }
+}
+
+// Factory that produces a claim handler function. The heavy logic is moved
+// here so the hook itself remains small and easier to test.
+function createHandleClaim(opts: {
+  address?: string
+  fid?: bigint
+  contractAddress?: string
+  generateSignature: (
+    fid: bigint
+  ) => Promise<{ signature: `0x${string}`; deadline: bigint }>
+  refetchEligibility: () => void
+  queryClient: ReturnType<typeof useQueryClient>
+  setStatus: (s: ClaimStatus) => void
+  setError: (e: string | null) => void
+  setTxHash: (h: string | null) => void
+  resetState: () => void
+  onSuccess?: (txHash: string) => void
+  onError?: (err: Error) => void
+}) {
+  return () => {
+    const {
+      address,
+      fid,
+      contractAddress,
+      generateSignature,
+      refetchEligibility,
+      queryClient,
+      setStatus,
+      setError,
+      setTxHash,
+      resetState,
+      onSuccess,
+      onError,
+    } = opts
+
+    const validation = validateClaimInputs(address, fid, contractAddress || "")
+    if (!validation.isValid) {
+      const e = new Error(validation.error || "Invalid claim parameters")
+      setStatus("error")
+      setError(e.message)
+      onError?.(e)
+      return Promise.reject(e)
+    }
+
+    setStatus("signing")
+    setError(null)
+    setTxHash(null)
+
+    setStatus("confirming")
+    return performClaimFlow(
+      address as `0x${string}`,
+      fid!,
+      contractAddress as `0x${string}`,
+      generateSignature,
+      refetchEligibility,
+      queryClient
+    )
+      .then((hash) => {
+        setTxHash(hash as `0x${string}`)
+        setStatus("success")
+        onSuccess?.(hash as string)
+        setTimeout(resetState, 2000)
+        return hash
+      })
+      .catch((err) => {
+        const e = err instanceof Error ? err : new Error(String(err))
+        setStatus("error")
+        setError(e.message)
+        onError?.(e)
+        console.error("Claim error:", e)
+        throw e
+      })
+  }
+}

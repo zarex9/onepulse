@@ -40,8 +40,8 @@ function buildClaimEligibilityArgs(
   fid: bigint | undefined,
   contractAddress: string
 ): readonly [`0x${string}`, bigint] | undefined {
-  if (!address || !fid || !contractAddress) return undefined
-  return [address as `0x${string}`, fid]
+  if (!hasRequiredClaimEligibilityInputs(address, fid, contractAddress)) return undefined
+  return [address as `0x${string}`, fid as bigint]
 }
 
 function shouldQueryEligibility(
@@ -50,7 +50,7 @@ function shouldQueryEligibility(
   fid: bigint | undefined,
   contractAddress: string
 ): boolean {
-  return enabled && !!address && !!fid && contractAddress !== ""
+  return enabled && hasRequiredClaimEligibilityInputs(address, fid, contractAddress)
 }
 
 export function useClaimEligibility({
@@ -154,6 +154,28 @@ function createClaimMessage(
   }
 }
 
+function validateSignatureRequirements(
+  address: string | undefined,
+  nonce: bigint | undefined
+): { address: `0x${string}`; nonce: bigint } {
+  const missingAddress = !address
+  const nonceMissing = nonce === undefined || nonce === null
+
+  if (missingAddress || nonceMissing) {
+    const missing: string[] = []
+    if (missingAddress) missing.push("address")
+    if (nonceMissing) missing.push("nonce")
+    throw new Error(
+      `Missing required parameters for signature: ${missing.join(", ")}`
+    )
+  }
+
+  return {
+    address: address as `0x${string}`,
+    nonce,
+  }
+}
+
 export function useDegenClaimSignature({
   deadline,
 }: UseDegenClaimSignatureProps) {
@@ -165,14 +187,13 @@ export function useDegenClaimSignature({
 
   const generateSignature = useCallback(
     async (fidToSign: bigint) => {
-      if (!address || !nonce) {
-        throw new Error("Missing required parameters for signature")
-      }
+      // Validate required parameters before proceeding
+      const { address: validatedAddress, nonce: validatedNonce } = validateSignatureRequirements(address, nonce)
 
       const messageData = createClaimMessage(
-        address as `0x${string}`,
+        validatedAddress,
         fidToSign,
-        nonce,
+        validatedNonce,
         signatureDeadline,
         contractAddress
       )
@@ -183,7 +204,7 @@ export function useDegenClaimSignature({
 
       return {
         signature,
-        nonce,
+        nonce: validatedNonce,
         deadline: signatureDeadline,
       }
     },
@@ -195,6 +216,8 @@ export function useDegenClaimSignature({
     isSigning,
     isNoncePending,
     deadline: signatureDeadline,
+    // expose the nonce so callers can know whether it's available
+    nonce,
   }
 }
 
@@ -218,4 +241,12 @@ export function useRewardVaultStatus() {
     isPending,
     hasRewards: (vaultStatus?.[2] ?? 0n) > 0n,
   }
+}
+
+function hasRequiredClaimEligibilityInputs(
+  address: string | undefined,
+  fid: bigint | undefined,
+  contractAddress: string
+): boolean {
+  return Boolean(address && fid && contractAddress)
 }
