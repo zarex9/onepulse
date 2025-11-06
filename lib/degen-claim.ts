@@ -36,8 +36,7 @@ async function isSmartWallet(): Promise<boolean> {
 async function executeGaslessClaim(
   claimer: `0x${string}`,
   fid: bigint,
-  deadline: bigint,
-  signature: `0x${string}`
+  deadline: bigint
 ): Promise<`0x${string}`> {
   const response = await fetch("/api/claims/execute", {
     method: "POST",
@@ -46,7 +45,6 @@ async function executeGaslessClaim(
       claimer,
       fid: Number(fid),
       deadline: Number(deadline),
-      signature,
     }),
   })
 
@@ -71,7 +69,8 @@ export async function executeClaimTransaction(
 
   if (useGasless) {
     // Use backend gasless operator for smart wallets
-    return executeGaslessClaim(address, fid, deadline, signature)
+    // Backend will generate its own signature with the operator's private key
+    return executeGaslessClaim(address, fid, deadline)
   }
 
   // Direct on-chain claim for EOAs

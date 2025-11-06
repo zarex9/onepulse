@@ -18,7 +18,6 @@ type ValidationSuccess = {
     claimer: string
     fid: number | bigint
     deadline: number | bigint
-    signature: string
   }
 }
 
@@ -30,13 +29,12 @@ type ValidationFailure = {
 function validateRequest(
   body: Record<string, unknown>
 ): ValidationSuccess | ValidationFailure {
-  const { claimer, fid, deadline, signature } = body
+  const { claimer, fid, deadline } = body
   const missing = []
 
   if (!claimer) missing.push("claimer")
   if (!fid) missing.push("fid")
   if (!deadline) missing.push("deadline")
-  if (!signature) missing.push("signature")
 
   if (missing.length > 0) {
     return { valid: false, missing }
@@ -48,7 +46,6 @@ function validateRequest(
       claimer: claimer as string,
       fid: fid as number | bigint,
       deadline: deadline as number | bigint,
-      signature: signature as string,
     },
   }
 }
@@ -57,7 +54,6 @@ async function executeGaslessClaim(params: {
   claimer: string
   fid: number | bigint
   deadline: number | bigint
-  signature: string
 }) {
   const account = privateKeyToAccount(
     GASLESS_OPERATOR_PRIVATE_KEY as `0x${string}`
@@ -80,6 +76,52 @@ async function executeGaslessClaim(params: {
     throw new Error("Contract address not configured")
   }
 
+  // Read the user's current nonce from the contract
+  const userInfo = await publicClient.readContract({
+    address: contractAddress as `0x${string}`,
+    abi: dailyRewardsAbi,
+    functionName: "userInfo",
+    args: [params.claimer as `0x${string}`],
+  })
+
+  // userInfo returns [lastClaimDay, nonce]
+  const nonce = userInfo[1]
+
+  // Generate signature using the operator's private key
+  // The signature is for the claimer's address, not the operator
+  const domain = {
+    name: "DailyRewards",
+    version: "1",
+    chainId: base.id,
+    verifyingContract: contractAddress as `0x${string}`,
+  }
+
+  const types = {
+    Claim: [
+      { name: "claimer", type: "address" },
+      { name: "fid", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+    ],
+  }
+
+  const message = {
+    claimer: params.claimer as `0x${string}`,
+    fid: BigInt(params.fid),
+    deadline: BigInt(params.deadline),
+    nonce: BigInt(nonce),
+  }
+
+  // Sign with the operator's private key
+  const signature = await walletClient.signTypedData({
+    account,
+    domain,
+    types,
+    primaryType: "Claim",
+    message,
+  })
+
+  // Execute the gasless claim with the operator's signature
   const hash = await walletClient.writeContract({
     address: contractAddress as `0x${string}`,
     abi: dailyRewardsAbi,
@@ -88,7 +130,7 @@ async function executeGaslessClaim(params: {
       params.claimer as `0x${string}`,
       BigInt(params.fid),
       BigInt(params.deadline),
-      params.signature as `0x${string}`,
+      signature,
     ],
   })
 
