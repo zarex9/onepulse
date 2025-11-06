@@ -41,12 +41,13 @@ function validateClaimInputs(
 
 function getClaimButtonLabel(
   isConnected: boolean,
-  canClaim: boolean,
+  eligibility: { canClaim: boolean; hasAlreadyClaimed: boolean },
   isSigning: boolean,
   status: ClaimStatus
 ): string {
   if (!isConnected) return "Connect Wallet"
-  if (!canClaim) return "Not Eligible"
+  if (eligibility.hasAlreadyClaimed) return "Already Claimed"
+  if (!eligibility.canClaim) return "Not Eligible"
   if (isSigning) return "Sign Transaction"
   if (status === "confirming") return "Processing..."
   if (status === "success") return "Claimed!"
@@ -63,6 +64,7 @@ function useClaimSetup(fid: bigint | undefined, chainId: number) {
   const {
     canClaim,
     reward,
+    claimStatus,
     refetch: refetchEligibility,
   } = useClaimEligibility({ fid })
 
@@ -74,6 +76,7 @@ function useClaimSetup(fid: bigint | undefined, chainId: number) {
     nonce,
     canClaim,
     reward,
+    claimStatus,
     refetchEligibility,
   }
 }
@@ -179,6 +182,7 @@ function useDegenClaimTransaction({
     nonce,
     canClaim,
     reward,
+    claimStatus,
     refetchEligibility,
   } = useClaimSetup(fid, chainId)
   // Local hook state and handler are created inside this hook to reduce module-level
@@ -245,7 +249,12 @@ function useDegenClaimTransaction({
 
   const buttonLabel = getClaimButtonLabel(
     isConnected,
-    canClaim,
+    {
+      canClaim,
+      hasAlreadyClaimed:
+        (claimStatus?.claimerClaimedToday || claimStatus?.fidClaimedToday) ??
+        false,
+    },
     isSigning,
     status
   )
