@@ -1,7 +1,50 @@
-import { waitForTransactionReceipt, writeContract } from "wagmi/actions"
+import {
+  getAccount,
+  waitForTransactionReceipt,
+  writeContract,
+} from "wagmi/actions"
 
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
 import { config as wagmiConfig } from "@/components/providers/wagmi-provider"
+
+async function isSmartWallet(): Promise<boolean> {
+  try {
+    const account = getAccount(wagmiConfig)
+    // Coinbase Smart Wallet uses EIP-1271 and has connector type
+    if (account.connector?.type === "coinbaseWalletSDK") {
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+async function executeGaslessClaim(
+  claimer: `0x${string}`,
+  fid: bigint,
+  deadline: bigint,
+  signature: `0x${string}`
+): Promise<`0x${string}`> {
+  const response = await fetch("/api/claims/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      claimer,
+      fid: Number(fid),
+      deadline: Number(deadline),
+      signature,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || "Failed to execute gasless claim")
+  }
+
+  const result = await response.json()
+  return result.txHash as `0x${string}`
+}
 
 export async function executeClaimTransaction(
   address: `0x${string}`,
@@ -10,6 +53,15 @@ export async function executeClaimTransaction(
   signature: `0x${string}`,
   deadline: bigint
 ) {
+  // Check if user has a smart wallet
+  const useGasless = await isSmartWallet()
+
+  if (useGasless) {
+    // Use backend gasless operator for smart wallets
+    return executeGaslessClaim(address, fid, deadline, signature)
+  }
+
+  // Direct on-chain claim for EOAs
   return writeContract(wagmiConfig, {
     address: contractAddress,
     abi: dailyRewardsAbi,
