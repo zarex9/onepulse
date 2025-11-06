@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  createWalletClient,
-  http,
-  keccak256,
-  encodePacked,
-} from "viem"
+import { createWalletClient, encodePacked, http, keccak256 } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { base } from "viem/chains"
 

@@ -1,7 +1,4 @@
-import {
-  waitForTransactionReceipt,
-  writeContract,
-} from "wagmi/actions"
+import { waitForTransactionReceipt, writeContract } from "wagmi/actions"
 
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
 import { config as wagmiConfig } from "@/components/providers/wagmi-provider"
