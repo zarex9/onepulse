@@ -3,6 +3,7 @@ export const dailyRewardsAbi = [
     inputs: [
       { internalType: "address", name: "_gaslessOperator", type: "address" },
       { internalType: "uint256", name: "_minVaultBalance", type: "uint256" },
+      { internalType: "address", name: "_dailyGMContract", type: "address" },
     ],
     stateMutability: "payable",
     type: "constructor",
@@ -77,6 +78,25 @@ export const dailyRewardsAbi = [
       },
     ],
     name: "Claimed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "oldContract",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newContract",
+        type: "address",
+      },
+    ],
+    name: "DailyGMContractUpdated",
     type: "event",
   },
   { anonymous: false, inputs: [], name: "EIP712DomainChanged", type: "event" },
@@ -177,6 +197,7 @@ export const dailyRewardsAbi = [
           { internalType: "bool", name: "fidIsBlacklisted", type: "bool" },
           { internalType: "bool", name: "fidClaimedToday", type: "bool" },
           { internalType: "bool", name: "claimerClaimedToday", type: "bool" },
+          { internalType: "bool", name: "hasSentGMToday", type: "bool" },
           { internalType: "uint256", name: "reward", type: "uint256" },
           { internalType: "uint256", name: "vaultBalance", type: "uint256" },
           { internalType: "uint256", name: "minReserve", type: "uint256" },
@@ -204,6 +225,13 @@ export const dailyRewardsAbi = [
     inputs: [{ internalType: "bytes32", name: "", type: "bytes32" }],
     name: "claimedByDay",
     outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "dailyGMContract",
+    outputs: [{ internalType: "address", name: "", type: "address" }],
     stateMutability: "view",
     type: "function",
   },
@@ -306,6 +334,15 @@ export const dailyRewardsAbi = [
     name: "renounceOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "_dailyGMContract", type: "address" },
+    ],
+    name: "setDailyGMContract",
+    outputs: [],
+    stateMutability: "payable",
     type: "function",
   },
   {

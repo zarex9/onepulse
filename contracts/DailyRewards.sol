@@ -9,6 +9,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+/// @notice Interface for DailyGM contract
+interface IDailyGM {
+    function lastGMDay(address user) external view returns (uint256);
+}
+
 /// @author OnePulse Team
 /// @dev Contract for managing daily DEGEN rewards for Farcaster FIDs with EIP-712 signatures.
 contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
@@ -23,7 +28,9 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
     /// @notice Address authorized to execute gasless claims on behalf of users.
     address public immutable gaslessOperator;
     /// @notice Minimum DEGEN balance to maintain in the vault as reserve.
-    uint256 public minVaultBalance = 1e20; // 100 DEGEN default
+    uint256 public minVaultBalance = 100e18; // 100 DEGEN default
+    /// @notice Address of the DailyGM contract to check GM status.
+    address public dailyGMContract;
 
     address private immutable _self;
 
@@ -40,6 +47,7 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
         bool fidIsBlacklisted;
         bool fidClaimedToday;
         bool claimerClaimedToday;
+        bool hasSentGMToday;
         uint256 reward;
         uint256 vaultBalance;
         uint256 minReserve;
@@ -71,18 +79,25 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
         uint256 indexed fid
     );
     event MinVaultBalanceUpdated(uint256 oldValue, uint256 newValue);
+    event DailyGMContractUpdated(
+        address indexed oldContract,
+        address indexed newContract
+    );
 
     /// @notice Initializes the contract with gasless operator and minimum vault balance.
     /// @dev Initializes the contract with gasless operator and minimum vault balance.
     constructor(
         address _gaslessOperator,
-        uint256 _minVaultBalance
+        uint256 _minVaultBalance,
+        address _dailyGMContract
     ) payable Ownable(msg.sender) EIP712("DailyRewards", "1") {
         require(_gaslessOperator != address(0), "Zero address");
         require(_minVaultBalance != 0, "Zero min balance");
+        require(_dailyGMContract != address(0), "Zero daily GM contract");
         _self = address(this);
         gaslessOperator = _gaslessOperator;
         minVaultBalance = _minVaultBalance;
+        dailyGMContract = _dailyGMContract;
     }
 
     /// @dev Allows a user to claim daily rewards for their FID using an EIP-712 signature.
@@ -129,6 +144,13 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
         FidInfo storage fInfo = fidInfo[fid];
         _checkDailyLimit(claimer);
         require(!fInfo.blacklisted, "FID blacklisted");
+
+        // Check if user has sent GM today (if DailyGM contract is set)
+        if (dailyGMContract != address(0)) {
+            uint256 lastGM = IDailyGM(dailyGMContract).lastGMDay(claimer);
+            require(lastGM == _currentDay(), "Must GM today");
+        }
+
         // Enforce per-FID-per-day: disallow second claim for same fid on same day
         bytes32 claimKey = keccak256(abi.encodePacked(fid, _currentDay()));
         require(!claimedByDay[claimKey], "Already claimed (FID today)");
@@ -230,17 +252,30 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
         bool fidIsBlacklisted = fInfo.blacklisted;
         bool fidClaimedToday = claimedByDay[claimKey];
         bool claimerClaimedToday = (userInfo[claimer].lastClaimDay == day);
+
+        // Check if user has sent GM today
+        bool hasSentGMToday = false;
+        if (dailyGMContract != address(0)) {
+            uint256 lastGM = IDailyGM(dailyGMContract).lastGMDay(claimer);
+            hasSentGMToday = (lastGM == day);
+        } else {
+            // If no DailyGM contract is set, assume GM requirement is not enforced
+            hasSentGMToday = true;
+        }
+
         uint256 reward = MAX_CLAIM;
         uint256 vaultBalance = DEGEN_TOKEN.balanceOf(_self);
         uint256 minReserve = minVaultBalance;
         bool ok = (!fidIsBlacklisted &&
             !fidClaimedToday &&
             !claimerClaimedToday &&
+            hasSentGMToday &&
             (vaultBalance >= reward + minReserve));
         status.ok = ok;
         status.fidIsBlacklisted = fidIsBlacklisted;
         status.fidClaimedToday = fidClaimedToday;
         status.claimerClaimedToday = claimerClaimedToday;
+        status.hasSentGMToday = hasSentGMToday;
         status.reward = reward;
         status.vaultBalance = vaultBalance;
         status.minReserve = minReserve;
@@ -292,6 +327,18 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard, EIP712 {
         uint256 oldValue = minVaultBalance;
         minVaultBalance = _minVaultBalance;
         emit MinVaultBalanceUpdated(oldValue, _minVaultBalance);
+    }
+
+    /// @dev Updates the DailyGM contract address.
+    /// @notice Sets the DailyGM contract address for GM verification.
+    function setDailyGMContract(
+        address _dailyGMContract
+    ) external payable onlyOwner {
+        require(_dailyGMContract != address(0), "Zero daily GM contract");
+        require(_dailyGMContract != dailyGMContract, "Same address");
+        address oldContract = dailyGMContract;
+        dailyGMContract = _dailyGMContract;
+        emit DailyGMContractUpdated(oldContract, _dailyGMContract);
     }
 
     /// @dev Private function to check if caller has already claimed today
