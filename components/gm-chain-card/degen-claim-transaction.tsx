@@ -12,7 +12,7 @@ import { useAccount, useChainId, useReadContract, useSignMessage } from "wagmi"
 
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
 import { getDailyRewardsAddress } from "@/lib/constants"
-import { useClaimDeadline, useClaimEligibility } from "@/hooks/use-degen-claim"
+import { useClaimEligibility } from "@/hooks/use-degen-claim"
 
 import { TransactionToast } from "../transaction-toast"
 
@@ -37,7 +37,6 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
   const chainId = useChainId()
   const queryClient = useQueryClient()
   const contractAddress = getDailyRewardsAddress(chainId)
-  const deadline = useClaimDeadline()
   const { signMessageAsync } = useSignMessage()
   const {
     canClaim,
@@ -67,6 +66,9 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
       throw new Error("Missing required parameters")
     }
 
+    // Calculate fresh deadline (5 minutes from now)
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300)
+
     // Create the message hash that matches the contract's expectation
     // Format: keccak256(abi.encodePacked(claimer, fid, nonce, deadline, contractAddress))
     const messageHash = keccak256(
@@ -90,7 +92,7 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
         args: [address, fid, nonce, deadline, signature as `0x${string}`],
       },
     ]
-  }, [address, fid, nonce, contractAddress, deadline, signMessageAsync])
+  }, [address, fid, nonce, contractAddress, signMessageAsync])
 
   const handleStatus = useCallback(
     (status: LifecycleStatus) => {
