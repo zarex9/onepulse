@@ -7,8 +7,8 @@ import {
 import type { LifecycleStatus } from "@coinbase/onchainkit/transaction"
 import { useQueryClient } from "@tanstack/react-query"
 import type { ContractFunctionParameters } from "viem"
-import { useAccount, useChainId, useSignMessage, useReadContract } from "wagmi"
 import { encodePacked, keccak256 } from "viem"
+import { useAccount, useChainId, useReadContract, useSignMessage } from "wagmi"
 
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
 import { getDailyRewardsAddress } from "@/lib/constants"
