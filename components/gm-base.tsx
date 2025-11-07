@@ -4,6 +4,12 @@ import React, { useMemo } from "react"
 import { useAccount } from "wagmi"
 
 import { DAILY_GM_ADDRESSES } from "@/lib/constants"
+import { useGmStats } from "@/hooks/use-gm-stats"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel"
 import { GMChainCard } from "@/components/gm-chain-card"
 
 import {
@@ -12,9 +18,11 @@ import {
   getNextTargetSec,
 } from "./gm-base/chain-config"
 import { CongratsDialog } from "./gm-base/congrats-dialog"
+import { ModalRenderer } from "./gm-base/modal-renderer"
 import { useConfettiControl } from "./gm-base/use-confetti-control"
 import { useCongratsLogic } from "./gm-base/use-congrats-logic"
 import { useLastCongratsDay } from "./gm-base/use-last-congrats-day"
+import { useModalManagement } from "./gm-base/use-modal-management"
 import { usePerChainStatus } from "./gm-base/use-per-chain-status"
 
 export const GMBase = React.memo(function GMBase({
@@ -25,6 +33,12 @@ export const GMBase = React.memo(function GMBase({
   allowedChainIds?: number[]
 }) {
   const { isConnected, address } = useAccount()
+  const {
+    activeModalChainId,
+    processing,
+    setActiveModalChainId,
+    setProcessing,
+  } = useModalManagement()
 
   // Get filtered chain list
   const chains = useMemo(() => getChainList(allowedChainIds), [allowedChainIds])
@@ -47,8 +61,8 @@ export const GMBase = React.memo(function GMBase({
   // Manage congratulations day persistently
   const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay()
 
-  // Control confetti animation (gated by isConnected)
-  const { confettiRef } = useConfettiControl(false, isConnected) // Will be set by useCongratsLogic
+  // Control confetti animation
+  const { confettiRef } = useConfettiControl(false, isConnected)
 
   // Show congratulations dialog when all done
   const { showCongrats, setShowCongrats } = useCongratsLogic({
@@ -67,22 +81,55 @@ export const GMBase = React.memo(function GMBase({
 
   return (
     <div className="mt-4 space-y-4">
-      {chains.map((c) => {
-        const contractAddress = DAILY_GM_ADDRESSES[c.id]
-        if (!contractAddress) return null
-        return (
-          <GMChainCard
-            key={c.id}
-            chainId={c.id}
-            name={c.name}
-            contractAddress={contractAddress}
-            isConnected={Boolean(isConnected)}
-            address={address}
-            onStatusChange={handleStatus}
-            sponsored={Boolean(sponsored) && c.id === 8453}
-          />
-        )
-      })}
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold">Daily GM</h2>
+        <p className="text-muted-foreground text-sm">
+          Send GM daily on each chain to earn rewards
+        </p>
+      </div>
+
+      <Carousel
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-2 md:-ml-4">
+          {chains.map((c) => {
+            const contractAddress = DAILY_GM_ADDRESSES[c.id]
+            return contractAddress ? (
+              <CarouselItem key={c.id} className="basis-full pl-2 md:pl-4">
+                <ChainSlide
+                  chainId={c.id}
+                  chainName={c.name}
+                  contractAddress={contractAddress}
+                  isConnected={Boolean(isConnected)}
+                  address={address}
+                  sponsored={Boolean(sponsored) && c.id === 8453}
+                  onStatusChange={handleStatus}
+                  onOpenModal={() => setActiveModalChainId(c.id)}
+                />
+              </CarouselItem>
+            ) : null
+          })}
+        </CarouselContent>
+      </Carousel>
+
+      {/* Global modal rendered at root level */}
+      <ModalRenderer
+        activeModalChainId={activeModalChainId}
+        chains={chains}
+        sponsored={Boolean(sponsored)}
+        address={address}
+        processing={processing}
+        setProcessing={setProcessing}
+        onClose={() => {
+          setActiveModalChainId(null)
+          setProcessing(false)
+        }}
+      />
+
       <CongratsDialog
         open={Boolean(showCongrats && allDone)}
         nextTargetSec={nextTargetSec}
@@ -92,5 +139,48 @@ export const GMBase = React.memo(function GMBase({
         confettiRef={confettiRef}
       />
     </div>
+  )
+})
+
+// Separate component to handle per-chain stats
+const ChainSlide = React.memo(function ChainSlide({
+  chainId,
+  chainName,
+  contractAddress,
+  isConnected,
+  address,
+  sponsored,
+  onStatusChange,
+  onOpenModal,
+}: {
+  chainId: number
+  chainName: string
+  contractAddress: `0x${string}`
+  isConnected: boolean
+  address?: string
+  sponsored: boolean
+  onStatusChange: (status: {
+    chainId: number
+    hasGmToday: boolean
+    targetSec: number
+  }) => void
+  onOpenModal: () => void
+}) {
+  // Get stats filtered by this specific chain
+  const { stats, isReady } = useGmStats(address, chainId)
+
+  return (
+    <GMChainCard
+      chainId={chainId}
+      name={chainName}
+      contractAddress={contractAddress}
+      isConnected={isConnected}
+      address={address}
+      onStatusChange={onStatusChange}
+      sponsored={sponsored}
+      stats={stats}
+      isStatsReady={isReady}
+      onOpenModal={onOpenModal}
+    />
   )
 })

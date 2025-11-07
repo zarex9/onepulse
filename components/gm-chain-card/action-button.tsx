@@ -37,14 +37,14 @@ export const ActionButton = React.memo(function ActionButton({
 
   // User not connected
   if (!isConnected) {
-    return <ConnectWallet size="lg" className={`w-40 ${chainBtnClasses}`} />
+    return <ConnectWallet size="lg" className={`w-full ${chainBtnClasses}`} />
   }
 
   // User on wrong chain
   if (!onCorrectChain) {
     if (hasGmToday) {
       return (
-        <Button size="lg" className={`w-40 ${chainBtnClasses}`} disabled>
+        <Button size="lg" className={`w-full ${chainBtnClasses}`} disabled>
           {renderCountdown(targetSec)}
         </Button>
       )
@@ -53,10 +53,10 @@ export const ActionButton = React.memo(function ActionButton({
     return (
       <Button
         size="lg"
-        className={`w-40 ${chainBtnClasses}`}
-        onClick={async () => {
+        className={`w-full ${chainBtnClasses}`}
+        onClick={() => {
           try {
-            await switchChain({
+            switchChain({
               chainId: chainId as
                 | typeof base.id
                 | typeof celo.id
@@ -84,7 +84,7 @@ export const ActionButton = React.memo(function ActionButton({
   return (
     <Button
       size="lg"
-      className={`w-40 ${chainBtnClasses}`}
+      className={`w-full ${chainBtnClasses}`}
       disabled={gmDisabled}
       onClick={() => {
         if (!gmDisabled) onOpenModal()

@@ -1,23 +1,26 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo } from "react"
 import { type Address } from "viem"
 import { useChainId, useReadContract } from "wagmi"
 import { base, celo, optimism } from "wagmi/chains"
 
 import { dailyGMAbi } from "@/lib/abi/daily-gm"
+import { GmStats } from "@/hooks/use-gm-stats"
 import {
   Item,
   ItemActions,
   ItemContent,
   ItemDescription,
+  ItemFooter,
   ItemMedia,
 } from "@/components/ui/item"
+import { Spinner } from "@/components/ui/spinner"
 import { Icons } from "@/components/icons"
 
+import { CarouselNext, CarouselPrevious } from "../ui/carousel"
 import { ActionButton } from "./action-button"
 import { CountdownText } from "./countdown-text"
-import { GMModal } from "./gm-modal"
 
 // Helper functions - extracted for clarity and testability
 const computeGMState = (
@@ -64,6 +67,60 @@ const getChainIconName = (chainId: number, name: string): string => {
   return "base"
 }
 
+// Separate stats display component to reduce complexity
+const StatsDisplay = React.memo(function StatsDisplay({
+  stats,
+  isConnected,
+  isStatsReady,
+}: {
+  stats: GmStats
+  isConnected: boolean
+  isStatsReady: boolean
+}) {
+  if (!isConnected || !stats) {
+    return (
+      <div className="text-muted-foreground text-xs">
+        Connect wallet to see stats
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-3 text-center">
+      <StatColumn
+        value={isStatsReady ? stats.currentStreak : undefined}
+        label="Current"
+      />
+      <StatColumn
+        value={isStatsReady ? stats.highestStreak : undefined}
+        label="Highest"
+      />
+      <StatColumn
+        value={isStatsReady ? stats.allTimeGmCount : undefined}
+        label="All-Time"
+      />
+    </div>
+  )
+})
+
+// Individual stat column to reduce repetition
+const StatColumn = React.memo(function StatColumn({
+  value,
+  label,
+}: {
+  value: number | undefined
+  label: string
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-2xl font-bold tracking-tight">
+        {value !== undefined ? value : <Spinner className="inline h-6 w-6" />}
+      </span>
+      <span className="text-muted-foreground text-xs font-medium">{label}</span>
+    </div>
+  )
+})
+
 export type GMChainCardProps = {
   chainId: number
   name: string
@@ -76,6 +133,9 @@ export type GMChainCardProps = {
     targetSec: number
   }) => void
   sponsored: boolean
+  stats: GmStats
+  isStatsReady: boolean
+  onOpenModal?: () => void
 }
 
 export const GMChainCard = React.memo(function GMChainCard({
@@ -85,19 +145,15 @@ export const GMChainCard = React.memo(function GMChainCard({
   isConnected,
   address,
   onStatusChange,
-  sponsored = false,
+  stats,
+  isStatsReady,
+  onOpenModal,
 }: GMChainCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [processing, setProcessing] = useState(false)
   const currentChainId = useChainId()
   const onCorrectChain = currentChainId === chainId
 
   // Fetch on-chain last GM day
-  const {
-    data: lastGmDayData,
-    refetch: refetchLastGmDay,
-    isPending: isPendingLastGm,
-  } = useReadContract({
+  const { data: lastGmDayData, isPending: isPendingLastGm } = useReadContract({
     chainId: chainId as typeof base.id | typeof celo.id | typeof optimism.id,
     abi: dailyGMAbi,
     address: contractAddress,
@@ -150,6 +206,19 @@ export const GMChainCard = React.memo(function GMChainCard({
           <ItemDescription>Amplify your {name} GM</ItemDescription>
         </ItemContent>
         <ItemActions>
+          <div className="flex items-center justify-center gap-2">
+            <CarouselPrevious className="static translate-y-0" />
+            <CarouselNext className="static translate-y-0" />
+          </div>
+        </ItemActions>
+        <ItemFooter className="flex-col">
+          <div className="mb-4 w-full">
+            <StatsDisplay
+              stats={stats}
+              isConnected={isConnected}
+              isStatsReady={isStatsReady}
+            />
+          </div>
           <ActionButton
             isConnected={isConnected}
             chainId={chainId}
@@ -159,25 +228,11 @@ export const GMChainCard = React.memo(function GMChainCard({
             gmDisabled={gmDisabled}
             targetSec={targetSec}
             chainBtnClasses={chainBtnClasses}
-            onOpenModal={() => setIsModalOpen(true)}
+            onOpenModal={onOpenModal || (() => {})}
             renderCountdown={(sec: number) => <CountdownText targetSec={sec} />}
           />
-        </ItemActions>
+        </ItemFooter>
       </Item>
-
-      <GMModal
-        isOpen={isModalOpen}
-        chainId={chainId}
-        contractAddress={contractAddress}
-        isSponsored={sponsored && chainId === 8453}
-        isContractReady={Boolean(contractAddress)}
-        processing={processing}
-        chainBtnClasses={chainBtnClasses}
-        address={address}
-        refetchLastGmDay={refetchLastGmDay}
-        onClose={() => setIsModalOpen(false)}
-        setProcessing={setProcessing}
-      />
     </>
   )
 })
