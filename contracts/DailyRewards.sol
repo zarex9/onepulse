@@ -177,13 +177,6 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard {
 
         if (signer != backendSigner) revert InvalidSignature();
 
-        // Mark signature as used and increment nonce
-        usedSignatures[signature] = true;
-        unchecked {
-            nonces[claimer]++; // Safe: would take billions of years to overflow
-        }
-        usedSignatures[signature] = true;
-
         // Validate eligibility (inlined and optimized)
         uint48 currentDay = uint48(timestamp / SECONDS_PER_DAY);
 
@@ -211,7 +204,11 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard {
         if (DEGEN_TOKEN.balanceOf(_self) < reward + minReserve)
             revert InsufficientVaultBalance();
 
-        // Execute claim (effects before interactions)
+        // Execute claim (effects before interactions) - follows Checks-Effects-Interactions pattern
+        usedSignatures[signature] = true;
+        unchecked {
+            nonces[claimer]++; // Safe: would take billions of years to overflow
+        }
         claimedByDay[claimKey] = true;
         userInfo[claimer].lastClaimDay = currentDay; // Packed storage write - only writes once!
 
