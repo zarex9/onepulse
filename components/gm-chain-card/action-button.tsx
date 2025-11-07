@@ -37,7 +37,7 @@ export const ActionButton = React.memo(function ActionButton({
 
   // User not connected
   if (!isConnected) {
-    return <ConnectWallet size="lg" className={`w-full ${chainBtnClasses}`} />
+    return <ConnectWallet size="lg" className={`w-full ${chainBtnClasses} min-w-md`} />
   }
 
   // User on wrong chain
