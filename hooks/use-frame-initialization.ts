@@ -8,5 +8,5 @@ export function useFrameInitialization() {
     if (!isFrameReady) {
       setFrameReady()
     }
-  }, [setFrameReady, isFrameReady])
+  }, [isFrameReady, setFrameReady])
 }
