@@ -17,9 +17,14 @@ function ConnectWallet({
 }) {
   const buttonSize = size === "lg" ? "size-lg" : "size-sm"
   return (
-    <Connect className={cn(className, buttonSize)} aria-label="Connect wallet">
-      Connect Wallet
-    </Connect>
+    <div className="mx-auto w-full">
+      <Connect
+        className={cn(className, buttonSize)}
+        aria-label="Connect wallet"
+      >
+        Connect Wallet
+      </Connect>
+    </div>
   )
 }
 

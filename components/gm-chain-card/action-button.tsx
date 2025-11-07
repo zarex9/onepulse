@@ -40,7 +40,7 @@ export const ActionButton = React.memo(function ActionButton({
     return (
       <ConnectWallet
         size="lg"
-        className={`w-full ${chainBtnClasses} min-w-md`}
+        className={`w-full ${chainBtnClasses}`}
       />
     )
   }
