@@ -10,7 +10,11 @@ import { DegenRewardCard } from "@/components/degen-reward-card"
 import { HowItWorksCard } from "@/components/how-it-works-card"
 import { VerifyingIdentityCard } from "@/components/verifying-identity-card"
 
-export function RewardsBase() {
+export const RewardsBase= React.memo(function GMBase({
+  sponsored,
+}: {
+  sponsored?: boolean
+}) {
   const { isConnected } = useAccount()
   const { context } = useMiniKit()
 
@@ -38,11 +42,11 @@ export function RewardsBase() {
         <VerifyingIdentityCard />
       ) : (
         <>
-          <DegenRewardCard fid={fid} />
+          <DegenRewardCard fid={fid} sponsored={Boolean(sponsored)} />
 
           <HowItWorksCard />
         </>
       )}
     </div>
   )
-}
+})

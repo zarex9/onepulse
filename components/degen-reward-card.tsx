@@ -14,6 +14,7 @@ import { DegenClaimTransaction } from "@/components/gm-chain-card/degen-claim-tr
 
 interface DegenRewardCardProps {
   fid: bigint | undefined
+  sponsored: boolean
 }
 
 interface ClaimState {
@@ -85,11 +86,12 @@ function getStatusConfig(state: ClaimState) {
 
 interface RewardCardProps {
   fid: bigint | undefined
+  sponsored: boolean
   state: ClaimState
   isCheckingEligibility: boolean
 }
 
-function RewardCard({ fid, state, isCheckingEligibility }: RewardCardProps) {
+function RewardCard({ fid, sponsored, state, isCheckingEligibility }: RewardCardProps) {
   const config = getStatusConfig(state)
 
   return (
@@ -117,7 +119,7 @@ function RewardCard({ fid, state, isCheckingEligibility }: RewardCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <DegenClaimTransaction fid={fid} disabled={!state.isEligible} />
+        <DegenClaimTransaction fid={fid} sponsored={sponsored} disabled={!state.isEligible} />
 
         {isCheckingEligibility && (
           <div className="text-muted-foreground mt-4 flex items-center gap-2 text-xs">
@@ -199,6 +201,7 @@ function WrongNetworkCard() {
 
 export const DegenRewardCard = React.memo(function DegenRewardCard({
   fid,
+  sponsored
 }: DegenRewardCardProps) {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
@@ -229,6 +232,7 @@ export const DegenRewardCard = React.memo(function DegenRewardCard({
   return (
     <RewardCard
       fid={fid}
+      sponsored={sponsored}
       state={claimState}
       isCheckingEligibility={isCheckingEligibility}
     />

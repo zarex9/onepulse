@@ -17,6 +17,7 @@ import { TransactionToast } from "../transaction-toast"
 
 interface DegenClaimTransactionProps {
   fid: bigint | undefined
+  sponsored: boolean
   onSuccess?: (txHash: string) => void
   onError?: (error: Error) => void
   disabled?: boolean
@@ -28,6 +29,7 @@ interface DegenClaimTransactionProps {
  */
 export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
   fid,
+  sponsored,
   onSuccess,
   onError,
   disabled = false,
@@ -147,14 +149,14 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
         chainId={chainId}
         calls={getClaimContracts}
         onStatus={handleStatus}
-        isSponsored={true}
+        isSponsored={sponsored}
       >
         <TransactionButton
           disabled={isDisabled}
           className="w-full"
           text="Claim Rewards"
         />
-        <TransactionSponsor />
+        {sponsored && <TransactionSponsor />}
         <TransactionToast />
       </Transaction>
     </div>

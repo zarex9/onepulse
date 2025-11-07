@@ -58,7 +58,7 @@ export function HomeTabs({
           <GMBase sponsored={isBaseApp} allowedChainIds={allowedChainIds} />
         </TabsContent>
         <TabsContent value="rewards">
-          <RewardsBase />
+          <RewardsBase sponsored={isBaseApp} />
         </TabsContent>
         <TabsContent value="profile">
           <Profile
