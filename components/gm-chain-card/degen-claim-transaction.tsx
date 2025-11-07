@@ -127,6 +127,14 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
     !hasSentGMToday ||
     isEligibilityPending
 
+  // Dynamic button label based on state
+  const getButtonLabel = () => {
+    if (isEligibilityPending) return "Checking eligibility..."
+    if (!hasSentGMToday) return "Send GM First"
+    if (!canClaim) return "Already Claimed"
+    return "Claim Rewards"
+  }
+
   if (!address) {
     return (
       <div className="border-border bg-muted text-muted-foreground w-full rounded-lg border p-4 text-center text-sm">
@@ -154,7 +162,7 @@ export const DegenClaimTransaction = React.memo(function DegenClaimTransaction({
         <TransactionButton
           disabled={isDisabled}
           className="w-full"
-          text="Claim Rewards"
+          text={getButtonLabel()}
         />
         {sponsored && <TransactionSponsor />}
         <TransactionToast />
