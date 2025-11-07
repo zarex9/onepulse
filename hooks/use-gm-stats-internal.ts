@@ -32,6 +32,7 @@ export function useGmStatsFallback(
   >()
   const [lastFetchTime, setLastFetchTime] = useState<number>(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const normalizedAddress = normalizeAddress(address)
 
   // Listen for refresh events and clear fallback cache for this address
@@ -60,10 +61,13 @@ export function useGmStatsFallback(
 
     if (subReady && hasSubData) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      abortControllerRef.current?.abort()
       return
     }
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = new AbortController()
 
     timeoutRef.current = setTimeout(async () => {
       try {
@@ -91,7 +95,10 @@ export function useGmStatsFallback(
         url.searchParams.set("address", address!)
         if (typeof chainId === "number")
           url.searchParams.set("chainId", String(chainId))
-        const res = await fetch(url.toString())
+
+        const res = await fetch(url.toString(), {
+          signal: abortControllerRef.current?.signal,
+        })
         if (res.ok) {
           const json = (await res.json()) as Partial<GmStats>
           setLastFetchTime(now)
@@ -106,12 +113,16 @@ export function useGmStatsFallback(
           })
         }
       } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return // Request was cancelled, don't log
+        }
         console.error(`[useGmStatsFallback] Fallback fetch failed:`, error)
       }
     }, 500)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      abortControllerRef.current?.abort()
     }
   }, [address, chainId, normalizedAddress, rowsForAddress, lastFetchTime])
 
