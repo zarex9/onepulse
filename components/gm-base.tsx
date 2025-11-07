@@ -40,6 +40,11 @@ export const GMBase = React.memo(function GMBase({
     setProcessing,
   } = useModalManagement()
 
+  // Store refetch function for active chain
+  const [activeRefetchFn, setActiveRefetchFn] = React.useState<
+    (() => Promise<unknown>) | undefined
+  >(undefined)
+
   // Get filtered chain list
   const chains = useMemo(() => getChainList(allowedChainIds), [allowedChainIds])
   const chainIds = useMemo(() => chains.map((c) => c.id), [chains])
@@ -108,7 +113,10 @@ export const GMBase = React.memo(function GMBase({
                   address={address}
                   sponsored={Boolean(sponsored) && c.id === 8453}
                   onStatusChange={handleStatus}
-                  onOpenModal={() => setActiveModalChainId(c.id)}
+                  onOpenModal={(refetch) => {
+                    setActiveModalChainId(c.id)
+                    setActiveRefetchFn(() => refetch)
+                  }}
                 />
               </CarouselItem>
             ) : null
@@ -124,6 +132,7 @@ export const GMBase = React.memo(function GMBase({
         address={address}
         processing={processing}
         setProcessing={setProcessing}
+        refetchLastGmDay={activeRefetchFn}
         onClose={() => {
           setActiveModalChainId(null)
           setProcessing(false)
@@ -164,10 +173,17 @@ const ChainSlide = React.memo(function ChainSlide({
     hasGmToday: boolean
     targetSec: number
   }) => void
-  onOpenModal: () => void
+  onOpenModal: (refetch: () => Promise<unknown>) => void
 }) {
   // Get stats filtered by this specific chain
   const { stats, isReady } = useGmStats(address, chainId)
+
+  const handleOpenModal = React.useCallback(
+    (refetch: () => Promise<unknown>) => {
+      onOpenModal(refetch)
+    },
+    [onOpenModal]
+  )
 
   return (
     <GMChainCard
@@ -180,7 +196,7 @@ const ChainSlide = React.memo(function ChainSlide({
       sponsored={sponsored}
       stats={stats}
       isStatsReady={isReady}
-      onOpenModal={onOpenModal}
+      onOpenModal={handleOpenModal}
     />
   )
 })

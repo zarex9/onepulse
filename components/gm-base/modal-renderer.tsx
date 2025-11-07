@@ -10,6 +10,7 @@ interface ModalRendererProps {
   address?: string
   processing: boolean
   setProcessing: (value: boolean) => void
+  refetchLastGmDay?: () => Promise<unknown>
   onClose: () => void
 }
 
@@ -28,6 +29,7 @@ export const ModalRenderer = React.memo(function ModalRenderer({
   address,
   processing,
   setProcessing,
+  refetchLastGmDay,
   onClose,
 }: ModalRendererProps) {
   if (!activeModalChainId) return null
@@ -48,7 +50,7 @@ export const ModalRenderer = React.memo(function ModalRenderer({
       processing={processing}
       chainBtnClasses={getChainBtnClassesForId(activeModalChainId)}
       address={address}
-      refetchLastGmDay={async () => undefined}
+      refetchLastGmDay={refetchLastGmDay}
       onClose={onClose}
       setProcessing={setProcessing}
     />

@@ -135,7 +135,7 @@ export type GMChainCardProps = {
   sponsored: boolean
   stats: GmStats
   isStatsReady: boolean
-  onOpenModal?: () => void
+  onOpenModal?: (refetch: () => Promise<unknown>) => void
 }
 
 export const GMChainCard = React.memo(function GMChainCard({
@@ -153,7 +153,11 @@ export const GMChainCard = React.memo(function GMChainCard({
   const onCorrectChain = currentChainId === chainId
 
   // Fetch on-chain last GM day
-  const { data: lastGmDayData, isPending: isPendingLastGm } = useReadContract({
+  const {
+    data: lastGmDayData,
+    isPending: isPendingLastGm,
+    refetch: refetchLastGmDay,
+  } = useReadContract({
     chainId: chainId as typeof base.id | typeof celo.id | typeof optimism.id,
     abi: dailyGMAbi,
     address: contractAddress,
@@ -190,6 +194,13 @@ export const GMChainCard = React.memo(function GMChainCard({
     () => getChainIconName(chainId, name),
     [chainId, name]
   )
+
+  // Callback to open modal with refetch function
+  const handleOpenModal = React.useCallback(() => {
+    if (onOpenModal) {
+      onOpenModal(refetchLastGmDay)
+    }
+  }, [onOpenModal, refetchLastGmDay])
 
   return (
     <>
@@ -228,7 +239,7 @@ export const GMChainCard = React.memo(function GMChainCard({
             gmDisabled={gmDisabled}
             targetSec={targetSec}
             chainBtnClasses={chainBtnClasses}
-            onOpenModal={onOpenModal || (() => {})}
+            onOpenModal={() => handleOpenModal()}
             renderCountdown={(sec: number) => <CountdownText targetSec={sec} />}
           />
         </ItemFooter>
