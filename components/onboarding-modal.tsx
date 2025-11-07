@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,28 +19,36 @@ interface OnboardingModalProps {
   onSave?: () => void
 }
 
-export function OnboardingModal({
+export const OnboardingModal = React.memo(function OnboardingModal({
   open,
   onClose,
   canSave,
   onSave,
 }: OnboardingModalProps) {
+  const handleSaveAndClose = React.useCallback(() => {
+    onSave?.()
+    onClose()
+  }, [onSave, onClose])
+
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to OnePulse</DialogTitle>
           <DialogDescription>
-            Stay consistent across Base, Optimism, and Celo.
+            Send GM daily on multiple chains to earn rewards and build streaks.
           </DialogDescription>
         </DialogHeader>
-
-        <div className="py-2">
-          <ul className="list-disc pl-5 text-sm">
-            <li>Save OnePulse for one-tap access</li>
-            <li>Open OnePulse to GM each day</li>
-            <li>Track streaks in Profile</li>
-          </ul>
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-medium">How it works:</h4>
+            <ul className="text-muted-foreground mt-2 ml-4 list-disc space-y-1 text-sm">
+              <li>Connect your wallet</li>
+              <li>Send GM on Base, Celo, or Optimism</li>
+              <li>Earn rewards for daily participation</li>
+              <li>Track streaks in Profile</li>
+            </ul>
+          </div>
         </div>
 
         <DialogFooter>
@@ -46,13 +56,7 @@ export function OnboardingModal({
             Got it
           </Button>
           {canSave && onSave && (
-            <Button
-              type="button"
-              onClick={() => {
-                onSave()
-                onClose()
-              }}
-            >
+            <Button type="button" onClick={handleSaveAndClose}>
               Save now
             </Button>
           )}
@@ -60,4 +64,4 @@ export function OnboardingModal({
       </DialogContent>
     </Dialog>
   )
-}
+})
