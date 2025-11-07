@@ -54,6 +54,10 @@ export const GMModal = React.memo(function GMModal({
     onClose()
   }, [setProcessing, onClose])
 
+  const handleBackdropClick = useCallback(() => {
+    if (!processing) handleClose()
+  }, [processing, handleClose])
+
   // Use custom hooks for focus trap and scroll prevention
   const dialogRef = useFocusTrap({
     isOpen,
@@ -75,9 +79,7 @@ export const GMModal = React.memo(function GMModal({
     >
       <div
         className="absolute inset-0 bg-black/40"
-        onClick={() => {
-          if (!processing) handleClose()
-        }}
+        onClick={handleBackdropClick}
       />
       <Card className="relative z-10 w-[95%] max-w-sm" tabIndex={-1}>
         {mode === "main" ? (
