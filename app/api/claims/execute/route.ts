@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createWalletClient, encodePacked, http, keccak256 } from "viem"
+import {
+  createPublicClient,
+  createWalletClient,
+  encodePacked,
+  http,
+  keccak256,
+} from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { base } from "viem/chains"
-import { createPublicClient } from "viem"
 
-import { getDailyRewardsAddress } from "@/lib/constants"
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
+import { getDailyRewardsAddress } from "@/lib/constants"
 
 // Backend signer for claim authorizations
 const BACKEND_SIGNER_PRIVATE_KEY = process.env.BACKEND_SIGNER_PRIVATE_KEY
