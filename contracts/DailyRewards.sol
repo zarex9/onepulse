@@ -353,7 +353,9 @@ contract DailyRewards is Ownable2Step, ReentrancyGuard {
     /// @dev Allows owner to withdraw excess DEGEN while maintaining minimum reserve.
     /// @notice Withdraws excess DEGEN while maintaining minimum reserve.
     /// @param amount The amount of DEGEN to withdraw (must leave minimum reserve intact)
-    function emergencyWithdraw(uint256 amount) external payable onlyOwner nonReentrant {
+    function emergencyWithdraw(
+        uint256 amount
+    ) external payable onlyOwner nonReentrant {
         if (amount == 0) revert ZeroAmount();
         if (DEGEN_TOKEN.balanceOf(_self) < amount + minVaultBalance)
             revert BelowMinimumReserve();
