@@ -1,3 +1,4 @@
+import React from "react"
 import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { ConnectWallet as Connect } from "@coinbase/onchainkit/wallet"
 import { type VariantProps } from "class-variance-authority"
@@ -28,10 +29,19 @@ function ConnectWallet({
   )
 }
 
-function DisconnectWallet({ onDisconnected }: { onDisconnected?: () => void }) {
+const DisconnectWallet = React.memo(function DisconnectWallet({
+  onDisconnected,
+}: {
+  onDisconnected?: () => void
+}) {
   const { isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { context } = useMiniKit()
+
+  const handleDisconnect = React.useCallback(() => {
+    disconnect()
+    onDisconnected?.()
+  }, [disconnect, onDisconnected])
 
   const isInMiniApp = Boolean(context?.user)
   return (
@@ -42,16 +52,13 @@ function DisconnectWallet({ onDisconnected }: { onDisconnected?: () => void }) {
           variant="outline"
           className="w-full"
           aria-label="Disconnect wallet"
-          onClick={() => {
-            disconnect()
-            onDisconnected?.()
-          }}
+          onClick={handleDisconnect}
         >
           <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
         </Button>
       </div>
     )
   )
-}
+})
 
 export { ConnectWallet, DisconnectWallet }
