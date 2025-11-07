@@ -29,6 +29,7 @@ export function RootProvider({ children }: { children: ReactNode }) {
           config={{
             appearance: {
               name: process.env.NEXT_PUBLIC_PROJECT_NAME,
+              logo: `${process.env.NEXT_PUBLIC_URL}/logo.png`,
               mode: "auto",
               theme: "custom",
             },
