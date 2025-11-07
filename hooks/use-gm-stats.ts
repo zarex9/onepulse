@@ -54,5 +54,6 @@ export function useGmStats(address?: string | null, chainId?: number) {
   const isReady =
     gmStatsByAddressStore.isSubscribedForAddress(address) ||
     Boolean(fallbackForKey)
+
   return { stats, isReady }
 }

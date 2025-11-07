@@ -30,8 +30,23 @@ export function useGmStatsFallback(
       }
     | undefined
   >()
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const normalizedAddress = normalizeAddress(address)
+
+  // Listen for refresh events and clear fallback cache for this address
+  useEffect(() => {
+    if (!address || !normalizedAddress) return
+
+    const unsubscribe = gmStatsByAddressStore.onRefresh((refreshedAddress) => {
+      if (refreshedAddress.toLowerCase() === normalizedAddress) {
+        setFallbackStats(undefined)
+        setLastFetchTime(0)
+      }
+    })
+
+    return unsubscribe
+  }, [address, normalizedAddress])
 
   useEffect(() => {
     if (!address || !normalizedAddress) return
@@ -49,6 +64,7 @@ export function useGmStatsFallback(
     }
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
     timeoutRef.current = setTimeout(async () => {
       try {
         const latestRows = gmStatsByAddressStore
@@ -60,7 +76,16 @@ export function useGmStatsFallback(
           typeof chainId === "number"
             ? latestRows.some((r) => r.chainId === chainId)
             : latestRows.length > 0
-        if (latestReady && latestHasData) return
+
+        if (latestReady && latestHasData) {
+          return
+        }
+
+        // Don't fetch more than once every 2 seconds to prevent stale overwrites
+        const now = Date.now()
+        if (now - lastFetchTime < 2000) {
+          return
+        }
 
         const url = new URL("/api/gm/stats", window.location.origin)
         url.searchParams.set("address", address!)
@@ -69,6 +94,7 @@ export function useGmStatsFallback(
         const res = await fetch(url.toString())
         if (res.ok) {
           const json = (await res.json()) as Partial<GmStats>
+          setLastFetchTime(now)
           setFallbackStats({
             key,
             stats: {
@@ -79,15 +105,15 @@ export function useGmStatsFallback(
             },
           })
         }
-      } catch {
-        // Ignore fallback failures
+      } catch (error) {
+        console.error(`[useGmStatsFallback] Fallback fetch failed:`, error)
       }
-    }, 1500)
+    }, 500)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [address, chainId, normalizedAddress, rowsForAddress])
+  }, [address, chainId, normalizedAddress, rowsForAddress, lastFetchTime])
 
   return fallbackStats
 }

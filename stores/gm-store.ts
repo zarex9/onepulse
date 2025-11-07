@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DbConnection, GmStatsByAddress } from "@/lib/module_bindings"
 import { getDbConnection } from "@/lib/spacetimedb/connection-factory"
 import { onSubscriptionChange } from "@/lib/spacetimedb/subscription-events"
@@ -64,9 +63,60 @@ class GmStatsByAddressStore {
     )
   }
 
+  public async refreshForAddress(address?: string | null) {
+    if (!address) return
+
+    // Signal to all listeners that they should clear their fallback cache
+    this.emitRefreshEvent(address)
+
+    // Temporarily mark subscription as not ready to trigger fallback API fetch
+    // Don't emit change yet - batch it with the pull below
+    this.subscriptionReady = false
+
+    // Small delay to let components start fallback fetch
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Now pull fresh snapshot and restore ready state, emit only once
+    try {
+      this.updateSnapshot()
+      this.subscriptionReady = true
+      // Emit change only once after both state updates
+      this.emitChange()
+    } catch (error) {
+      console.error(
+        `[gmStatsByAddressStore] ❌ Failed to refresh snapshot:`,
+        error
+      )
+      this.subscriptionReady = true
+      this.emitChange()
+    }
+  }
+
+  private refreshListeners: Array<(address: string) => void> = []
+
+  public onRefresh(callback: (address: string) => void) {
+    this.refreshListeners.push(callback)
+    return () => {
+      this.refreshListeners = this.refreshListeners.filter(
+        (cb) => cb !== callback
+      )
+    }
+  }
+
+  private emitRefreshEvent(address: string) {
+    for (const listener of this.refreshListeners) {
+      try {
+        listener(address)
+      } catch (e) {
+        console.error(`[gmStatsByAddressStore] Error in refresh listener:`, e)
+      }
+    }
+  }
+
   public async subscribeToAddress(address?: string | null) {
     if (!address) return
     const addr = address.toLowerCase()
+
     // If already subscribed to this address, do nothing
     if (
       this.subscribedAddress?.toLowerCase() === addr &&
@@ -74,6 +124,7 @@ class GmStatsByAddressStore {
     ) {
       return
     }
+
     this.subscribedAddress = address
     this.subscriptionReady = false
     // Clear snapshot while (re)subscribing to avoid showing stale data
@@ -81,20 +132,33 @@ class GmStatsByAddressStore {
     this.emitChange()
 
     const conn = this.getConnection()
-    conn
-      .subscriptionBuilder()
-      .onApplied(() => {
-        this.subscriptionReady = true
-        this.updateSnapshot()
-      })
-      .onError(() => {
-        this.subscriptionReady = false
-        // Keep snapshot empty on error; UI can show zeros gracefully
-        this.emitChange()
-      })
-      .subscribe([
-        `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`,
-      ])
+
+    // Small delay to allow connection to establish
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    try {
+      conn
+        .subscriptionBuilder()
+        .onApplied(() => {
+          this.subscriptionReady = true
+          this.updateSnapshot()
+        })
+        .onError(() => {
+          this.subscriptionReady = false
+          // Keep snapshot empty on error; UI can show zeros gracefully
+          this.emitChange()
+        })
+        .subscribe([
+          `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`,
+        ])
+    } catch (error) {
+      console.error(
+        `[gmStatsByAddressStore] Subscription setup failed for ${addr}:`,
+        error
+      )
+      this.subscriptionReady = false
+      this.emitChange()
+    }
   }
 
   public reportGm(params: ReportGmParams) {
@@ -114,15 +178,18 @@ class GmStatsByAddressStore {
   private getConnection(): DbConnection {
     if (!this.connection) {
       this.connection = getDbConnection()
-      this.connection.db.gmStatsByAddress.onInsert((ctx, row) =>
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.connection.db.gmStatsByAddress.onInsert((_ctx, _row) => {
         this.updateSnapshot()
-      )
-      this.connection.db.gmStatsByAddress.onDelete((ctx, row) =>
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.connection.db.gmStatsByAddress.onDelete((_ctx, _row) => {
         this.updateSnapshot()
-      )
-      this.connection.db.gmStatsByAddress.onUpdate((ctx, _old, _new) =>
+      })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      this.connection.db.gmStatsByAddress.onUpdate((_ctx, _old, _new) => {
         this.updateSnapshot()
-      )
+      })
     }
     return this.connection
   }
