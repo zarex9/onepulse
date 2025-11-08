@@ -12,14 +12,10 @@ import { useAccount } from "wagmi"
 import { truncateAddress } from "@/lib/ens-utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UserContext } from "./providers/miniapp-provider"
 
 interface HeaderUserInfoProps {
-  user?: {
-    fid: number
-    displayName?: string
-    username?: string
-    pfpUrl?: string
-  }
+  user?: UserContext
   address?: Address | string
 }
 
