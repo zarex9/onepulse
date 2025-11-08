@@ -37,6 +37,8 @@ const frame = {
   },
 }
 
+export const revalidate = 300
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: minikitConfig.miniapp.ogTitle || minikitConfig.miniapp.name,

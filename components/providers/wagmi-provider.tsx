@@ -10,7 +10,7 @@ import {
   createConfig,
   createStorage,
   http,
-  WagmiProvider,
+  WagmiProvider as Provider,
   type State,
 } from "wagmi"
 import { baseAccount } from "wagmi/connectors"
@@ -41,7 +41,7 @@ declare module "wagmi" {
   }
 }
 
-export default function Provider({
+export function WagmiProvider({
   children,
   initialState,
 }: {
@@ -51,8 +51,8 @@ export default function Provider({
   const [queryClient] = useState(() => new QueryClient())
 
   return (
-    <WagmiProvider config={config} initialState={initialState}>
+    <Provider config={config} initialState={initialState}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiProvider>
+    </Provider>
   )
 }
