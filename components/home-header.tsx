@@ -2,7 +2,6 @@
 
 import React, { useCallback } from "react"
 import { minikitConfig } from "@/minikit.config"
-import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import { sdk } from "@farcaster/miniapp-sdk"
 import { Bookmark } from "lucide-react"
 import { toast } from "sonner"
@@ -11,6 +10,11 @@ import { useAccount } from "wagmi"
 import { Button } from "@/components/ui/button"
 import { HeaderUserInfo } from "@/components/header-user-info"
 import { ModeToggle } from "@/components/mode-toggle"
+import {
+  MiniAppContext,
+  useMiniAppContext,
+  UserContext,
+} from "@/components/providers/miniapp-provider"
 
 interface HomeHeaderProps {
   isFrameReady: boolean
@@ -18,29 +22,10 @@ interface HomeHeaderProps {
   onMiniAppAdded: () => void
 }
 
-interface UserInfo {
-  fid: number
-  displayName?: string
-  username?: string
-  pfpUrl?: string
-}
-
-interface ContextType {
-  user?: {
-    fid: number
-    displayName?: string
-    username?: string
-    pfpUrl?: string
-  }
-  client?: {
-    added?: boolean
-  }
-}
-
 // Extract user from context
 const extractUserFromContext = (
-  context: ContextType | undefined | null
-): UserInfo | undefined => {
+  context: MiniAppContext | null | undefined
+): UserContext | undefined => {
   return context?.user
     ? {
         fid: context.user.fid,
@@ -107,7 +92,7 @@ export function HomeHeader({
   inMiniApp,
   onMiniAppAdded,
 }: HomeHeaderProps) {
-  const { context } = useMiniKit()
+  const miniAppContextData = useMiniAppContext()
   const { address } = useAccount()
 
   const handleAddMiniApp = useCallback(
@@ -115,11 +100,11 @@ export function HomeHeader({
     [onMiniAppAdded]
   )
 
-  const user = extractUserFromContext(context)
+  const user = extractUserFromContext(miniAppContextData?.context)
   const showSaveButton = shouldShowSaveButton(
     isFrameReady,
     inMiniApp,
-    context?.client?.added
+    miniAppContextData?.context?.client?.added
   )
 
   // Show user info if user exists from Farcaster context OR if wallet is connected
