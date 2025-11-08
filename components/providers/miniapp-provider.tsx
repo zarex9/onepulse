@@ -9,32 +9,18 @@ import {
 } from "react"
 import { useIsInMiniApp, useMiniKit } from "@coinbase/onchainkit/minikit"
 
-export type AccountLocation = {
-  placeId: string
-  description: string
-}
-
-export type UserContext = {
-  fid: number
-  username?: string
-  displayName?: string
-  pfpUrl?: string
-  location?: AccountLocation
-}
-
 export type MiniAppNotificationDetails = {
   url: string
   token: string
 }
-
+export type MiniAppPlatformType = "web" | "mobile"
 export type MiniAppUser = {
   fid: number
   username?: string
   displayName?: string
   pfpUrl?: string
 }
-
-export type MiniAppCast = {
+export interface MiniAppCast {
   author: MiniAppUser
   hash: string
   parentHash?: string
@@ -45,18 +31,15 @@ export type MiniAppCast = {
   embeds?: string[]
   channelKey?: string
 }
-
 export type CastEmbedLocationContext = {
   type: "cast_embed"
   embed: string
   cast: MiniAppCast
 }
-
 export type CastShareLocationContext = {
   type: "cast_share"
   cast: MiniAppCast
 }
-
 export type NotificationLocationContext = {
   type: "notification"
   notification: {
@@ -65,11 +48,9 @@ export type NotificationLocationContext = {
     body: string
   }
 }
-
 export type LauncherLocationContext = {
   type: "launcher"
 }
-
 export type ChannelLocationContext = {
   type: "channel"
   channel: {
@@ -78,12 +59,10 @@ export type ChannelLocationContext = {
     imageUrl?: string
   }
 }
-
 export type OpenMiniAppLocationContext = {
   type: "open_miniapp"
   referrerDomain: string
 }
-
 export type LocationContext =
   | CastEmbedLocationContext
   | CastShareLocationContext
@@ -91,14 +70,23 @@ export type LocationContext =
   | LauncherLocationContext
   | ChannelLocationContext
   | OpenMiniAppLocationContext
-
+export type AccountLocation = {
+  placeId: string
+  description: string
+}
+export type UserContext = {
+  fid: number
+  username?: string
+  displayName?: string
+  pfpUrl?: string
+  location?: AccountLocation
+}
 export type SafeAreaInsets = {
   top: number
   bottom: number
   left: number
   right: number
 }
-
 export type ClientContext = {
   platformType?: MiniAppPlatformType
   clientFid: number
@@ -106,28 +94,15 @@ export type ClientContext = {
   notificationDetails?: MiniAppNotificationDetails
   safeAreaInsets?: SafeAreaInsets
 }
-
-interface MiniAppClient {
-  platformType?: "web" | "mobile"
-  clientFid: number
-  added: boolean
-  safeAreaInsets?: SafeAreaInsets
-  notificationDetails?: {
-    url: string
-    token: string
-  }
+export type ClientFeatures = {
+  haptics: boolean
+  cameraAndMicrophoneAccess?: boolean
 }
-
-export type MiniAppPlatformType = "web" | "mobile"
-
 export type MiniAppContext = {
-  user: MiniAppUser
+  client: ClientContext
+  user: UserContext
   location?: LocationContext
-  client: MiniAppClient
-  features?: {
-    haptics: boolean
-    cameraAndMicrophoneAccess?: boolean
-  }
+  features?: ClientFeatures
 }
 
 type MiniAppContextType = {
