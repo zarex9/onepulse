@@ -1,17 +1,14 @@
 "use client"
 
 import React from "react"
-import {
-  useComposeCast,
-  useMiniKit,
-  useOpenUrl,
-} from "@coinbase/onchainkit/minikit"
+import { useComposeCast, useOpenUrl } from "@coinbase/onchainkit/minikit"
 import { Copy, MessageCircle } from "lucide-react"
 
 import { generateGMStatusMetadata } from "@/lib/og-utils"
 import { useGmStats } from "@/hooks/use-gm-stats"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
+import { useMiniAppContext } from "@/components/providers/miniapp-provider"
 
 interface ShareGMStatusProps {
   className?: string
@@ -75,12 +72,12 @@ const createShareMetadata = (
 
 // Custom hook for GM sharing logic
 function useGMSharing(claimedToday: boolean) {
-  const { context } = useMiniKit()
+  const miniAppContextData = useMiniAppContext()
   const { stats: gmStats } = useGmStats()
   const { composeCast } = useComposeCast()
   const openUrl = useOpenUrl()
 
-  const username = getUsername(context)
+  const username = getUsername(miniAppContextData?.context ?? null)
   const { currentStreak, totalGMs } = getGMStats(gmStats)
   const todayGM = hasGMedToday(gmStats)
 
