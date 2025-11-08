@@ -5,10 +5,13 @@ import { useComposeCast, useOpenUrl } from "@coinbase/onchainkit/minikit"
 import { Copy, MessageCircle } from "lucide-react"
 
 import { generateGMStatusMetadata } from "@/lib/og-utils"
-import { useGmStats } from "@/hooks/use-gm-stats"
+import { GmStats, useGmStats } from "@/hooks/use-gm-stats"
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
-import { useMiniAppContext } from "@/components/providers/miniapp-provider"
+import {
+  useMiniAppContext,
+  UserContext,
+} from "@/components/providers/miniapp-provider"
 
 interface ShareGMStatusProps {
   className?: string
@@ -24,18 +27,15 @@ interface ShareGMStatusProps {
 }
 
 // Utility functions for GM sharing
-const getUsername = (
-  context: { user?: { username?: string; displayName?: string } } | null
-) => context?.user?.username || context?.user?.displayName || "Anonymous"
+const getUsername = (user: UserContext | null) =>
+  user?.username || user?.displayName || "Anonymous"
 
-const getGMStats = (
-  gmStats: { currentStreak?: number; allTimeGmCount?: number } | undefined
-) => ({
+const getGMStats = (gmStats: GmStats | undefined) => ({
   currentStreak: gmStats?.currentStreak || 0,
   totalGMs: gmStats?.allTimeGmCount || 0,
 })
 
-const hasGMedToday = (gmStats: { lastGmDay?: number } | undefined) => {
+const hasGMedToday = (gmStats: GmStats | undefined) => {
   if (!gmStats?.lastGmDay) return false
   const today = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24))
   return gmStats.lastGmDay === today
@@ -77,7 +77,7 @@ function useGMSharing(claimedToday: boolean) {
   const { composeCast } = useComposeCast()
   const openUrl = useOpenUrl()
 
-  const username = getUsername(miniAppContextData?.context ?? null)
+  const username = getUsername(miniAppContextData?.context?.user ?? null)
   const { currentStreak, totalGMs } = getGMStats(gmStats)
   const todayGM = hasGMedToday(gmStats)
 
