@@ -7,8 +7,8 @@ export const runtime = "edge";
 function parseGMStatusParams(searchParams: URLSearchParams) {
   return {
     username: searchParams.get("username") || "Anonymous",
-    streak: Number.parseInt(searchParams.get("streak") || "0"),
-    totalGMs: Number.parseInt(searchParams.get("totalGMs") || "0"),
+    streak: Number.parseInt(searchParams.get("streak") || "0", 10),
+    totalGMs: Number.parseInt(searchParams.get("totalGMs") || "0", 10),
     chains: searchParams.get("chains")?.split(",") || [],
     todayGM: searchParams.get("todayGM") === "true",
     claimedToday: searchParams.get("claimedToday") === "true",
@@ -161,8 +161,6 @@ function generateStatusGrid(
 
 // Helper function to generate the chains section
 function generateChainsSection(chains: string[]) {
-  if (chains.length === 0) return <></>;
-
   return (
     <div
       style={{
@@ -187,9 +185,9 @@ function generateChainsSection(chains: string[]) {
           gap: 8,
         }}
       >
-        {chains.map((chain, index) => (
+        {chains.map((chain) => (
           <div
-            key={index}
+            key={chain}
             style={{
               backgroundColor: "rgba(255, 255, 255, 0.2)",
               padding: "4px 12px",
@@ -273,7 +271,7 @@ function generateFallbackImage() {
   );
 }
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const params = parseGMStatusParams(searchParams);

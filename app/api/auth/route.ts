@@ -25,7 +25,8 @@ function getUrlHost(request: NextRequest): string {
   // Final fallback to environment variables (your original logic)
   let urlValue: string;
   if (process.env.VERCEL_ENV === "production") {
-    urlValue = process.env.NEXT_PUBLIC_URL!;
+    urlValue =
+      process.env.NEXT_PUBLIC_URL || "https://onepulse-ruby.vercel.app";
   } else if (process.env.VERCEL_URL) {
     urlValue = `https://${process.env.VERCEL_URL}`;
   } else {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
   const authorization = request.headers.get("Authorization");
 
   // Here we ensure that we have a valid token.
-  if (!(authorization && authorization.startsWith("Bearer "))) {
+  if (!authorization?.startsWith("Bearer ")) {
     return NextResponse.json({ message: "Missing token" }, { status: 401 });
   }
 

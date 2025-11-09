@@ -37,11 +37,17 @@ function validateRequest(
   body: Record<string, unknown>
 ): ValidationSuccess | ValidationFailure {
   const { claimer, fid, deadline } = body;
-  const missing = [];
+  const missing: string[] = [];
 
-  if (!claimer) missing.push("claimer");
-  if (!fid) missing.push("fid");
-  if (!deadline) missing.push("deadline");
+  if (!claimer) {
+    missing.push("claimer");
+  }
+  if (!fid) {
+    missing.push("fid");
+  }
+  if (!deadline) {
+    missing.push("deadline");
+  }
 
   if (missing.length > 0) {
     return { valid: false, missing };
