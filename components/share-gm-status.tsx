@@ -72,16 +72,130 @@ const hasGMedToday = (gmStats: GmStats | undefined) => {
   return gmStats.lastGmDay === today;
 };
 
-const createShareText = (claimedToday: boolean, currentStreak: number) => {
-  const baseText = claimedToday
-    ? "Just claimed my daily DEGEN rewards!"
-    : "Check out my GM status!";
+const createShareText = (
+  claimedToday: boolean,
+  currentStreak: number,
+  totalGMs = 0,
+  _todayGM = false
+) => {
+  // Base messages for claiming vs sharing status
+  const claimMessages = [
+    "🚀 Just snagged my daily DEGEN rewards!",
+    "💰 DEGEN rewards claimed and secured!",
+    "🎯 Daily GM rewards in the bag!",
+    "⚡ Powered up with fresh DEGEN rewards!",
+    "🌟 Claimed my GM rewards - let's go!",
+  ];
 
-  if (currentStreak > 0) {
-    const streakType = claimedToday ? "GM streak" : "streak";
-    return `${baseText} ${currentStreak}-day ${streakType} 🔥`;
+  const statusMessages = [
+    "📊 Check out my epic GM status!",
+    "🔥 My GM journey so far:",
+    "⚡ GM stats incoming:",
+    "🎮 Level up my GM game:",
+    "🚀 GM status report:",
+  ];
+
+  // Streak-based messages
+  const getStreakMessage = (streak: number, claimed: boolean) => {
+    const streakConfigs = [
+      {
+        max: 0,
+        claimed: "Starting my GM empire! 👑",
+        unclaimed: "Ready to start my GM streak! 💪",
+      },
+      {
+        max: 1,
+        claimed: "First GM reward claimed! 🎉",
+        unclaimed: "One down, many more to go! 🔥",
+      },
+      {
+        max: 2,
+        claimed: `${streak}-day GM streak growing! 📈`,
+        unclaimed: `${streak}-day streak in progress! ⚡`,
+      },
+      {
+        max: 6,
+        claimed: `${streak}-day GM fire burning hot! 🔥`,
+        unclaimed: `${streak}-day momentum building! 💨`,
+      },
+      {
+        max: 13,
+        claimed: `${streak}-day GM legend status! 👑`,
+        unclaimed: `${streak}-day streak crushing it! 💪`,
+      },
+      {
+        max: 29,
+        claimed: `${streak}-day GM immortality! 🌟`,
+        unclaimed: `${streak}-day unstoppable! 🚀`,
+      },
+      {
+        max: 49,
+        claimed: `${streak}-day GM god mode! ⚡`,
+        unclaimed: `${streak}-day absolute unit! 💎`,
+      },
+      {
+        max: Number.POSITIVE_INFINITY,
+        claimed: `${streak}-day GM eternal flame! 🔥`,
+        unclaimed: `${streak}-day legendary status! 👑`,
+      },
+    ];
+
+    const config = streakConfigs.find((c) => streak <= c.max);
+    return config ? (claimed ? config.claimed : config.unclaimed) : "";
+  };
+
+  // Total GM milestone messages
+  const getMilestoneMessage = (total: number) => {
+    const milestones = [
+      {
+        threshold: 100,
+        message: ` (${total} total GMs - absolute legend! 🏆)`,
+      },
+      { threshold: 50, message: ` (${total} total GMs - on fire! 🔥)` },
+      { threshold: 25, message: ` (${total} total GMs - crushing it! 💪)` },
+      { threshold: 10, message: ` (${total} total GMs - getting serious! ⚡)` },
+      {
+        threshold: 5,
+        message: ` (${total} total GMs - building momentum! 📈)`,
+      },
+      { threshold: 1, message: ` (${total} total GMs so far! 🎯)` },
+    ];
+
+    const milestone = milestones.find((m) => total >= m.threshold);
+    return milestone?.message || "";
+  };
+
+  // Random selection for variety
+  const randomFrom = (arr: string[]) =>
+    arr[Math.floor(Math.random() * arr.length)];
+
+  const baseMessage = claimedToday
+    ? randomFrom(claimMessages)
+    : randomFrom(statusMessages);
+  const streakMessage = getStreakMessage(currentStreak, claimedToday);
+  const milestoneMessage = getMilestoneMessage(totalGMs);
+
+  // Special case for first GM ever
+  if (totalGMs === 1 && currentStreak === 1) {
+    return claimedToday
+      ? "🎉 Just made my very first GM claim! Welcome to the DEGEN life! 🚀"
+      : "🌟 Just started my GM journey with my first GM! 💪";
   }
-  return `${baseText} Starting my GM journey!`;
+
+  // Special case for streak milestones
+  if (currentStreak === 7) {
+    return claimedToday
+      ? "🎊 Week-long GM streak achieved! DEGEN rewards flowing! 💰"
+      : "⚡ One week of consistent GMs! Who's stopping me now? 🔥";
+  }
+
+  if (currentStreak === 30) {
+    return claimedToday
+      ? "👑 30-day GM emperor! DEGEN rewards for the throne! 💎"
+      : "🏆 30 days of pure GM dedication! Unbreakable! 🚀";
+  }
+
+  return `${baseMessage} ${streakMessage}${milestoneMessage}`;
 };
 
 const createShareMetadata = (options: {
@@ -110,7 +224,12 @@ function useGMSharing(claimedToday: boolean) {
   const { currentStreak, totalGMs } = getGMStats(gmStats);
   const todayGM = hasGMedToday(gmStats);
 
-  const shareText = createShareText(claimedToday, currentStreak);
+  const shareText = createShareText(
+    claimedToday,
+    currentStreak,
+    totalGMs,
+    todayGM
+  );
   const metadata = createShareMetadata({
     username,
     currentStreak,
