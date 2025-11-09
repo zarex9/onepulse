@@ -1,8 +1,3 @@
----
-description: Comprehensive guidance for GitHub Copilot to generate code consistent with OnePulse's standards, architecture, technology versions, and actual codebase patterns
-applyTo: "**"
----
-
 # Ultracite Code Standards
 
 This project uses **Ultracite**, a zero-config Biome preset that enforces strict code quality standards through automated formatting and linting.
@@ -93,17 +88,14 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
-
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
-
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
-
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---

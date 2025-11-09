@@ -10,6 +10,6 @@ const nextConfig = {
   transpilePackages: ["spacetimedb"],
   // Mark node-specific optional deps as external on the server to avoid bundling issues
   serverExternalPackages: ["pino-pretty", "lokijs", "encoding"],
-}
+};
 
-export default nextConfig
+export default nextConfig;
