@@ -7,8 +7,8 @@
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",
-    "check": "bunx ultracite check",
-    "fix": "bunx ultracite fix"
+    "check": "bunx ultracite@latest check",
+    "fix": "bunx ultracite@latest fix"
   },
   "dependencies": {
     "@coinbase/onchainkit": "latest",
