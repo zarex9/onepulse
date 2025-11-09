@@ -21,8 +21,7 @@ export const minikitConfig = {
     version: "1",
     name: "OnePulse",
     subtitle: "Say GM, earn rewards",
-    description:
-      "Build streaks and get rewarded",
+    description: "Build streaks and get rewarded",
     screenshotUrls: [`${ROOT_URL}/screenshot.png`],
     iconUrl: `${ROOT_URL}/icon.png`,
     splashImageUrl: `${ROOT_URL}/splash.png`,
@@ -34,8 +33,7 @@ export const minikitConfig = {
     heroImageUrl: `${ROOT_URL}/hero.png`,
     tagline: "Your daily onchain habit",
     ogTitle: "OnePulse",
-    ogDescription:
-      "Build streaks and get rewarded",
+    ogDescription: "Build streaks and get rewarded",
     ogImageUrl: `${ROOT_URL}/hero.png`,
     noindex: false,
   },
