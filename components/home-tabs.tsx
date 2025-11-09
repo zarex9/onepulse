@@ -6,23 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useMiniAppContext } from "./providers/miniapp-provider";
 
-interface HomeTabsProps {
+type HomeTabsProps = {
   tab: string;
   onTabChange: (tab: string) => void;
-}
+};
 
 export function HomeTabs({ tab, onTabChange }: HomeTabsProps) {
   const miniAppContext = useMiniAppContext();
 
   const isInMiniApp = !!miniAppContext?.isInMiniApp;
   const isBaseApp = miniAppContext?.context?.client.clientFid === 309_857;
-  const isFarcaster = miniAppContext?.context?.client.clientFid === 1;
 
-  const allowedChainIds = isFarcaster
-    ? [8453, 42_220, 10]
-    : isBaseApp
-      ? [8453, 10]
-      : [8453, 42_220, 10];
+  const allowedChainIds = isBaseApp ? [8453, 10] : [8453, 42_220, 10];
 
   return (
     <div className="mt-4 mb-6">
