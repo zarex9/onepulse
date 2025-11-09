@@ -1,25 +1,25 @@
-import type { GmStatsByAddress } from "@/lib/module_bindings"
+import type { GmStatsByAddress } from "@/lib/module_bindings";
 
-import type { GmStats } from "./use-gm-stats"
+import type { GmStats } from "./use-gm-stats";
 
 export function normalizeAddress(address?: string | null): string | null {
-  return address?.toLowerCase() ?? null
+  return address?.toLowerCase() ?? null;
 }
 
 export function groupRowsByAddress(
   rows: GmStatsByAddress[]
 ): Map<string, GmStatsByAddress[]> {
-  const map = new Map<string, GmStatsByAddress[]>()
+  const map = new Map<string, GmStatsByAddress[]>();
   for (const row of rows) {
-    const key = row.address.toLowerCase()
-    const existing = map.get(key)
+    const key = row.address.toLowerCase();
+    const existing = map.get(key);
     if (existing) {
-      existing.push(row)
+      existing.push(row);
     } else {
-      map.set(key, [row])
+      map.set(key, [row]);
     }
   }
-  return map
+  return map;
 }
 
 export function deriveStatsForAddress(
@@ -28,9 +28,9 @@ export function deriveStatsForAddress(
   zero: GmStats,
   chainId?: number
 ): GmStats | undefined {
-  if (!address || rows.length === 0) return undefined
+  if (!address || rows.length === 0) return;
   if (typeof chainId === "number") {
-    const row = rows.find((r) => r.chainId === chainId)
+    const row = rows.find((r) => r.chainId === chainId);
     return row
       ? {
           currentStreak: row.currentStreak ?? 0,
@@ -38,7 +38,7 @@ export function deriveStatsForAddress(
           allTimeGmCount: row.allTimeGmCount ?? 0,
           lastGmDay: row.lastGmDay ?? 0,
         }
-      : undefined
+      : undefined;
   }
   return rows.reduce<GmStats>(
     (acc, r) => ({
@@ -48,5 +48,5 @@ export function deriveStatsForAddress(
       lastGmDay: Math.max(acc.lastGmDay, r.lastGmDay ?? 0),
     }),
     { ...zero }
-  )
+  );
 }

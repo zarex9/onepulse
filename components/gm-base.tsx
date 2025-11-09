@@ -1,122 +1,124 @@
-"use client"
+"use client";
 
-import React, { useMemo } from "react"
-import { useAccount } from "wagmi"
-
-import { DAILY_GM_ADDRESSES } from "@/lib/constants"
-import { useGmStats } from "@/hooks/use-gm-stats"
+import React, { useMemo } from "react";
+import { useAccount } from "wagmi";
+import { GMChainCard } from "@/components/gm-chain-card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel"
-import { GMChainCard } from "@/components/gm-chain-card"
+} from "@/components/ui/carousel";
+import { useGmStats } from "@/hooks/use-gm-stats";
+import { DAILY_GM_ADDRESSES } from "@/lib/constants";
 
 import {
   areAllChainsComplete,
   getChainList,
   getNextTargetSec,
-} from "./gm-base/chain-config"
-import { CongratsDialog } from "./gm-base/congrats-dialog"
-import { ModalRenderer } from "./gm-base/modal-renderer"
-import { useConfettiControl } from "./gm-base/use-confetti-control"
-import { useCongratsLogic } from "./gm-base/use-congrats-logic"
-import { useLastCongratsDay } from "./gm-base/use-last-congrats-day"
-import { useModalManagement } from "./gm-base/use-modal-management"
-import { usePerChainStatus } from "./gm-base/use-per-chain-status"
+} from "./gm-base/chain-config";
+import { CongratsDialog } from "./gm-base/congrats-dialog";
+import { ModalRenderer } from "./gm-base/modal-renderer";
+import { useConfettiControl } from "./gm-base/use-confetti-control";
+import { useCongratsLogic } from "./gm-base/use-congrats-logic";
+import { useLastCongratsDay } from "./gm-base/use-last-congrats-day";
+import { useModalManagement } from "./gm-base/use-modal-management";
+import { usePerChainStatus } from "./gm-base/use-per-chain-status";
 
 export const GMBase = React.memo(function GMBase({
   sponsored,
   allowedChainIds,
 }: {
-  sponsored?: boolean
-  allowedChainIds?: number[]
+  sponsored?: boolean;
+  allowedChainIds?: number[];
 }) {
-  const { isConnected, address } = useAccount()
+  const { isConnected, address } = useAccount();
   const {
     activeModalChainId,
     processing,
     setActiveModalChainId,
     setProcessing,
-  } = useModalManagement()
+  } = useModalManagement();
 
   // Store refetch function for active chain
   const [activeRefetchFn, setActiveRefetchFn] = React.useState<
     (() => Promise<unknown>) | undefined
-  >(undefined)
+  >(undefined);
 
-  const chains = useMemo(() => getChainList(allowedChainIds), [allowedChainIds])
-  const chainIds = useMemo(() => chains.map((c) => c.id), [chains])
+  const chains = useMemo(
+    () => getChainList(allowedChainIds),
+    [allowedChainIds]
+  );
+  const chainIds = useMemo(() => chains.map((c) => c.id), [chains]);
 
   // Track per-chain status
-  const { statusMap, handleStatus } = usePerChainStatus()
+  const { statusMap, handleStatus } = usePerChainStatus();
 
   // Derive all-done and next target from chain status
   const allDone = useMemo(
     () => areAllChainsComplete(chainIds, statusMap),
     [chainIds, statusMap]
-  )
+  );
 
   const nextTargetSec = useMemo(
     () => getNextTargetSec(chainIds, statusMap),
     [chainIds, statusMap]
-  )
+  );
 
   // Manage congratulations day persistently
-  const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay()
+  const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay();
 
-  const { confettiRef } = useConfettiControl(false, isConnected)
+  const { confettiRef } = useConfettiControl(false, isConnected);
 
   const { showCongrats, setShowCongrats } = useCongratsLogic({
     allDone,
     isConnected,
     lastCongratsDay,
     onLastCongratsDayUpdate: setLastCongratsDay,
-  })
+  });
 
   // Update confetti trigger when showing congrats
   React.useEffect(() => {
     if (showCongrats) {
-      confettiRef.current?.fire?.()
+      confettiRef.current?.fire?.();
     }
-  }, [showCongrats, confettiRef])
+  }, [showCongrats, confettiRef]);
 
   return (
     <div className="mt-4 space-y-4">
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold">Daily GM</h2>
+        <h2 className="font-semibold text-lg">Daily GM</h2>
         <p className="text-muted-foreground text-sm">
           Send GM daily on each chain to earn rewards
         </p>
       </div>
 
       <Carousel
+        className="w-full"
         opts={{
           align: "start",
           loop: true,
         }}
-        className="w-full"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
           {chains.map((c) => {
-            const contractAddress = DAILY_GM_ADDRESSES[c.id]
+            const contractAddress = DAILY_GM_ADDRESSES[c.id];
             return contractAddress ? (
-              <CarouselItem key={c.id} className="basis-full pl-2 md:pl-4">
+              <CarouselItem className="basis-full pl-2 md:pl-4" key={c.id}>
                 <ChainSlide
+                  address={address}
                   chainId={c.id}
                   chainName={c.name}
                   contractAddress={contractAddress}
                   isConnected={Boolean(isConnected)}
-                  address={address}
-                  sponsored={Boolean(sponsored) && c.id === 8453}
-                  onStatusChange={handleStatus}
                   onOpenModal={(refetch) => {
-                    setActiveModalChainId(c.id)
-                    setActiveRefetchFn(() => refetch)
+                    setActiveModalChainId(c.id);
+                    setActiveRefetchFn(() => refetch);
                   }}
+                  onStatusChange={handleStatus}
+                  sponsored={Boolean(sponsored) && c.id === 8453}
                 />
               </CarouselItem>
-            ) : null
+            ) : null;
           })}
         </CarouselContent>
       </Carousel>
@@ -124,29 +126,29 @@ export const GMBase = React.memo(function GMBase({
       {/* Global modal rendered at root level */}
       <ModalRenderer
         activeModalChainId={activeModalChainId}
-        chains={chains}
-        sponsored={Boolean(sponsored)}
         address={address}
-        processing={processing}
-        setProcessing={setProcessing}
-        refetchLastGmDay={activeRefetchFn}
+        chains={chains}
         onClose={() => {
-          setActiveModalChainId(null)
-          setProcessing(false)
+          setActiveModalChainId(null);
+          setProcessing(false);
         }}
+        processing={processing}
+        refetchLastGmDay={activeRefetchFn}
+        setProcessing={setProcessing}
+        sponsored={Boolean(sponsored)}
       />
 
       <CongratsDialog
-        open={Boolean(showCongrats && allDone)}
+        confettiRef={confettiRef}
         nextTargetSec={nextTargetSec}
         onOpenChange={(val) => {
-          if (!val) setShowCongrats(false)
+          if (!val) setShowCongrats(false);
         }}
-        confettiRef={confettiRef}
+        open={Boolean(showCongrats && allDone)}
       />
     </div>
-  )
-})
+  );
+});
 
 // Separate component to handle per-chain stats
 const ChainSlide = React.memo(function ChainSlide({
@@ -159,40 +161,40 @@ const ChainSlide = React.memo(function ChainSlide({
   onStatusChange,
   onOpenModal,
 }: {
-  chainId: number
-  chainName: string
-  contractAddress: `0x${string}`
-  isConnected: boolean
-  address?: string
-  sponsored: boolean
+  chainId: number;
+  chainName: string;
+  contractAddress: `0x${string}`;
+  isConnected: boolean;
+  address?: string;
+  sponsored: boolean;
   onStatusChange: (status: {
-    chainId: number
-    hasGmToday: boolean
-    targetSec: number
-  }) => void
-  onOpenModal: (refetch: () => Promise<unknown>) => void
+    chainId: number;
+    hasGmToday: boolean;
+    targetSec: number;
+  }) => void;
+  onOpenModal: (refetch: () => Promise<unknown>) => void;
 }) {
-  const { stats, isReady } = useGmStats(address, chainId)
+  const { stats, isReady } = useGmStats(address, chainId);
 
   const handleOpenModal = React.useCallback(
     (refetch: () => Promise<unknown>) => {
-      onOpenModal(refetch)
+      onOpenModal(refetch);
     },
     [onOpenModal]
-  )
+  );
 
   return (
     <GMChainCard
+      address={address}
       chainId={chainId}
-      name={chainName}
       contractAddress={contractAddress}
       isConnected={isConnected}
-      address={address}
+      isStatsReady={isReady}
+      name={chainName}
+      onOpenModal={handleOpenModal}
       onStatusChange={onStatusChange}
       sponsored={sponsored}
       stats={stats}
-      isStatsReady={isReady}
-      onOpenModal={handleOpenModal}
     />
-  )
-})
+  );
+});

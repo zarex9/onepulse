@@ -1,50 +1,50 @@
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server";
 import {
   createPublicClient,
   createWalletClient,
   encodePacked,
   http,
   keccak256,
-} from "viem"
-import { privateKeyToAccount } from "viem/accounts"
-import { base } from "viem/chains"
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
 
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
-import { getDailyRewardsAddress } from "@/lib/constants"
+import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { getDailyRewardsAddress } from "@/lib/constants";
 
 // Backend signer for claim authorizations
-const BACKEND_SIGNER_PRIVATE_KEY = process.env.BACKEND_SIGNER_PRIVATE_KEY
+const BACKEND_SIGNER_PRIVATE_KEY = process.env.BACKEND_SIGNER_PRIVATE_KEY;
 
 if (!BACKEND_SIGNER_PRIVATE_KEY) {
-  console.warn("BACKEND_SIGNER_PRIVATE_KEY not configured")
+  console.warn("BACKEND_SIGNER_PRIVATE_KEY not configured");
 }
 
 type ValidationSuccess = {
-  valid: true
+  valid: true;
   data: {
-    claimer: string
-    fid: number | bigint
-    deadline: number | bigint
-  }
-}
+    claimer: string;
+    fid: number | bigint;
+    deadline: number | bigint;
+  };
+};
 
 type ValidationFailure = {
-  valid: false
-  missing: string[]
-}
+  valid: false;
+  missing: string[];
+};
 
 function validateRequest(
   body: Record<string, unknown>
 ): ValidationSuccess | ValidationFailure {
-  const { claimer, fid, deadline } = body
-  const missing = []
+  const { claimer, fid, deadline } = body;
+  const missing = [];
 
-  if (!claimer) missing.push("claimer")
-  if (!fid) missing.push("fid")
-  if (!deadline) missing.push("deadline")
+  if (!claimer) missing.push("claimer");
+  if (!fid) missing.push("fid");
+  if (!deadline) missing.push("deadline");
 
   if (missing.length > 0) {
-    return { valid: false, missing }
+    return { valid: false, missing };
   }
 
   return {
@@ -54,7 +54,7 @@ function validateRequest(
       fid: fid as number | bigint,
       deadline: deadline as number | bigint,
     },
-  }
+  };
 }
 
 /**
@@ -62,29 +62,29 @@ function validateRequest(
  * The user receives this signature and submits it with their own transaction.
  */
 async function generateClaimAuthorization(params: {
-  claimer: string
-  fid: number | bigint
-  deadline: number | bigint
+  claimer: string;
+  fid: number | bigint;
+  deadline: number | bigint;
 }) {
   const account = privateKeyToAccount(
     BACKEND_SIGNER_PRIVATE_KEY as `0x${string}`
-  )
+  );
 
   const walletClient = createWalletClient({
     account,
     chain: base,
     transport: http(),
-  })
+  });
 
   const publicClient = createPublicClient({
     chain: base,
     transport: http(),
-  })
+  });
 
-  const contractAddress = getDailyRewardsAddress(base.id)
+  const contractAddress = getDailyRewardsAddress(base.id);
 
   if (!contractAddress) {
-    throw new Error("Contract address not configured")
+    throw new Error("Contract address not configured");
   }
 
   const nonce = await publicClient.readContract({
@@ -92,7 +92,7 @@ async function generateClaimAuthorization(params: {
     abi: dailyRewardsAbi,
     functionName: "nonces",
     args: [params.claimer as `0x${string}`],
-  })
+  });
 
   // Create message hash matching the contract's format with nonce:
   // keccak256(abi.encodePacked(claimer, fid, nonce, deadline, address(this)))
@@ -107,54 +107,54 @@ async function generateClaimAuthorization(params: {
         contractAddress as `0x${string}`,
       ]
     )
-  )
+  );
 
   // Sign the message hash (personal_sign)
   const signature = await walletClient.signMessage({
     message: { raw: messageHash },
-  })
+  });
 
   return {
     signature,
     nonce: Number(nonce),
-  }
+  };
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    const body = await req.json();
 
     // Validate request
-    const validation = validateRequest(body)
+    const validation = validateRequest(body);
     if (!validation.valid) {
       return NextResponse.json(
         { error: "Missing required fields", missing: validation.missing },
         { status: 400 }
-      )
+      );
     }
 
-    const { claimer, fid, deadline } = validation.data
+    const { claimer, fid, deadline } = validation.data;
 
     // Generate backend signature with nonce
     const { signature, nonce } = await generateClaimAuthorization({
       claimer,
       fid,
       deadline,
-    })
+    });
 
     return NextResponse.json({
       signature,
       nonce,
       message: "Claim authorization generated successfully",
-    })
+    });
   } catch (error) {
-    console.error("Error generating claim authorization:", error)
+    console.error("Error generating claim authorization:", error);
     return NextResponse.json(
       {
         error: "Failed to generate claim authorization",
         message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
-    )
+    );
   }
 }

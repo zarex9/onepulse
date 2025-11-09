@@ -1,4 +1,4 @@
-import { minikitConfig } from "@/minikit.config"
+import { minikitConfig } from "@/minikit.config";
 
 function withValidProperties(
   properties: Record<string, undefined | boolean | string | string[]>
@@ -7,11 +7,11 @@ function withValidProperties(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Object.entries(properties).filter(([key, value]) => {
       if (Array.isArray(value)) {
-        return value.length > 0
+        return value.length > 0;
       }
-      return !!value
+      return !!value;
     })
-  )
+  );
 }
 
 export async function GET() {
@@ -43,6 +43,7 @@ export async function GET() {
       ogDescription: minikitConfig.miniapp.ogDescription,
       ogImageUrl: minikitConfig.miniapp.ogImageUrl,
     }),
-  }
-  return Response.json(body)
+  };
+
+  return Response.json(body);
 }

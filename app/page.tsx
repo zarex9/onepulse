@@ -1,20 +1,19 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import dynamic from "next/dynamic"
-
-import { useFrameInitialization } from "@/hooks/use-frame-initialization"
-import { useMetaColor } from "@/hooks/use-meta-color"
-import { useMiniAppFlow } from "@/hooks/use-miniapp-flow"
-import { useOnboardingModal } from "@/hooks/use-onboarding-modal"
-import { usePageState } from "@/hooks/use-page-state"
-import { useParticlesAnimation } from "@/hooks/use-particles-animation"
-import { useSafeAreaStyle } from "@/hooks/use-safe-area-style"
-import { DisconnectWalletSection } from "@/components/disconnect-wallet-section"
-import { HomeHeader } from "@/components/home-header"
-import { HomeTabs } from "@/components/home-tabs"
-import { OnboardingModal } from "@/components/onboarding-modal"
-import { useMiniAppContext } from "@/components/providers/miniapp-provider"
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
+import { DisconnectWalletSection } from "@/components/disconnect-wallet-section";
+import { HomeHeader } from "@/components/home-header";
+import { HomeTabs } from "@/components/home-tabs";
+import { OnboardingModal } from "@/components/onboarding-modal";
+import { useMiniAppContext } from "@/components/providers/miniapp-provider";
+import { useFrameInitialization } from "@/hooks/use-frame-initialization";
+import { useMetaColor } from "@/hooks/use-meta-color";
+import { useMiniAppFlow } from "@/hooks/use-miniapp-flow";
+import { useOnboardingModal } from "@/hooks/use-onboarding-modal";
+import { usePageState } from "@/hooks/use-page-state";
+import { useParticlesAnimation } from "@/hooks/use-particles-animation";
+import { useSafeAreaStyle } from "@/hooks/use-safe-area-style";
 
 const Particles = dynamic(
   () =>
@@ -22,7 +21,7 @@ const Particles = dynamic(
       default: mod.Particles,
     })),
   { ssr: false, loading: () => null }
-)
+);
 
 function determineOnboardingSaveHandler(
   isFrameReady: boolean,
@@ -30,18 +29,18 @@ function determineOnboardingSaveHandler(
   clientAdded: boolean | undefined,
   handleMiniAppAdded: () => void
 ) {
-  const shouldEnableSave = isFrameReady && inMiniApp && clientAdded !== true
-  return shouldEnableSave ? handleMiniAppAdded : undefined
+  const shouldEnableSave = isFrameReady && inMiniApp && clientAdded !== true;
+  return shouldEnableSave ? handleMiniAppAdded : undefined;
 }
 
 interface HomeContentProps {
-  isFrameReady: boolean
-  inMiniApp: boolean
-  isConnected: boolean
-  showDisconnect: boolean
-  handleMiniAppAdded: () => void
-  tab: string
-  setTab: (tab: string) => void
+  isFrameReady: boolean;
+  inMiniApp: boolean;
+  isConnected: boolean;
+  showDisconnect: boolean;
+  handleMiniAppAdded: () => void;
+  tab: string;
+  setTab: (tab: string) => void;
 }
 
 function HomeContent({
@@ -57,26 +56,26 @@ function HomeContent({
     <>
       <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
         <HomeHeader
-          isFrameReady={isFrameReady}
           inMiniApp={inMiniApp}
+          isFrameReady={isFrameReady}
           onMiniAppAdded={handleMiniAppAdded}
         />
-        <HomeTabs tab={tab} onTabChange={setTab} />
+        <HomeTabs onTabChange={setTab} tab={tab} />
         <DisconnectWalletSection
           isConnected={isConnected}
-          showDisconnect={showDisconnect}
           onTabChange={setTab}
+          showDisconnect={showDisconnect}
         />
       </div>
     </>
-  )
+  );
 }
 
 interface HomeBackgroundProps {
-  showParticles: boolean
-  prefersReducedMotion: boolean | null
-  particleQuantity: number
-  metaColor: string
+  showParticles: boolean;
+  prefersReducedMotion: boolean | null;
+  particleQuantity: number;
+  metaColor: string;
 }
 
 function HomeBackground({
@@ -86,72 +85,72 @@ function HomeBackground({
   metaColor,
 }: HomeBackgroundProps) {
   if (!showParticles || prefersReducedMotion) {
-    return null
+    return null;
   }
 
   return (
     <Particles
       className="absolute inset-0 z-0"
-      quantity={particleQuantity}
-      ease={80}
       color={metaColor}
+      ease={80}
+      quantity={particleQuantity}
       refresh
     />
-  )
+  );
 }
 
 export default function Home() {
-  const miniAppContextData = useMiniAppContext()
-  const { inMiniApp, isConnected } = usePageState()
-  const { showParticles, prefersReducedMotion } = useParticlesAnimation()
-  const safeAreaStyle = useSafeAreaStyle()
-  const { metaColor } = useMetaColor()
-  const { handleMiniAppAdded } = useMiniAppFlow()
+  const miniAppContextData = useMiniAppContext();
+  const { inMiniApp, isConnected } = usePageState();
+  const { showParticles, prefersReducedMotion } = useParticlesAnimation();
+  const safeAreaStyle = useSafeAreaStyle();
+  const { metaColor } = useMetaColor();
+  const { handleMiniAppAdded } = useMiniAppFlow();
   const { shouldShowOnboarding, dismissOnboarding, canSaveApp } =
-    useOnboardingModal()
-  const [tab, setTab] = useState("home")
+    useOnboardingModal();
+  const [tab, setTab] = useState("home");
 
-  useFrameInitialization()
+  useFrameInitialization();
 
   // Optimize particle count based on screen size for better mobile performance
   const particleQuantity = useMemo(() => {
-    if (typeof window === "undefined") return 100
-    return window.innerWidth < 768 ? 50 : 100
-  }, [])
+    if (typeof window === "undefined") return 100;
+    return window.innerWidth < 768 ? 50 : 100;
+  }, []);
 
-  const isFrameReady = miniAppContextData?.context !== null
-  const clientAdded = miniAppContextData?.context?.client?.added
+  const isFrameReady = miniAppContextData?.context !== null;
+  const clientAdded = miniAppContextData?.context?.client?.added;
 
   const onboardingSaveHandler = determineOnboardingSaveHandler(
     isFrameReady,
     inMiniApp,
     clientAdded,
     handleMiniAppAdded
-  )
+  );
 
   return (
     <div style={safeAreaStyle}>
       <HomeContent
-        isFrameReady={isFrameReady}
+        handleMiniAppAdded={handleMiniAppAdded}
         inMiniApp={inMiniApp}
         isConnected={isConnected}
-        showDisconnect={!miniAppContextData?.isInMiniApp}
-        handleMiniAppAdded={handleMiniAppAdded}
-        tab={tab}
+        isFrameReady={isFrameReady}
         setTab={setTab}
+        showDisconnect={!miniAppContextData?.isInMiniApp}
+        tab={tab}
       />
       <HomeBackground
-        showParticles={showParticles}
-        prefersReducedMotion={prefersReducedMotion}
-        particleQuantity={particleQuantity}
         metaColor={metaColor}
+        particleQuantity={particleQuantity}
+        prefersReducedMotion={prefersReducedMotion}
+        showParticles={showParticles}
       />
       <OnboardingModal
-        open={shouldShowOnboarding()}
-        onClose={dismissOnboarding}
         canSave={canSaveApp(inMiniApp)}
+        onClose={dismissOnboarding}
         onSave={onboardingSaveHandler}
+        open={shouldShowOnboarding()}
       />
     </div>
-  )
+  );
 }

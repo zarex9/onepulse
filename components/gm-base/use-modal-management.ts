@@ -1,23 +1,23 @@
-import { useState } from "react"
+import { useState } from "react";
 
 export interface ModalState {
-  activeModalChainId: number | null
-  processing: boolean
-  setActiveModalChainId: (id: number | null) => void
-  setProcessing: (value: boolean) => void
-  closeModal: () => void
+  activeModalChainId: number | null;
+  processing: boolean;
+  setActiveModalChainId: (id: number | null) => void;
+  setProcessing: (value: boolean) => void;
+  closeModal: () => void;
 }
 
 export function useModalManagement(): ModalState {
   const [activeModalChainId, setActiveModalChainId] = useState<number | null>(
     null
-  )
-  const [processing, setProcessing] = useState(false)
+  );
+  const [processing, setProcessing] = useState(false);
 
   const closeModal = () => {
-    setActiveModalChainId(null)
-    setProcessing(false)
-  }
+    setActiveModalChainId(null);
+    setProcessing(false);
+  };
 
   return {
     activeModalChainId,
@@ -25,5 +25,5 @@ export function useModalManagement(): ModalState {
     setActiveModalChainId,
     setProcessing,
     closeModal,
-  }
+  };
 }

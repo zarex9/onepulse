@@ -405,4 +405,4 @@ export const dailyRewardsAbi = [
     stateMutability: "view",
     type: "function",
   },
-] as const
+] as const;

@@ -1,13 +1,13 @@
-import { useCallback } from "react"
+import { useCallback } from "react";
 
-import { useOnboarding } from "@/hooks/use-onboarding"
+import { useOnboarding } from "@/hooks/use-onboarding";
 
 export function useMiniAppFlow() {
-  const { dismissOnboarding } = useOnboarding()
+  const { dismissOnboarding } = useOnboarding();
 
   const handleMiniAppAdded = useCallback(() => {
-    dismissOnboarding()
-  }, [dismissOnboarding])
+    dismissOnboarding();
+  }, [dismissOnboarding]);
 
-  return { handleMiniAppAdded }
+  return { handleMiniAppAdded };
 }

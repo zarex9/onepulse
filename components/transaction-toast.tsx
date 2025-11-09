@@ -1,13 +1,13 @@
-import { ReactNode, useEffect, useRef } from "react"
-import { useTransactionContext } from "@coinbase/onchainkit/transaction"
-import { toast } from "sonner"
-import { useChainId } from "wagmi"
+import { useTransactionContext } from "@coinbase/onchainkit/transaction";
+import { type ReactNode, useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { useChainId } from "wagmi";
 
-import { cn, getChainExplorer } from "@/lib/utils"
+import { cn, getChainExplorer } from "@/lib/utils";
 
 function useSafeTransactionContext() {
   try {
-    return useTransactionContext()
+    return useTransactionContext();
   } catch {
     return {
       errorMessage: undefined,
@@ -19,17 +19,17 @@ function useSafeTransactionContext() {
       onSubmit: undefined,
       chainId: undefined,
       lifecycleStatus: { statusName: "init" },
-    } as unknown as ReturnType<typeof useTransactionContext>
+    } as unknown as ReturnType<typeof useTransactionContext>;
   }
 }
 
 function getTransactionState(params: {
-  isToastVisible: boolean
-  isLoading: boolean
-  receipt: unknown
-  errorMessage: string | undefined
-  transactionId: string | undefined
-  transactionHash: string | undefined
+  isToastVisible: boolean;
+  isLoading: boolean;
+  receipt: unknown;
+  errorMessage: string | undefined;
+  transactionId: string | undefined;
+  transactionHash: string | undefined;
 }) {
   const {
     isToastVisible,
@@ -38,47 +38,47 @@ function getTransactionState(params: {
     errorMessage,
     transactionId,
     transactionHash,
-  } = params
-  if (!isToastVisible) return "hidden"
-  if (receipt) return "success"
-  if (errorMessage) return "error"
-  if (isLoading || transactionId || transactionHash) return "loading"
-  return "idle"
+  } = params;
+  if (!isToastVisible) return "hidden";
+  if (receipt) return "success";
+  if (errorMessage) return "error";
+  if (isLoading || transactionId || transactionHash) return "loading";
+  return "idle";
 }
 
 function createSuccessAction(
   txHash: string | undefined,
   accountChainId: number
 ): ReactNode {
-  if (!txHash) return null
-  const chainExplorer = getChainExplorer(accountChainId)
+  if (!txHash) return null;
+  const chainExplorer = getChainExplorer(accountChainId);
   return (
     <a
-      href={`${chainExplorer}/tx/${txHash}`}
-      target="_blank"
-      rel="noopener noreferrer"
       className="ml-auto"
+      href={`${chainExplorer}/tx/${txHash}`}
+      rel="noopener noreferrer"
+      target="_blank"
     >
       <span
-        className={cn("font-ock text-sm font-semibold", "text-ock-primary")}
+        className={cn("font-ock font-semibold text-sm", "text-ock-primary")}
       >
         View transaction
       </span>
     </a>
-  )
+  );
 }
 
 function createErrorAction(onSubmit: (() => void) | undefined): ReactNode {
-  if (!onSubmit) return null
+  if (!onSubmit) return null;
   return (
-    <button type="button" onClick={onSubmit} className="ml-auto">
+    <button className="ml-auto" onClick={onSubmit} type="button">
       <span
-        className={cn("font-ock text-sm font-semibold", "text-ock-primary")}
+        className={cn("font-ock font-semibold text-sm", "text-ock-primary")}
       >
         Try again
       </span>
     </button>
-  )
+  );
 }
 
 function useToastVisibility(
@@ -87,13 +87,11 @@ function useToastVisibility(
   toastCreatedRef: React.RefObject<boolean>
 ) {
   useEffect(() => {
-    if (state === "hidden") {
-      if (toastCreatedRef.current && !errorMessage) {
-        toast.dismiss()
-        toastCreatedRef.current = false
-      }
+    if (state === "hidden" && toastCreatedRef.current && !errorMessage) {
+      toast.dismiss();
+      toastCreatedRef.current = false;
     }
-  }, [state, errorMessage, toastCreatedRef])
+  }, [state, errorMessage, toastCreatedRef]);
 }
 
 function useToastCreation(
@@ -104,18 +102,18 @@ function useToastCreation(
   txHashRef: React.RefObject<string | undefined>,
   toastCreatedRef: React.RefObject<boolean>,
   toastControllerRef: React.RefObject<{
-    resolve?: (value: { name: string }) => void
-    reject?: (reason?: unknown) => void
+    resolve?: (value: { name: string }) => void;
+    reject?: (reason?: unknown) => void;
   }>
 ) {
   useEffect(() => {
     if (state === "loading" && !toastCreatedRef.current) {
       const transactionPromise = new Promise<{ name: string }>(
         (resolve, reject) => {
-          toastControllerRef.current.resolve = resolve
-          toastControllerRef.current.reject = reject
+          toastControllerRef.current.resolve = resolve;
+          toastControllerRef.current.reject = reject;
         }
-      )
+      );
 
       toast.promise(transactionPromise, {
         loading: "Processing transaction...",
@@ -127,9 +125,9 @@ function useToastCreation(
           message: errorMessage || "Something went wrong",
           action: createErrorAction(onSubmit),
         }),
-      })
+      });
 
-      toastCreatedRef.current = true
+      toastCreatedRef.current = true;
     }
   }, [
     state,
@@ -139,7 +137,7 @@ function useToastCreation(
     toastControllerRef,
     toastCreatedRef,
     txHashRef,
-  ])
+  ]);
 }
 
 function useToastResolution(
@@ -147,27 +145,27 @@ function useToastResolution(
   errorMessage: string | undefined,
   toastCreatedRef: React.RefObject<boolean>,
   toastControllerRef: React.RefObject<{
-    resolve?: (value: { name: string }) => void
-    reject?: (reason?: unknown) => void
+    resolve?: (value: { name: string }) => void;
+    reject?: (reason?: unknown) => void;
   }>
 ) {
   useEffect(() => {
-    if (!toastCreatedRef.current) return
+    if (!toastCreatedRef.current) return;
 
     if (state === "success") {
-      toastControllerRef.current.resolve?.({ name: "Transaction" })
-      toastCreatedRef.current = false
+      toastControllerRef.current.resolve?.({ name: "Transaction" });
+      toastCreatedRef.current = false;
     } else if (state === "error") {
       toastControllerRef.current.reject?.(
         new Error(errorMessage || "Unknown error")
-      )
-      toastCreatedRef.current = false
+      );
+      toastCreatedRef.current = false;
     }
-  }, [state, errorMessage, toastCreatedRef, toastControllerRef])
+  }, [state, errorMessage, toastCreatedRef, toastControllerRef]);
 }
 
 export function TransactionToast() {
-  const context = useSafeTransactionContext()
+  const context = useSafeTransactionContext();
   const {
     errorMessage,
     isLoading,
@@ -176,16 +174,16 @@ export function TransactionToast() {
     transactionHash,
     transactionId,
     onSubmit,
-  } = context
+  } = context;
 
-  const accountChainId = useChainId()
+  const accountChainId = useChainId();
 
-  const toastCreatedRef = useRef<boolean>(false)
+  const toastCreatedRef = useRef<boolean>(false);
   const toastControllerRef = useRef<{
-    resolve?: (value: { name: string }) => void
-    reject?: (reason?: unknown) => void
-  }>({})
-  const txHashRef = useRef<string | undefined>(transactionHash)
+    resolve?: (value: { name: string }) => void;
+    reject?: (reason?: unknown) => void;
+  }>({});
+  const txHashRef = useRef<string | undefined>(transactionHash);
 
   const state = getTransactionState({
     isToastVisible,
@@ -194,14 +192,14 @@ export function TransactionToast() {
     errorMessage,
     transactionId,
     transactionHash,
-  })
+  });
 
   // Keep transaction hash in sync
   useEffect(() => {
-    txHashRef.current = transactionHash
-  }, [transactionHash])
+    txHashRef.current = transactionHash;
+  }, [transactionHash]);
 
-  useToastVisibility(state, errorMessage, toastCreatedRef)
+  useToastVisibility(state, errorMessage, toastCreatedRef);
   useToastCreation(
     state,
     accountChainId,
@@ -210,8 +208,8 @@ export function TransactionToast() {
     txHashRef,
     toastCreatedRef,
     toastControllerRef
-  )
-  useToastResolution(state, errorMessage, toastCreatedRef, toastControllerRef)
+  );
+  useToastResolution(state, errorMessage, toastCreatedRef, toastControllerRef);
 
-  return null
+  return null;
 }

@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react"
-import { gmStatsByAddressStore } from "@/stores/gm-store"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { gmStatsByAddressStore } from "@/stores/gm-store";
 
-import { normalizeAddress } from "./gm-stats-helpers"
-import type { GmStats } from "./use-gm-stats"
+import { normalizeAddress } from "./gm-stats-helpers";
+import type { GmStats } from "./use-gm-stats";
 
 export function useGmStatsSubscription(address?: string | null) {
   useEffect(() => {
-    if (!address) return
-    gmStatsByAddressStore.subscribeToAddress(address)
-  }, [address])
+    if (!address) return;
+    gmStatsByAddressStore.subscribeToAddress(address);
+  }, [address]);
 
   const snapshot = useSyncExternalStore(
     (cb) => gmStatsByAddressStore.subscribe(cb),
     () => gmStatsByAddressStore.getSnapshot(),
     () => gmStatsByAddressStore.getServerSnapshot()
-  )
-  return snapshot
+  );
+  return snapshot;
 }
 
 export function useGmStatsFallback(
@@ -25,83 +25,83 @@ export function useGmStatsFallback(
 ) {
   const [fallbackStats, setFallbackStats] = useState<
     | {
-        key: string
-        stats: GmStats
+        key: string;
+        stats: GmStats;
       }
     | undefined
-  >()
-  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const normalizedAddress = normalizeAddress(address)
+  >();
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const normalizedAddress = normalizeAddress(address);
 
   // Listen for refresh events and clear fallback cache for this address
   useEffect(() => {
-    if (!address || !normalizedAddress) return
+    if (!(address && normalizedAddress)) return;
 
     const unsubscribe = gmStatsByAddressStore.onRefresh((refreshedAddress) => {
       if (refreshedAddress.toLowerCase() === normalizedAddress) {
-        setFallbackStats(undefined)
-        setLastFetchTime(0)
+        setFallbackStats(undefined);
+        setLastFetchTime(0);
       }
-    })
+    });
 
-    return unsubscribe
-  }, [address, normalizedAddress])
+    return unsubscribe;
+  }, [address, normalizedAddress]);
 
   useEffect(() => {
-    if (!address || !normalizedAddress) return
+    if (!(address && normalizedAddress)) return;
 
-    const key = `${address}:${chainId ?? "all"}`
-    const subReady = gmStatsByAddressStore.isSubscribedForAddress(address)
+    const key = `${address}:${chainId ?? "all"}`;
+    const subReady = gmStatsByAddressStore.isSubscribedForAddress(address);
     const hasSubData =
       typeof chainId === "number"
         ? rowsForAddress.some((r) => r.chainId === chainId)
-        : rowsForAddress.length > 0
+        : rowsForAddress.length > 0;
 
     if (subReady && hasSubData) {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      abortControllerRef.current?.abort()
-      return
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      abortControllerRef.current?.abort();
+      return;
     }
 
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    abortControllerRef.current?.abort()
-    abortControllerRef.current = new AbortController()
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     timeoutRef.current = setTimeout(async () => {
       try {
         const latestRows = gmStatsByAddressStore
           .getSnapshot()
-          .filter((r) => r.address.toLowerCase() === normalizedAddress)
+          .filter((r) => r.address.toLowerCase() === normalizedAddress);
         const latestReady =
-          gmStatsByAddressStore.isSubscribedForAddress(address)
+          gmStatsByAddressStore.isSubscribedForAddress(address);
         const latestHasData =
           typeof chainId === "number"
             ? latestRows.some((r) => r.chainId === chainId)
-            : latestRows.length > 0
+            : latestRows.length > 0;
 
         if (latestReady && latestHasData) {
-          return
+          return;
         }
 
         // Don't fetch more than once every 2 seconds to prevent stale overwrites
-        const now = Date.now()
+        const now = Date.now();
         if (now - lastFetchTime < 2000) {
-          return
+          return;
         }
 
-        const url = new URL("/api/gm/stats", window.location.origin)
-        url.searchParams.set("address", address!)
+        const url = new URL("/api/gm/stats", window.location.origin);
+        url.searchParams.set("address", address!);
         if (typeof chainId === "number")
-          url.searchParams.set("chainId", String(chainId))
+          url.searchParams.set("chainId", String(chainId));
 
         const res = await fetch(url.toString(), {
           signal: abortControllerRef.current?.signal,
-        })
+        });
         if (res.ok) {
-          const json = (await res.json()) as Partial<GmStats>
-          setLastFetchTime(now)
+          const json = (await res.json()) as Partial<GmStats>;
+          setLastFetchTime(now);
           setFallbackStats({
             key,
             stats: {
@@ -110,21 +110,21 @@ export function useGmStatsFallback(
               allTimeGmCount: json.allTimeGmCount ?? 0,
               lastGmDay: json.lastGmDay ?? 0,
             },
-          })
+          });
         }
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") {
-          return // Request was cancelled, don't log
+          return; // Request was cancelled, don't log
         }
-        console.error(`[useGmStatsFallback] Fallback fetch failed:`, error)
+        console.error("[useGmStatsFallback] Fallback fetch failed:", error);
       }
-    }, 500)
+    }, 500);
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      abortControllerRef.current?.abort()
-    }
-  }, [address, chainId, normalizedAddress, rowsForAddress, lastFetchTime])
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      abortControllerRef.current?.abort();
+    };
+  }, [address, chainId, normalizedAddress, rowsForAddress, lastFetchTime]);
 
-  return fallbackStats
+  return fallbackStats;
 }

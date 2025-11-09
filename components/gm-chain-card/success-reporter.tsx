@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import React, { useEffect, useRef } from "react"
-import { gmStatsByAddressStore } from "@/stores/gm-store"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useRef } from "react";
+import type { MiniAppUser } from "@/components/providers/miniapp-provider";
 
-import { useMiniAppContext } from "@/components/providers/miniapp-provider"
-import type { MiniAppUser } from "@/components/providers/miniapp-provider"
+import { useMiniAppContext } from "@/components/providers/miniapp-provider";
+import { gmStatsByAddressStore } from "@/stores/gm-store";
 
 interface SuccessReporterProps {
-  status: string
-  onReported?: () => void
-  address?: string
-  refetchLastGmDay?: () => Promise<unknown>
-  chainId: number
-  txHash?: string
+  status: string;
+  onReported?: () => void;
+  address?: string;
+  refetchLastGmDay?: () => Promise<unknown>;
+  chainId: number;
+  txHash?: string;
 }
 
 async function reportToApi({
@@ -24,12 +24,12 @@ async function reportToApi({
   displayName,
   username,
 }: {
-  address: string
-  chainId: number
-  txHash?: string
-  fid?: number
-  displayName?: string
-  username?: string
+  address: string;
+  chainId: number;
+  txHash?: string;
+  fid?: number;
+  displayName?: string;
+  username?: string;
 }) {
   try {
     await fetch("/api/gm/report", {
@@ -43,9 +43,9 @@ async function reportToApi({
         displayName,
         username,
       }),
-    })
+    });
   } catch (error) {
-    console.error("[SuccessReporter] Report POST failed:", error)
+    console.error("[SuccessReporter] Report POST failed:", error);
   }
 }
 
@@ -54,25 +54,25 @@ async function refreshStats(
   queryClient: ReturnType<typeof useQueryClient>
 ) {
   try {
-    await gmStatsByAddressStore.refreshForAddress(address)
+    await gmStatsByAddressStore.refreshForAddress(address);
   } catch (error) {
-    console.error("[SuccessReporter] refreshForAddress() failed:", error)
+    console.error("[SuccessReporter] refreshForAddress() failed:", error);
   }
 
   try {
     await queryClient.invalidateQueries({
       queryKey: ["gm-stats", address],
-    })
+    });
   } catch (error) {
-    console.error("[SuccessReporter] Query cache invalidation failed:", error)
+    console.error("[SuccessReporter] Query cache invalidation failed:", error);
   }
 }
 
 async function refetchOnChainState(refetchLastGmDay?: () => Promise<unknown>) {
   try {
-    await refetchLastGmDay?.()
+    await refetchLastGmDay?.();
   } catch (error) {
-    console.error("[SuccessReporter] refetchLastGmDay() failed:", error)
+    console.error("[SuccessReporter] refetchLastGmDay() failed:", error);
   }
 }
 
@@ -85,13 +85,13 @@ async function performGmReporting({
   refetchLastGmDay,
   onReported,
 }: {
-  address: string
-  chainId: number
-  txHash?: string
-  user: MiniAppUser | undefined
-  queryClient: ReturnType<typeof useQueryClient>
-  refetchLastGmDay?: () => Promise<unknown>
-  onReported?: () => void
+  address: string;
+  chainId: number;
+  txHash?: string;
+  user: MiniAppUser | undefined;
+  queryClient: ReturnType<typeof useQueryClient>;
+  refetchLastGmDay?: () => Promise<unknown>;
+  onReported?: () => void;
 }) {
   await reportToApi({
     address,
@@ -100,13 +100,13 @@ async function performGmReporting({
     fid: user?.fid,
     displayName: user?.displayName,
     username: user?.username,
-  })
+  });
 
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-  await refreshStats(address, queryClient)
-  await refetchOnChainState(refetchLastGmDay)
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await refreshStats(address, queryClient);
+  await refetchOnChainState(refetchLastGmDay);
 
-  onReported?.()
+  onReported?.();
 }
 
 export const SuccessReporter = React.memo(function SuccessReporter({
@@ -117,15 +117,15 @@ export const SuccessReporter = React.memo(function SuccessReporter({
   chainId,
   txHash,
 }: SuccessReporterProps) {
-  const didReport = useRef(false)
-  const queryClient = useQueryClient()
-  const miniAppContextData = useMiniAppContext()
-  const user = miniAppContextData?.context?.user
+  const didReport = useRef(false);
+  const queryClient = useQueryClient();
+  const miniAppContextData = useMiniAppContext();
+  const user = miniAppContextData?.context?.user;
 
   useEffect(() => {
-    if (status !== "success" || !address || didReport.current) return
+    if (status !== "success" || !address || didReport.current) return;
 
-    didReport.current = true
+    didReport.current = true;
 
     void performGmReporting({
       address,
@@ -135,7 +135,7 @@ export const SuccessReporter = React.memo(function SuccessReporter({
       queryClient,
       refetchLastGmDay,
       onReported,
-    })
+    });
   }, [
     status,
     address,
@@ -145,7 +145,7 @@ export const SuccessReporter = React.memo(function SuccessReporter({
     chainId,
     txHash,
     user,
-  ])
+  ]);
 
-  return null
-})
+  return null;
+});

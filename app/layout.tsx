@@ -1,27 +1,25 @@
-import { Metadata } from "next"
-import type { Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { minikitConfig } from "@/minikit.config"
-import { SafeArea } from "@coinbase/onchainkit/minikit"
+import { SafeArea } from "@coinbase/onchainkit/minikit";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { minikitConfig } from "@/minikit.config";
 
-import { Toaster } from "@/components/ui/sonner"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { RootProvider } from "./root-provider";
 
-import { RootProvider } from "./root-provider"
+import "@/styles/globals.css";
 
-import "@/styles/globals.css"
-
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const geist = Geist({
   subsets: ["latin"],
   display: "swap",
-})
+});
 
 const geist_mono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
-})
+});
 
 const frame = {
   version: minikitConfig.miniapp.version,
@@ -35,9 +33,9 @@ const frame = {
       splashBackgroundColor: minikitConfig.miniapp.splashBackgroundColor,
     },
   },
-}
+};
 
-export const revalidate = 300
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -65,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "fc:frame": JSON.stringify(frame),
       "fc:miniapp": JSON.stringify(frame),
     },
-  }
+  };
 }
 
 export const viewport: Viewport = {
@@ -75,12 +73,12 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
-}
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -94,12 +92,12 @@ export default async function RootLayout({
         <RootProvider>
           <TooltipProvider delayDuration={0}>
             <SafeArea>
-              <Toaster position="top-center" richColors closeButton />
+              <Toaster closeButton position="top-center" richColors />
               {children}
             </SafeArea>
           </TooltipProvider>
         </RootProvider>
       </body>
     </html>
-  )
+  );
 }

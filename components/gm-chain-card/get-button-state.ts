@@ -1,8 +1,8 @@
 // Helper to determine button state and label
 export interface ButtonState {
-  label: string
-  disabled: boolean
-  showFallback: "wallet" | "gm-first" | null
+  label: string;
+  disabled: boolean;
+  showFallback: "wallet" | "gm-first" | null;
 }
 
 /**
@@ -20,7 +20,7 @@ export function getButtonState(
       label: "Connect wallet",
       disabled: true,
       showFallback: "wallet",
-    }
+    };
   }
 
   if (!hasSentGMToday) {
@@ -28,7 +28,7 @@ export function getButtonState(
       label: "Send GM First",
       disabled: true,
       showFallback: "gm-first",
-    }
+    };
   }
 
   if (isEligibilityPending) {
@@ -36,7 +36,7 @@ export function getButtonState(
       label: "Checking eligibility...",
       disabled: true,
       showFallback: null,
-    }
+    };
   }
 
   if (!canClaim) {
@@ -44,12 +44,12 @@ export function getButtonState(
       label: "Already Claimed",
       disabled: true,
       showFallback: null,
-    }
+    };
   }
 
   return {
     label: "Claim Rewards",
     disabled: false,
     showFallback: null,
-  }
+  };
 }

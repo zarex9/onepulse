@@ -1,22 +1,21 @@
-import { useEffect, useState } from "react"
-import { useAccount } from "wagmi"
-
-import { detectCoinbaseSmartWallet } from "@/lib/utils"
-import { useMiniAppContext } from "@/components/providers/miniapp-provider"
+import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
+import { useMiniAppContext } from "@/components/providers/miniapp-provider";
+import { detectCoinbaseSmartWallet } from "@/lib/utils";
 
 export function usePageState() {
-  const { address, isConnected } = useAccount()
-  const [isSmartWallet, setIsSmartWallet] = useState(false)
-  const miniAppContextData = useMiniAppContext()
-  const inMiniApp = miniAppContextData?.isInMiniApp ?? false
+  const { address, isConnected } = useAccount();
+  const [isSmartWallet, setIsSmartWallet] = useState(false);
+  const miniAppContextData = useMiniAppContext();
+  const inMiniApp = miniAppContextData?.isInMiniApp ?? false;
 
   useEffect(() => {
-    if (!isConnected || !address) return
-    ;(async () => {
-      const result = await detectCoinbaseSmartWallet(address as `0x${string}`)
-      setIsSmartWallet(result)
-    })()
-  }, [isConnected, address])
+    if (!(isConnected && address)) return;
+    (async () => {
+      const result = await detectCoinbaseSmartWallet(address as `0x${string}`);
+      setIsSmartWallet(result);
+    })();
+  }, [isConnected, address]);
 
-  return { isSmartWallet, inMiniApp, isConnected, address }
+  return { isSmartWallet, inMiniApp, isConnected, address };
 }

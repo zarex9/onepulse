@@ -1,4 +1,4 @@
-import { DbConnection, type GmStatsByAddress } from "@/lib/module_bindings"
+import { DbConnection, type GmStatsByAddress } from "@/lib/module_bindings";
 
 // Helper to resolve SpacetimeDB config from environment
 function getSpacetimeDbConfig() {
@@ -9,20 +9,20 @@ function getSpacetimeDbConfig() {
       "ws://127.0.0.1:3000",
     moduleName: process.env.SPACETIMEDB_MODULE || "onepulse",
     token: process.env.SPACETIMEDB_TOKEN || "",
-  }
+  };
 }
 
 // Helper to create a DbConnection builder with config
 function createDbConnectionBuilder(config: {
-  uri: string
-  moduleName: string
-  token: string
+  uri: string;
+  moduleName: string;
+  token: string;
 }) {
   const builder = DbConnection.builder()
     .withUri(config.uri)
-    .withModuleName(config.moduleName)
-  if (config.token) builder.withToken(config.token)
-  return builder
+    .withModuleName(config.moduleName);
+  if (config.token) builder.withToken(config.token);
+  return builder;
 }
 
 // Server-only SpacetimeDB connection builder
@@ -30,12 +30,14 @@ export function buildServerDbConnection(): DbConnection {
   const uri =
     process.env.SPACETIMEDB_HOST ||
     process.env.SPACETIMEDB_HOST_URL ||
-    "ws://127.0.0.1:3000"
-  const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse"
-  const token = process.env.SPACETIMEDB_TOKEN || ""
-  const builder = DbConnection.builder().withUri(uri).withModuleName(moduleName)
-  if (token) builder.withToken(token)
-  return builder.build()
+    "ws://127.0.0.1:3000";
+  const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse";
+  const token = process.env.SPACETIMEDB_TOKEN || "";
+  const builder = DbConnection.builder()
+    .withUri(uri)
+    .withModuleName(moduleName);
+  if (token) builder.withToken(token);
+  return builder.build();
 }
 
 export async function subscribeOnce(
@@ -45,123 +47,123 @@ export async function subscribeOnce(
 ): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
-      reject(new Error("SpacetimeDB subscribe timeout"))
-    }, timeoutMs)
+      reject(new Error("SpacetimeDB subscribe timeout"));
+    }, timeoutMs);
     conn
       .subscriptionBuilder()
       .onApplied(() => {
-        clearTimeout(timer)
-        resolve()
+        clearTimeout(timer);
+        resolve();
       })
       .onError(() => {
-        clearTimeout(timer)
-        reject(new Error("SpacetimeDB subscribe error"))
+        clearTimeout(timer);
+        reject(new Error("SpacetimeDB subscribe error"));
       })
-      .subscribe(queries)
-  })
+      .subscribe(queries);
+  });
 }
 
 // Ensure connection is established before attempting subscribe/reducer calls
 export async function connectServerDbConnection(
   timeoutMs = 5000
 ): Promise<DbConnection> {
-  const config = getSpacetimeDbConfig()
+  const config = getSpacetimeDbConfig();
   return await new Promise<DbConnection>((resolve, reject) => {
-    let resolved = false
+    let resolved = false;
     const timer = setTimeout(() => {
-      if (!resolved) reject(new Error("SpacetimeDB connect timeout"))
-    }, timeoutMs)
+      if (!resolved) reject(new Error("SpacetimeDB connect timeout"));
+    }, timeoutMs);
 
     const handleConnect = (built: DbConnection) => {
       if (!resolved) {
-        resolved = true
-        clearTimeout(timer)
-        resolve(built)
+        resolved = true;
+        clearTimeout(timer);
+        resolve(built);
       }
-    }
+    };
     const handleConnectError = () => {
       if (!resolved) {
-        resolved = true
-        clearTimeout(timer)
-        reject(new Error("SpacetimeDB connect error"))
+        resolved = true;
+        clearTimeout(timer);
+        reject(new Error("SpacetimeDB connect error"));
       }
-    }
+    };
 
     const builder = createDbConnectionBuilder(config)
       .onConnect(() => handleConnect(built))
-      .onConnectError(handleConnectError)
-    const built = builder.build()
-  })
+      .onConnectError(handleConnectError);
+    const built = builder.build();
+  });
 }
 
 export async function getGmRows(
   address: string,
   chainId?: number
 ): Promise<GmStatsByAddress[]> {
-  const conn = await connectServerDbConnection()
+  const conn = await connectServerDbConnection();
   try {
     const filters: string[] = [
       `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`,
-    ]
-    await subscribeOnce(conn, filters)
+    ];
+    await subscribeOnce(conn, filters);
 
-    const all = Array.from(conn.db.gmStatsByAddress.iter())
+    const all = Array.from(conn.db.gmStatsByAddress.iter());
     const rows = all.filter(
       (r) => r.address.toLowerCase() === address.toLowerCase()
-    )
+    );
     if (typeof chainId === "number") {
-      return rows.filter((r) => r.chainId === chainId)
+      return rows.filter((r) => r.chainId === chainId);
     }
-    return rows
+    return rows;
   } finally {
     // Always disconnect since API routes are ephemeral
-    conn.disconnect()
+    conn.disconnect();
   }
 }
 
 export async function callReportGm(
   params: {
-    address: string
-    chainId: number
-    lastGmDayOnchain: number
-    txHash?: string
-    fid?: bigint
-    displayName?: string
-    username?: string
+    address: string;
+    chainId: number;
+    lastGmDayOnchain: number;
+    txHash?: string;
+    fid?: bigint;
+    displayName?: string;
+    username?: string;
   },
   timeoutMs = 4000
 ): Promise<GmStatsByAddress | null> {
-  const conn = await connectServerDbConnection()
+  const conn = await connectServerDbConnection();
   try {
-    const { address, chainId } = params
+    const { address, chainId } = params;
     // Subscribe first so cache is primed, then call reducer
     await subscribeOnce(conn, [
       `SELECT * FROM gm_stats_by_address WHERE address = '${address}' AND chain_id = ${chainId}`,
-    ])
+    ]);
 
     // Wait for insert/update event after reducer call
     const updated = new Promise<GmStatsByAddress | null>((resolve) => {
-      let resolved = false
+      let resolved = false;
       const finish = () => {
-        if (resolved) return
-        resolved = true
+        if (resolved) return;
+        resolved = true;
         const rows = Array.from(conn.db.gmStatsByAddress.iter()).filter(
           (r) =>
             r.address.toLowerCase() === address.toLowerCase() &&
             r.chainId === chainId
-        )
-        resolve(rows[0] ?? null)
-      }
-      const onInsertCb = () => finish()
-      const onUpdateCb = () => finish()
-      conn.db.gmStatsByAddress.onInsert(onInsertCb)
-      conn.db.gmStatsByAddress.onUpdate(onUpdateCb)
+        );
+        resolve(rows[0] ?? null);
+      };
+      const onInsertCb = () => finish();
+      const onUpdateCb = () => finish();
+      conn.db.gmStatsByAddress.onInsert(onInsertCb);
+      conn.db.gmStatsByAddress.onUpdate(onUpdateCb);
       setTimeout(() => {
-        conn.db.gmStatsByAddress.removeOnInsert(onInsertCb)
-        conn.db.gmStatsByAddress.removeOnUpdate(onUpdateCb)
-        finish() // fallback if no event observed
-      }, timeoutMs)
-    })
+        conn.db.gmStatsByAddress.removeOnInsert(onInsertCb);
+        conn.db.gmStatsByAddress.removeOnUpdate(onUpdateCb);
+        finish(); // fallback if no event observed
+      }, timeoutMs);
+    });
 
     conn.reducers.reportGm(
       params.address,
@@ -171,10 +173,10 @@ export async function callReportGm(
       params.fid,
       params.displayName,
       params.username
-    )
+    );
 
-    return await updated
+    return await updated;
   } finally {
-    conn.disconnect()
+    conn.disconnect();
   }
 }

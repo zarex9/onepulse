@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
+import { useEffect } from "react";
 
 import {
   disconnectDbConnection,
   getDbConnection,
-} from "@/lib/spacetimedb/connection-factory"
+} from "@/lib/spacetimedb/connection-factory";
 
 export const SpacetimeDBProvider = ({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) => {
   useEffect(() => {
-    getDbConnection()
+    getDbConnection();
 
     return () => {
-      disconnectDbConnection()
-    }
-  }, [])
+      disconnectDbConnection();
+    };
+  }, []);
 
   // It doesn't need to render anything itself, just pass children through.
-  return <>{children}</>
-}
+  return <>{children}</>;
+};

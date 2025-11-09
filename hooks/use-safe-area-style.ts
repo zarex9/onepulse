@@ -1,10 +1,10 @@
-import { useMemo } from "react"
+import { useMemo } from "react";
 
-import { useMiniAppContext } from "@/components/providers/miniapp-provider"
+import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 
 export function useSafeAreaStyle() {
-  const miniAppContext = useMiniAppContext()
-  const insets = miniAppContext?.context?.client.safeAreaInsets
+  const miniAppContext = useMiniAppContext();
+  const insets = miniAppContext?.context?.client.safeAreaInsets;
 
   return useMemo(
     () => ({
@@ -14,5 +14,5 @@ export function useSafeAreaStyle() {
       marginRight: insets?.right ?? 0,
     }),
     [insets]
-  )
+  );
 }

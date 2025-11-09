@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { type ReactNode } from "react"
-import { ThemeProvider } from "next-themes"
+import { ThemeProvider } from "next-themes";
+import type { ReactNode } from "react";
 
-import { ColorSchemeSync } from "@/components/providers/color-scheme-sync"
-import { MiniAppProvider } from "@/components/providers/miniapp-provider"
-import { OnchainKitProvider } from "@/components/providers/onchainkit-provider"
-import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider"
-import { WagmiProvider } from "@/components/providers/wagmi-provider"
+import { ColorSchemeSync } from "@/components/providers/color-scheme-sync";
+import { MiniAppProvider } from "@/components/providers/miniapp-provider";
+import { OnchainKitProvider } from "@/components/providers/onchainkit-provider";
+import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider";
+import { WagmiProvider } from "@/components/providers/wagmi-provider";
 
 export function RootProvider({
   children,
 }: Readonly<{
-  children: ReactNode
+  children: ReactNode;
 }>) {
   return (
     <ThemeProvider
@@ -32,5 +32,5 @@ export function RootProvider({
         </OnchainKitProvider>
       </WagmiProvider>
     </ThemeProvider>
-  )
+  );
 }

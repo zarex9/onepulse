@@ -4,39 +4,15 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  AlgebraicType as __AlgebraicTypeValue,
-  BinaryReader as __BinaryReader,
-  BinaryWriter as __BinaryWriter,
-  ClientCache as __ClientCache,
-  ConnectionId as __ConnectionId,
-  DbConnectionBuilder as __DbConnectionBuilder,
-  DbConnectionImpl as __DbConnectionImpl,
   deepEqual as __deepEqual,
-  Identity as __Identity,
-  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
-  TableCache as __TableCache,
-  TimeDuration as __TimeDuration,
-  Timestamp as __Timestamp,
-  type AlgebraicType as __AlgebraicTypeType,
-  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
-  type CallReducerFlags as __CallReducerFlags,
-  type ErrorContextInterface as __ErrorContextInterface,
-  type Event as __Event,
-  type EventContextInterface as __EventContextInterface,
-  type ReducerEventContextInterface as __ReducerEventContextInterface,
-  type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
+  type TableCache as __TableCache,
   type TableHandle as __TableHandle,
-} from "spacetimedb"
+} from "spacetimedb";
 
-import {
-  RemoteReducers,
-  RemoteTables,
-  type EventContext,
-  type Reducer,
-} from "."
-import { GmStatsByAddress } from "./gm_stats_by_address_type"
+import type { EventContext, Reducer, RemoteReducers, RemoteTables } from ".";
+import type { GmStatsByAddress } from "./gm_stats_by_address_type";
 
-declare type __keep = [EventContext, Reducer, RemoteReducers, RemoteTables]
+declare type __keep = [EventContext, Reducer, RemoteReducers, RemoteTables];
 
 /**
  * Table handle for the table `gm_stats_by_address`.
@@ -52,19 +28,19 @@ export class GmStatsByAddressTableHandle<TableName extends string>
   implements __TableHandle<TableName>
 {
   // phantom type to track the table name
-  readonly tableName!: TableName
-  tableCache: __TableCache<GmStatsByAddress>
+  readonly tableName!: TableName;
+  tableCache: __TableCache<GmStatsByAddress>;
 
   constructor(tableCache: __TableCache<GmStatsByAddress>) {
-    this.tableCache = tableCache
+    this.tableCache = tableCache;
   }
 
   count(): number {
-    return this.tableCache.count()
+    return this.tableCache.count();
   }
 
   iter(): Iterable<GmStatsByAddress> {
-    return this.tableCache.iter()
+    return this.tableCache.iter();
   }
   /**
    * Access to the `addressChain` unique index on the table `gm_stats_by_address`,
@@ -81,29 +57,25 @@ export class GmStatsByAddressTableHandle<TableName extends string>
     // Find the subscribed row whose `addressChain` column value is equal to `col_val`,
     // if such a row is present in the client cache.
     find: (col_val: string): GmStatsByAddress | undefined => {
-      for (let row of this.tableCache.iter()) {
+      for (const row of this.tableCache.iter()) {
         if (__deepEqual(row.addressChain, col_val)) {
-          return row
+          return row;
         }
       }
     },
-  }
+  };
 
-  onInsert = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) => {
-    return this.tableCache.onInsert(cb)
-  }
+  onInsert = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) =>
+    this.tableCache.onInsert(cb);
 
-  removeOnInsert = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) => {
-    return this.tableCache.removeOnInsert(cb)
-  }
+  removeOnInsert = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) =>
+    this.tableCache.removeOnInsert(cb);
 
-  onDelete = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) => {
-    return this.tableCache.onDelete(cb)
-  }
+  onDelete = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) =>
+    this.tableCache.onDelete(cb);
 
-  removeOnDelete = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) => {
-    return this.tableCache.removeOnDelete(cb)
-  }
+  removeOnDelete = (cb: (ctx: EventContext, row: GmStatsByAddress) => void) =>
+    this.tableCache.removeOnDelete(cb);
 
   // Updates are only defined for tables with primary keys.
   onUpdate = (
@@ -112,9 +84,7 @@ export class GmStatsByAddressTableHandle<TableName extends string>
       oldRow: GmStatsByAddress,
       newRow: GmStatsByAddress
     ) => void
-  ) => {
-    return this.tableCache.onUpdate(cb)
-  }
+  ) => this.tableCache.onUpdate(cb);
 
   removeOnUpdate = (
     cb: (
@@ -122,7 +92,5 @@ export class GmStatsByAddressTableHandle<TableName extends string>
       onRow: GmStatsByAddress,
       newRow: GmStatsByAddress
     ) => void
-  ) => {
-    return this.tableCache.removeOnUpdate(cb)
-  }
+  ) => this.tableCache.removeOnUpdate(cb);
 }

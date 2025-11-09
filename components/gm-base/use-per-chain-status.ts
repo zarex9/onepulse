@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useCallback, useState } from "react"
+import { useCallback, useState } from "react";
 
 /**
  * Manages per-chain GM status tracking
@@ -9,7 +9,7 @@ import { useCallback, useState } from "react"
 export function usePerChainStatus() {
   const [statusMap, setStatusMap] = useState<
     Record<number, { hasGmToday: boolean; targetSec: number }>
-  >({})
+  >({});
 
   const handleStatus = useCallback(
     (s: { chainId: number; hasGmToday: boolean; targetSec: number }) => {
@@ -19,16 +19,16 @@ export function usePerChainStatus() {
           prev[s.chainId]?.hasGmToday === s.hasGmToday &&
           prev[s.chainId]?.targetSec === s.targetSec
         ) {
-          return prev
+          return prev;
         }
         return {
           ...prev,
           [s.chainId]: { hasGmToday: s.hasGmToday, targetSec: s.targetSec },
-        }
-      })
+        };
+      });
     },
     []
-  )
+  );
 
-  return { statusMap, handleStatus }
+  return { statusMap, handleStatus };
 }

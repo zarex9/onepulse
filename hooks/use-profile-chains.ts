@@ -1,6 +1,6 @@
-import { useMemo } from "react"
+import { useMemo } from "react";
 
-export type ProfileChain = { id: number; name: string }
+export type ProfileChain = { id: number; name: string };
 
 export function useProfileChains(
   allowedChainIds?: number[],
@@ -9,14 +9,14 @@ export function useProfileChains(
   return useMemo(() => {
     let list: ProfileChain[] = [
       { id: 8453, name: "Base" },
-      { id: 42220, name: "Celo" },
+      { id: 42_220, name: "Celo" },
       { id: 10, name: "Optimism" },
-    ]
+    ];
     if (Array.isArray(allowedChainIds) && allowedChainIds.length > 0) {
-      list = list.filter((c) => allowedChainIds.includes(c.id))
+      list = list.filter((c) => allowedChainIds.includes(c.id));
     } else if (isSmartWallet) {
-      list = list.filter((c) => c.id !== 42220)
+      list = list.filter((c) => c.id !== 42_220);
     }
-    return list
-  }, [allowedChainIds, isSmartWallet])
+    return list;
+  }, [allowedChainIds, isSmartWallet]);
 }

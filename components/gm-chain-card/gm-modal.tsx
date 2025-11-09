@@ -1,34 +1,33 @@
-"use client"
+"use client";
 
-import React, { useCallback } from "react"
-
-import { useEnsBasenameResolver } from "@/hooks/use-ens-basename-resolver"
-import { Button } from "@/components/ui/button"
+import React, { useCallback } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
+import { useEnsBasenameResolver } from "@/hooks/use-ens-basename-resolver";
 
-import { GMTransaction } from "./gm-transaction"
-import { validateRecipient } from "./recipient-validation"
-import { useFocusTrap } from "./use-focus-trap"
-import { useModalScrollPrevention } from "./use-modal-scroll-prevention"
+import { GMTransaction } from "./gm-transaction";
+import { validateRecipient } from "./recipient-validation";
+import { useFocusTrap } from "./use-focus-trap";
+import { useModalScrollPrevention } from "./use-modal-scroll-prevention";
 
 interface GMModalProps {
-  isOpen: boolean
-  chainId: number
-  contractAddress: `0x${string}`
-  isSponsored: boolean
-  isContractReady: boolean
-  processing: boolean
-  chainBtnClasses: string
-  address?: string
-  refetchLastGmDay?: () => Promise<unknown>
-  onClose: () => void
-  setProcessing: (value: boolean) => void
+  isOpen: boolean;
+  chainId: number;
+  contractAddress: `0x${string}`;
+  isSponsored: boolean;
+  isContractReady: boolean;
+  processing: boolean;
+  chainBtnClasses: string;
+  address?: string;
+  refetchLastGmDay?: () => Promise<unknown>;
+  onClose: () => void;
+  setProcessing: (value: boolean) => void;
 }
 
 export const GMModal = React.memo(function GMModal({
@@ -44,37 +43,37 @@ export const GMModal = React.memo(function GMModal({
   onClose,
   setProcessing,
 }: GMModalProps) {
-  const [mode, setMode] = React.useState<"main" | "gmTo">("main")
-  const [recipient, setRecipient] = React.useState("")
+  const [mode, setMode] = React.useState<"main" | "gmTo">("main");
+  const [recipient, setRecipient] = React.useState("");
 
   const handleClose = useCallback(() => {
-    setMode("main")
-    setRecipient("")
-    setProcessing(false)
-    onClose()
-  }, [setProcessing, onClose])
+    setMode("main");
+    setRecipient("");
+    setProcessing(false);
+    onClose();
+  }, [setProcessing, onClose]);
 
   const handleBackdropClick = useCallback(() => {
-    if (!processing) handleClose()
-  }, [processing, handleClose])
+    if (!processing) handleClose();
+  }, [processing, handleClose]);
 
   const dialogRef = useFocusTrap({
     isOpen,
     isProcessing: processing,
     onClose: handleClose,
-  })
+  });
 
-  useModalScrollPrevention(isOpen)
+  useModalScrollPrevention(isOpen);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
       aria-labelledby={`gm-dialog-title-${chainId}`}
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       ref={dialogRef}
+      role="dialog"
     >
       <div
         className="absolute inset-0 bg-black/40"
@@ -83,57 +82,57 @@ export const GMModal = React.memo(function GMModal({
       <Card className="relative z-10 w-[95%] max-w-sm" tabIndex={-1}>
         {mode === "main" ? (
           <MainMode
+            address={address}
+            chainBtnClasses={chainBtnClasses}
             chainId={chainId}
             contractAddress={contractAddress}
-            isSponsored={isSponsored}
             isContractReady={isContractReady}
-            processing={processing}
-            chainBtnClasses={chainBtnClasses}
-            address={address}
-            refetchLastGmDay={refetchLastGmDay}
+            isSponsored={isSponsored}
             onClose={handleClose}
-            setProcessing={setProcessing}
             onSwitchToGmTo={() => setMode("gmTo")}
+            processing={processing}
+            refetchLastGmDay={refetchLastGmDay}
+            setProcessing={setProcessing}
           />
         ) : (
           <GmToMode
+            address={address}
+            chainBtnClasses={chainBtnClasses}
             chainId={chainId}
             contractAddress={contractAddress}
-            isSponsored={isSponsored}
             isContractReady={isContractReady}
-            processing={processing}
-            chainBtnClasses={chainBtnClasses}
-            recipient={recipient}
-            setRecipient={setRecipient}
-            address={address}
-            refetchLastGmDay={refetchLastGmDay}
-            onClose={handleClose}
-            setProcessing={setProcessing}
+            isSponsored={isSponsored}
             onBack={() => {
-              setMode("main")
-              setRecipient("")
+              setMode("main");
+              setRecipient("");
             }}
+            onClose={handleClose}
+            processing={processing}
+            recipient={recipient}
+            refetchLastGmDay={refetchLastGmDay}
+            setProcessing={setProcessing}
+            setRecipient={setRecipient}
           />
         )}
       </Card>
     </div>
-  )
-})
+  );
+});
 
 // Sub-components for cleaner code
 
 interface MainModeProps {
-  chainId: number
-  contractAddress: `0x${string}`
-  isSponsored: boolean
-  isContractReady: boolean
-  processing: boolean
-  chainBtnClasses: string
-  address?: string
-  refetchLastGmDay?: () => Promise<unknown>
-  onClose: () => void
-  setProcessing: (value: boolean) => void
-  onSwitchToGmTo: () => void
+  chainId: number;
+  contractAddress: `0x${string}`;
+  isSponsored: boolean;
+  isContractReady: boolean;
+  processing: boolean;
+  chainBtnClasses: string;
+  address?: string;
+  refetchLastGmDay?: () => Promise<unknown>;
+  onClose: () => void;
+  setProcessing: (value: boolean) => void;
+  onSwitchToGmTo: () => void;
 }
 
 const MainMode = React.memo(function MainMode({
@@ -153,81 +152,82 @@ const MainMode = React.memo(function MainMode({
     <>
       <CardHeader>
         <CardTitle
-          id={`gm-dialog-title-${chainId}`}
           className="text-center text-lg"
+          id={`gm-dialog-title-${chainId}`}
         >
           Choose GM Type
         </CardTitle>
       </CardHeader>
       <CardFooter className="flex-col gap-2">
         <GMTransaction
+          address={address}
+          buttonLabel="GM"
+          chainBtnClasses={chainBtnClasses}
           chainId={chainId}
           contractAddress={contractAddress}
-          isSponsored={isSponsored}
           isContractReady={isContractReady}
-          processing={processing}
-          chainBtnClasses={chainBtnClasses}
-          buttonLabel="GM"
-          transactionType="gm"
-          address={address}
-          refetchLastGmDay={refetchLastGmDay}
+          isSponsored={isSponsored}
           onClose={onClose}
+          processing={processing}
+          refetchLastGmDay={refetchLastGmDay}
           setProcessing={setProcessing}
+          transactionType="gm"
         />{" "}
         <Button
+          aria-disabled={!isContractReady || processing}
+          className={`w-full ${chainBtnClasses}`}
           disabled={!isContractReady || processing}
           onClick={onSwitchToGmTo}
-          className={`w-full ${chainBtnClasses}`}
-          aria-disabled={!isContractReady || processing}
         >
           GM to a Fren
         </Button>
         <Button
-          variant="outline"
-          onClick={onClose}
+          aria-disabled={processing}
           className="w-full"
           disabled={processing}
-          aria-disabled={processing}
+          onClick={onClose}
+          variant="outline"
         >
           Cancel
         </Button>
       </CardFooter>
     </>
-  )
-})
+  );
+});
 
 interface GmToModeProps {
-  chainId: number
-  contractAddress: `0x${string}`
-  isSponsored: boolean
-  isContractReady: boolean
-  processing: boolean
-  chainBtnClasses: string
-  recipient: string
-  setRecipient: (value: string) => void
-  address?: string
-  refetchLastGmDay?: () => Promise<unknown>
-  onClose: () => void
-  setProcessing: (value: boolean) => void
-  onBack: () => void
+  chainId: number;
+  contractAddress: `0x${string}`;
+  isSponsored: boolean;
+  isContractReady: boolean;
+  processing: boolean;
+  chainBtnClasses: string;
+  recipient: string;
+  setRecipient: (value: string) => void;
+  address?: string;
+  refetchLastGmDay?: () => Promise<unknown>;
+  onClose: () => void;
+  setProcessing: (value: boolean) => void;
+  onBack: () => void;
 }
 
 interface InputFeedbackProps {
-  sanitizedRecipient: string
-  isRecipientValid: boolean
-  isResolving: boolean
-  resolvedAddress: string | null
-  recipient: string
+  sanitizedRecipient: string;
+  isRecipientValid: boolean;
+  isResolving: boolean;
+  resolvedAddress: string | null;
+  recipient: string;
 }
 
 const shouldShowResolvingMessage = (isResolving: boolean): boolean =>
-  isResolving
+  isResolving;
 
 const shouldShowErrorMessage = (
   sanitizedRecipient: string,
   isRecipientValid: boolean,
   isResolving: boolean
-): boolean => sanitizedRecipient.length > 0 && !isRecipientValid && !isResolving
+): boolean =>
+  sanitizedRecipient.length > 0 && !isRecipientValid && !isResolving;
 
 const InputFeedback = React.memo(function InputFeedback({
   sanitizedRecipient,
@@ -237,8 +237,8 @@ const InputFeedback = React.memo(function InputFeedback({
 }: InputFeedbackProps) {
   if (shouldShowResolvingMessage(isResolving)) {
     return (
-      <p className="mt-2 text-sm text-blue-500">Resolving {recipient}...</p>
-    )
+      <p className="mt-2 text-blue-500 text-sm">Resolving {recipient}...</p>
+    );
   }
 
   if (
@@ -246,41 +246,41 @@ const InputFeedback = React.memo(function InputFeedback({
   ) {
     return (
       <p
+        className="mt-2 text-red-500 text-sm"
         id="recipient-error"
-        className="mt-2 text-sm text-red-500"
         role="alert"
       >
         Enter a valid address or ENS/Basename.
       </p>
-    )
+    );
   }
 
-  return null
-})
+  return null;
+});
 
 interface ActionButtonsProps {
-  isRecipientValid: boolean
-  isContractReady: boolean
-  processing: boolean
-  sanitizedRecipient: string
-  chainBtnClasses: string
-  chainId: number
-  contractAddress: `0x${string}`
-  isSponsored: boolean
-  resolvedAddress: string | null
-  recipient: string
-  address?: string
-  refetchLastGmDay?: () => Promise<unknown>
-  onClose: () => void
-  setProcessing: (value: boolean) => void
-  onBack: () => void
+  isRecipientValid: boolean;
+  isContractReady: boolean;
+  processing: boolean;
+  sanitizedRecipient: string;
+  chainBtnClasses: string;
+  chainId: number;
+  contractAddress: `0x${string}`;
+  isSponsored: boolean;
+  resolvedAddress: string | null;
+  recipient: string;
+  address?: string;
+  refetchLastGmDay?: () => Promise<unknown>;
+  onClose: () => void;
+  setProcessing: (value: boolean) => void;
+  onBack: () => void;
 }
 
 const isPlaceholderButtonDisabled = (
   sanitizedRecipient: string,
   isContractReady: boolean,
   processing: boolean
-): boolean => !sanitizedRecipient || !isContractReady || processing
+): boolean => !(sanitizedRecipient && isContractReady) || processing;
 
 const ActionButtons = React.memo(function ActionButtons({
   isRecipientValid,
@@ -303,44 +303,44 @@ const ActionButtons = React.memo(function ActionButtons({
     <>
       {isRecipientValid ? (
         <GMTransaction
+          address={address}
+          buttonLabel="Send GM"
+          chainBtnClasses={chainBtnClasses}
           chainId={chainId}
           contractAddress={contractAddress}
-          isSponsored={isSponsored}
           isContractReady={isContractReady}
-          processing={processing}
-          chainBtnClasses={chainBtnClasses}
-          buttonLabel="Send GM"
-          transactionType="gmTo"
-          recipient={resolvedAddress || recipient}
-          address={address}
-          refetchLastGmDay={refetchLastGmDay}
+          isSponsored={isSponsored}
           onClose={onClose}
+          processing={processing}
+          recipient={resolvedAddress || recipient}
+          refetchLastGmDay={refetchLastGmDay}
           setProcessing={setProcessing}
+          transactionType="gmTo"
         />
       ) : (
         <Button
+          className={`w-full ${chainBtnClasses}`}
           disabled={isPlaceholderButtonDisabled(
             sanitizedRecipient,
             isContractReady,
             processing
           )}
-          className={`w-full ${chainBtnClasses}`}
         >
           Enter a valid address
         </Button>
       )}
       <Button
-        variant="outline"
-        onClick={onBack}
-        disabled={processing}
-        className="w-full"
         aria-disabled={processing}
+        className="w-full"
+        disabled={processing}
+        onClick={onBack}
+        variant="outline"
       >
         Back
       </Button>
     </>
-  )
-})
+  );
+});
 
 const GmToMode = React.memo(function GmToMode({
   chainId,
@@ -357,72 +357,72 @@ const GmToMode = React.memo(function GmToMode({
   setProcessing,
   onBack,
 }: GmToModeProps) {
-  const sanitizedRecipient = recipient.trim()
-  const isRecipientValid = validateRecipient(recipient)
+  const sanitizedRecipient = recipient.trim();
+  const isRecipientValid = validateRecipient(recipient);
 
   // Resolve ENS/Basename to address
   const { address: resolvedAddress, isLoading: isResolving } =
-    useEnsBasenameResolver(recipient)
+    useEnsBasenameResolver(recipient);
 
   return (
     <>
       <CardHeader>
         <CardTitle
-          id={`gm-dialog-title-${chainId}`}
           className="text-center text-lg"
+          id={`gm-dialog-title-${chainId}`}
         >
           Fren&#39;s Address
         </CardTitle>
       </CardHeader>
       <CardContent>
         <input
-          type="text"
-          placeholder="0x... or nirwana.eth"
-          value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          disabled={processing}
-          className="w-full rounded-md border bg-transparent px-3 py-2"
-          aria-label="Recipient wallet address"
-          aria-invalid={sanitizedRecipient !== "" && !isRecipientValid}
           aria-describedby={
             sanitizedRecipient !== "" && !isRecipientValid
               ? "recipient-error"
               : undefined
           }
-          autoComplete="off"
-          spellCheck={false}
+          aria-invalid={sanitizedRecipient !== "" && !isRecipientValid}
+          aria-label="Recipient wallet address"
           autoCapitalize="none"
+          autoComplete="off"
           autoCorrect="off"
-          inputMode="text"
           autoFocus
+          className="w-full rounded-md border bg-transparent px-3 py-2"
+          disabled={processing}
+          inputMode="text"
+          onChange={(e) => setRecipient(e.target.value)}
+          placeholder="0x... or nirwana.eth"
+          spellCheck={false}
+          type="text"
+          value={recipient}
         />
         <InputFeedback
-          sanitizedRecipient={sanitizedRecipient}
           isRecipientValid={isRecipientValid}
           isResolving={isResolving}
-          resolvedAddress={resolvedAddress}
           recipient={recipient}
+          resolvedAddress={resolvedAddress}
+          sanitizedRecipient={sanitizedRecipient}
         />
       </CardContent>
       <CardFooter className="flex-col gap-2">
         <ActionButtons
-          isRecipientValid={isRecipientValid}
-          isContractReady={isContractReady}
-          processing={processing}
-          sanitizedRecipient={sanitizedRecipient}
+          address={address}
           chainBtnClasses={chainBtnClasses}
           chainId={chainId}
           contractAddress={contractAddress}
+          isContractReady={isContractReady}
+          isRecipientValid={isRecipientValid}
           isSponsored={isSponsored}
-          resolvedAddress={resolvedAddress}
-          recipient={recipient}
-          address={address}
-          refetchLastGmDay={refetchLastGmDay}
-          onClose={onClose}
-          setProcessing={setProcessing}
           onBack={onBack}
+          onClose={onClose}
+          processing={processing}
+          recipient={recipient}
+          refetchLastGmDay={refetchLastGmDay}
+          resolvedAddress={resolvedAddress}
+          sanitizedRecipient={sanitizedRecipient}
+          setProcessing={setProcessing}
         />
       </CardFooter>
     </>
-  )
-})
+  );
+});

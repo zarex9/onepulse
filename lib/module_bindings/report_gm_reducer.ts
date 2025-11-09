@@ -4,40 +4,22 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  AlgebraicType as __AlgebraicTypeValue,
-  BinaryReader as __BinaryReader,
-  BinaryWriter as __BinaryWriter,
-  ClientCache as __ClientCache,
-  ConnectionId as __ConnectionId,
-  DbConnectionBuilder as __DbConnectionBuilder,
-  DbConnectionImpl as __DbConnectionImpl,
-  deepEqual as __deepEqual,
-  Identity as __Identity,
-  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
-  TableCache as __TableCache,
-  TimeDuration as __TimeDuration,
-  Timestamp as __Timestamp,
   type AlgebraicType as __AlgebraicTypeType,
-  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
-  type CallReducerFlags as __CallReducerFlags,
-  type ErrorContextInterface as __ErrorContextInterface,
-  type Event as __Event,
-  type EventContextInterface as __EventContextInterface,
-  type ReducerEventContextInterface as __ReducerEventContextInterface,
-  type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
-  type TableHandle as __TableHandle,
-} from "spacetimedb"
+  AlgebraicType as __AlgebraicTypeValue,
+  type BinaryReader as __BinaryReader,
+  type BinaryWriter as __BinaryWriter,
+} from "spacetimedb";
 
 export type ReportGm = {
-  address: string
-  chainId: number
-  lastGmDayOnchain: number
-  txHash: string | undefined
-  fid: bigint | undefined
-  displayName: string | undefined
-  username: string | undefined
-}
-let _cached_ReportGm_type_value: __AlgebraicTypeType | null = null
+  address: string;
+  chainId: number;
+  lastGmDayOnchain: number;
+  txHash: string | undefined;
+  fid: bigint | undefined;
+  displayName: string | undefined;
+  username: string | undefined;
+};
+let _cached_ReportGm_type_value: __AlgebraicTypeType | null = null;
 
 /**
  * An object for generated helper functions.
@@ -48,8 +30,10 @@ export const ReportGm = {
    * This function is derived from the AlgebraicType used to generate this type.
    */
   getTypeScriptAlgebraicType(): __AlgebraicTypeType {
-    if (_cached_ReportGm_type_value) return _cached_ReportGm_type_value
-    _cached_ReportGm_type_value = __AlgebraicTypeValue.Product({ elements: [] })
+    if (_cached_ReportGm_type_value) return _cached_ReportGm_type_value;
+    _cached_ReportGm_type_value = __AlgebraicTypeValue.Product({
+      elements: [],
+    });
     _cached_ReportGm_type_value.value.elements.push(
       { name: "address", algebraicType: __AlgebraicTypeValue.String },
       { name: "chainId", algebraicType: __AlgebraicTypeValue.I32 },
@@ -78,8 +62,8 @@ export const ReportGm = {
           __AlgebraicTypeValue.String
         ),
       }
-    )
-    return _cached_ReportGm_type_value
+    );
+    return _cached_ReportGm_type_value;
   },
 
   serialize(writer: __BinaryWriter, value: ReportGm): void {
@@ -87,15 +71,15 @@ export const ReportGm = {
       writer,
       ReportGm.getTypeScriptAlgebraicType(),
       value
-    )
+    );
   },
 
   deserialize(reader: __BinaryReader): ReportGm {
     return __AlgebraicTypeValue.deserializeValue(
       reader,
       ReportGm.getTypeScriptAlgebraicType()
-    )
+    );
   },
-}
+};
 
-export default ReportGm
+export default ReportGm;

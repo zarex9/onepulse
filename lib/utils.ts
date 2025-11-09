@@ -1,21 +1,21 @@
-import { isWalletACoinbaseSmartWallet } from "@coinbase/onchainkit/wallet"
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { isWalletACoinbaseSmartWallet } from "@coinbase/onchainkit/wallet";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 import {
   createPublicClient,
   http,
   type PublicClient,
   type RpcUserOperation,
-} from "viem"
-import { base, celo, optimism } from "viem/chains"
+} from "viem";
+import { base, celo, optimism } from "viem/chains";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 const publicClient = createPublicClient({
   chain: base,
   transport: http(),
-})
+});
 
 export async function detectCoinbaseSmartWallet(
   address: `0x${string}`
@@ -32,15 +32,15 @@ export async function detectCoinbaseSmartWallet(
     maxPriorityFeePerGas: "0x0",
     paymasterAndData: "0x",
     signature: "0x",
-  }
+  };
   try {
     const res = await isWalletACoinbaseSmartWallet({
       client: publicClient as PublicClient,
       userOp: userOperation,
-    })
-    return res.isCoinbaseSmartWallet === true
+    });
+    return res.isCoinbaseSmartWallet === true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -48,12 +48,12 @@ const chainExplorerMap: Record<number, string> = {
   [base.id]: "https://basescan.org",
   [celo.id]: "https://celoscan.io",
   [optimism.id]: "https://optimistic.etherscan.io",
-}
+};
 
 export function getChainExplorer(chainId?: number) {
   if (!chainId) {
-    return "https://basescan.org"
+    return "https://basescan.org";
   }
 
-  return chainExplorerMap[chainId] ?? "https://basescan.org"
+  return chainExplorerMap[chainId] ?? "https://basescan.org";
 }

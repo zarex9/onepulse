@@ -1,10 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { minikitConfig } from "@/minikit.config"
-import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { base, celo, optimism } from "viem/chains"
+import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+import { base, celo, optimism } from "viem/chains";
 import {
   cookieStorage,
   createConfig,
@@ -12,8 +11,9 @@ import {
   http,
   WagmiProvider as Provider,
   type State,
-} from "wagmi"
-import { baseAccount } from "wagmi/connectors"
+} from "wagmi";
+import { baseAccount } from "wagmi/connectors";
+import { minikitConfig } from "@/minikit.config";
 
 export const config = createConfig({
   chains: [base, celo, optimism],
@@ -33,11 +33,11 @@ export const config = createConfig({
     [celo.id]: http(),
     [optimism.id]: http(),
   },
-})
+});
 
 declare module "wagmi" {
   interface Register {
-    config: typeof config
+    config: typeof config;
   }
 }
 
@@ -45,14 +45,14 @@ export function WagmiProvider({
   children,
   initialState,
 }: {
-  children: React.ReactNode
-  initialState?: State
+  children: React.ReactNode;
+  initialState?: State;
 }) {
-  const [queryClient] = useState(() => new QueryClient())
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
     <Provider config={config} initialState={initialState}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </Provider>
-  )
+  );
 }

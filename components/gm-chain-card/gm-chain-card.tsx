@@ -1,12 +1,10 @@
-"use client"
+"use client";
 
-import React, { useEffect, useMemo } from "react"
-import { type Address } from "viem"
-import { useChainId, useReadContract } from "wagmi"
-import { base, celo, optimism } from "wagmi/chains"
-
-import { dailyGMAbi } from "@/lib/abi/daily-gm"
-import { GmStats } from "@/hooks/use-gm-stats"
+import React, { useEffect, useMemo } from "react";
+import type { Address } from "viem";
+import { useChainId, useReadContract } from "wagmi";
+import type { base, celo, optimism } from "wagmi/chains";
+import { Icons } from "@/components/icons";
 import {
   Item,
   ItemActions,
@@ -14,13 +12,14 @@ import {
   ItemDescription,
   ItemFooter,
   ItemMedia,
-} from "@/components/ui/item"
-import { Spinner } from "@/components/ui/spinner"
-import { Icons } from "@/components/icons"
+} from "@/components/ui/item";
+import { Spinner } from "@/components/ui/spinner";
+import type { GmStats } from "@/hooks/use-gm-stats";
+import { dailyGMAbi } from "@/lib/abi/daily-gm";
 
-import { CarouselNext, CarouselPrevious } from "../ui/carousel"
-import { ActionButton } from "./action-button"
-import { CountdownText } from "./countdown-text"
+import { CarouselNext, CarouselPrevious } from "../ui/carousel";
+import { ActionButton } from "./action-button";
+import { CountdownText } from "./countdown-text";
 
 // Helper functions - extracted for clarity and testability
 const computeGMState = (
@@ -30,42 +29,42 @@ const computeGMState = (
   lastGmDayData: unknown,
   isPendingLastGm: boolean
 ) => {
-  if (!address || !contractAddress) {
-    return { hasGmToday: false, gmDisabled: !isConnected, targetSec: 0 }
+  if (!(address && contractAddress)) {
+    return { hasGmToday: false, gmDisabled: !isConnected, targetSec: 0 };
   }
 
   if (lastGmDayData === undefined) {
-    return { hasGmToday: false, gmDisabled: true, targetSec: 0 }
+    return { hasGmToday: false, gmDisabled: true, targetSec: 0 };
   }
 
-  const lastDay = Number((lastGmDayData as bigint) ?? 0n)
-  const nowSec = Math.floor(Date.now() / 1000)
-  const currentDay = Math.floor(nowSec / 86400)
-  const alreadyGmToday = lastDay >= currentDay
-  const nextDayStartSec = (currentDay + 1) * 86400
+  const lastDay = Number((lastGmDayData as bigint) ?? 0n);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const currentDay = Math.floor(nowSec / 86_400);
+  const alreadyGmToday = lastDay >= currentDay;
+  const nextDayStartSec = (currentDay + 1) * 86_400;
 
   return {
     hasGmToday: alreadyGmToday,
     gmDisabled: alreadyGmToday || isPendingLastGm,
     targetSec: nextDayStartSec,
-  }
-}
+  };
+};
 
 const getChainBtnClasses = (chainId: number, name: string): string => {
-  const isCelo = name.toLowerCase() === "celo" || chainId === 42220
-  const isOptimism = name.toLowerCase() === "optimism" || chainId === 10
+  const isCelo = name.toLowerCase() === "celo" || chainId === 42_220;
+  const isOptimism = name.toLowerCase() === "optimism" || chainId === 10;
 
   if (isCelo)
-    return "bg-[#FCFF52] text-black hover:bg-[#FCFF52]/90 dark:bg-[#476520] dark:text-white dark:hover:bg-[#476520]/90"
-  if (isOptimism) return "bg-[#ff0420] text-white hover:bg-[#ff0420]/90"
-  return "bg-[#0052ff] text-white hover:bg-[#0052ff]/90"
-}
+    return "bg-[#FCFF52] text-black hover:bg-[#FCFF52]/90 dark:bg-[#476520] dark:text-white dark:hover:bg-[#476520]/90";
+  if (isOptimism) return "bg-[#ff0420] text-white hover:bg-[#ff0420]/90";
+  return "bg-[#0052ff] text-white hover:bg-[#0052ff]/90";
+};
 
 const getChainIconName = (chainId: number, name: string): string => {
-  if (name.toLowerCase() === "optimism" || chainId === 10) return "optimism"
-  if (name.toLowerCase() === "celo" || chainId === 42220) return "celo"
-  return "base"
-}
+  if (name.toLowerCase() === "optimism" || chainId === 10) return "optimism";
+  if (name.toLowerCase() === "celo" || chainId === 42_220) return "celo";
+  return "base";
+};
 
 // Separate stats display component to reduce complexity
 const StatsDisplay = React.memo(function StatsDisplay({
@@ -73,70 +72,70 @@ const StatsDisplay = React.memo(function StatsDisplay({
   isConnected,
   isStatsReady,
 }: {
-  stats: GmStats
-  isConnected: boolean
-  isStatsReady: boolean
+  stats: GmStats;
+  isConnected: boolean;
+  isStatsReady: boolean;
 }) {
-  if (!isConnected || !stats) {
+  if (!(isConnected && stats)) {
     return (
       <div className="text-muted-foreground text-xs">
         Connect wallet to see stats
       </div>
-    )
+    );
   }
 
   return (
     <div className="grid grid-cols-3 gap-3 text-center">
       <StatColumn
-        value={isStatsReady ? stats.currentStreak : undefined}
         label="Current"
+        value={isStatsReady ? stats.currentStreak : undefined}
       />
       <StatColumn
-        value={isStatsReady ? stats.highestStreak : undefined}
         label="Highest"
+        value={isStatsReady ? stats.highestStreak : undefined}
       />
       <StatColumn
-        value={isStatsReady ? stats.allTimeGmCount : undefined}
         label="All-Time"
+        value={isStatsReady ? stats.allTimeGmCount : undefined}
       />
     </div>
-  )
-})
+  );
+});
 
 // Individual stat column to reduce repetition
 const StatColumn = React.memo(function StatColumn({
   value,
   label,
 }: {
-  value: number | undefined
-  label: string
+  value: number | undefined;
+  label: string;
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-2xl font-bold tracking-tight">
+      <span className="font-bold text-2xl tracking-tight">
         {value !== undefined ? value : <Spinner className="inline h-6 w-6" />}
       </span>
-      <span className="text-muted-foreground text-xs font-medium">{label}</span>
+      <span className="font-medium text-muted-foreground text-xs">{label}</span>
     </div>
-  )
-})
+  );
+});
 
 export type GMChainCardProps = {
-  chainId: number
-  name: string
-  contractAddress: `0x${string}`
-  isConnected: boolean
-  address?: string
+  chainId: number;
+  name: string;
+  contractAddress: `0x${string}`;
+  isConnected: boolean;
+  address?: string;
   onStatusChange?: (status: {
-    chainId: number
-    hasGmToday: boolean
-    targetSec: number
-  }) => void
-  sponsored: boolean
-  stats: GmStats
-  isStatsReady: boolean
-  onOpenModal?: (refetch: () => Promise<unknown>) => void
-}
+    chainId: number;
+    hasGmToday: boolean;
+    targetSec: number;
+  }) => void;
+  sponsored: boolean;
+  stats: GmStats;
+  isStatsReady: boolean;
+  onOpenModal?: (refetch: () => Promise<unknown>) => void;
+};
 
 export const GMChainCard = React.memo(function GMChainCard({
   chainId,
@@ -149,8 +148,8 @@ export const GMChainCard = React.memo(function GMChainCard({
   isStatsReady,
   onOpenModal,
 }: GMChainCardProps) {
-  const currentChainId = useChainId()
-  const onCorrectChain = currentChainId === chainId
+  const currentChainId = useChainId();
+  const onCorrectChain = currentChainId === chainId;
 
   const {
     data: lastGmDayData,
@@ -163,7 +162,7 @@ export const GMChainCard = React.memo(function GMChainCard({
     functionName: "lastGMDay",
     args: address ? [address as Address] : undefined,
     query: { enabled: Boolean(address && contractAddress) },
-  })
+  });
 
   const { hasGmToday, gmDisabled, targetSec } = useMemo(
     () =>
@@ -175,28 +174,28 @@ export const GMChainCard = React.memo(function GMChainCard({
         isPendingLastGm
       ),
     [address, contractAddress, isConnected, lastGmDayData, isPendingLastGm]
-  )
+  );
 
   useEffect(() => {
-    onStatusChange?.({ chainId, hasGmToday, targetSec })
-  }, [chainId, hasGmToday, targetSec, onStatusChange])
+    onStatusChange?.({ chainId, hasGmToday, targetSec });
+  }, [chainId, hasGmToday, targetSec, onStatusChange]);
 
   const chainBtnClasses = useMemo(
     () => getChainBtnClasses(chainId, name),
     [chainId, name]
-  )
+  );
 
   const chainIconName = useMemo(
     () => getChainIconName(chainId, name),
     [chainId, name]
-  )
+  );
 
   // Callback to open modal with refetch function
   const handleOpenModal = React.useCallback(() => {
     if (onOpenModal) {
-      onOpenModal(refetchLastGmDay)
+      onOpenModal(refetchLastGmDay);
     }
-  }, [onOpenModal, refetchLastGmDay])
+  }, [onOpenModal, refetchLastGmDay]);
 
   return (
     <>
@@ -221,25 +220,25 @@ export const GMChainCard = React.memo(function GMChainCard({
         <ItemFooter className="flex-col">
           <div className="mb-4 w-full">
             <StatsDisplay
-              stats={stats}
               isConnected={isConnected}
               isStatsReady={isStatsReady}
+              stats={stats}
             />
           </div>
           <ActionButton
-            isConnected={isConnected}
+            chainBtnClasses={chainBtnClasses}
             chainId={chainId}
+            gmDisabled={gmDisabled}
+            hasGmToday={hasGmToday}
+            isConnected={isConnected}
             name={name}
             onCorrectChain={onCorrectChain}
-            hasGmToday={hasGmToday}
-            gmDisabled={gmDisabled}
-            targetSec={targetSec}
-            chainBtnClasses={chainBtnClasses}
             onOpenModal={() => handleOpenModal()}
             renderCountdown={(sec: number) => <CountdownText targetSec={sec} />}
+            targetSec={targetSec}
           />
         </ItemFooter>
       </Item>
     </>
-  )
-})
+  );
+});

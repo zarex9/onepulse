@@ -1,18 +1,18 @@
-import { ImageResponse } from "next/og"
-import { NextRequest } from "next/server"
+import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
-export const runtime = "edge"
+export const runtime = "edge";
 
 // Helper function to parse URL parameters
 function parseGMStatusParams(searchParams: URLSearchParams) {
   return {
     username: searchParams.get("username") || "Anonymous",
-    streak: parseInt(searchParams.get("streak") || "0"),
-    totalGMs: parseInt(searchParams.get("totalGMs") || "0"),
+    streak: Number.parseInt(searchParams.get("streak") || "0"),
+    totalGMs: Number.parseInt(searchParams.get("totalGMs") || "0"),
     chains: searchParams.get("chains")?.split(",") || [],
     todayGM: searchParams.get("todayGM") === "true",
     claimedToday: searchParams.get("claimedToday") === "true",
-  }
+  };
 }
 
 // Helper function to generate the header section
@@ -43,7 +43,7 @@ function generateHeader(claimedToday: boolean) {
         {claimedToday ? "Champion" : "Status"}
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to generate the username section
@@ -59,7 +59,7 @@ function generateUsername(username: string) {
     >
       {username}
     </div>
-  )
+  );
 }
 
 // Helper function to generate the status grid
@@ -156,12 +156,12 @@ function generateStatusGrid(
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to generate the chains section
 function generateChainsSection(chains: string[]) {
-  if (chains.length === 0) return <></>
+  if (chains.length === 0) return <></>;
 
   return (
     <div
@@ -203,7 +203,7 @@ function generateChainsSection(chains: string[]) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to generate the footer
@@ -220,12 +220,12 @@ function generateFooter(claimedToday: boolean) {
       {claimedToday ? "Daily DEGEN claimed • " : ""}Join the GM movement •
       OnePulse
     </div>
-  )
+  );
 }
 
 // Helper function to generate the main OG image
 function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
-  const { username, streak, totalGMs, chains, todayGM, claimedToday } = params
+  const { username, streak, totalGMs, chains, todayGM, claimedToday } = params;
 
   return (
     <div
@@ -249,7 +249,7 @@ function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
       {generateChainsSection(chains)}
       {generateFooter(claimedToday)}
     </div>
-  )
+  );
 }
 
 // Helper function to generate fallback image
@@ -270,24 +270,24 @@ function generateFallbackImage() {
     >
       OnePulse - Daily GM Status
     </div>
-  )
+  );
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const params = parseGMStatusParams(searchParams)
+    const { searchParams } = new URL(request.url);
+    const params = parseGMStatusParams(searchParams);
 
     return new ImageResponse(generateMainOGImage(params), {
       width: 1200,
       height: 630,
-    })
+    });
   } catch (error) {
-    console.error("Error generating OG image:", error)
+    console.error("Error generating OG image:", error);
 
     return new ImageResponse(generateFallbackImage(), {
       width: 1200,
       height: 630,
-    })
+    });
   }
 }

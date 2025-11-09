@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface OnboardingModalProps {
-  open: boolean
-  onClose: () => void
-  canSave?: boolean
-  onSave?: () => void
+  open: boolean;
+  onClose: () => void;
+  canSave?: boolean;
+  onSave?: () => void;
 }
 
 export const OnboardingModal = React.memo(function OnboardingModal({
@@ -26,12 +26,12 @@ export const OnboardingModal = React.memo(function OnboardingModal({
   onSave,
 }: OnboardingModalProps) {
   const handleSaveAndClose = React.useCallback(() => {
-    onSave?.()
-    onClose()
-  }, [onSave, onClose])
+    onSave?.();
+    onClose();
+  }, [onSave, onClose]);
 
   return (
-    <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+    <Dialog onOpenChange={(val) => !val && onClose()} open={open}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to OnePulse</DialogTitle>
@@ -42,7 +42,7 @@ export const OnboardingModal = React.memo(function OnboardingModal({
         <div className="space-y-4">
           <div>
             <h4 className="font-medium">How it works:</h4>
-            <ul className="text-muted-foreground mt-2 ml-4 list-disc space-y-1 text-sm">
+            <ul className="mt-2 ml-4 list-disc space-y-1 text-muted-foreground text-sm">
               <li>Connect your wallet</li>
               <li>Send GM on Base, Celo, or Optimism</li>
               <li>Earn rewards for daily participation</li>
@@ -52,16 +52,16 @@ export const OnboardingModal = React.memo(function OnboardingModal({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose} type="button">
+          <Button onClick={onClose} type="button" variant="ghost">
             Got it
           </Button>
           {canSave && onSave && (
-            <Button type="button" onClick={handleSaveAndClose}>
+            <Button onClick={handleSaveAndClose} type="button">
               Save now
             </Button>
           )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-})
+  );
+});

@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
-import { getCurrentDay } from "./chain-config"
+import { getCurrentDay } from "./chain-config";
 
 interface UseCongratsLogicProps {
-  allDone: boolean
-  isConnected: boolean
-  lastCongratsDay: number | null
-  onLastCongratsDayUpdate: (day: number) => void
+  allDone: boolean;
+  isConnected: boolean;
+  lastCongratsDay: number | null;
+  onLastCongratsDayUpdate: (day: number) => void;
 }
 
 /**
@@ -21,24 +21,24 @@ export function useCongratsLogic({
   lastCongratsDay,
   onLastCongratsDayUpdate,
 }: UseCongratsLogicProps) {
-  const [showCongrats, setShowCongrats] = useState(false)
+  const [showCongrats, setShowCongrats] = useState(false);
 
   useEffect(() => {
-    if (!allDone || !isConnected) return
-    const today = getCurrentDay()
-    if (lastCongratsDay === today) return
+    if (!(allDone && isConnected)) return;
+    const today = getCurrentDay();
+    if (lastCongratsDay === today) return;
 
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     timeoutId = setTimeout(() => {
-      setShowCongrats(true)
-      onLastCongratsDayUpdate(today)
-    }, 0)
+      setShowCongrats(true);
+      onLastCongratsDayUpdate(today);
+    }, 0);
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [allDone, isConnected, lastCongratsDay, onLastCongratsDayUpdate])
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [allDone, isConnected, lastCongratsDay, onLastCongratsDayUpdate]);
 
-  return { showCongrats, setShowCongrats }
+  return { showCongrats, setShowCongrats };
 }

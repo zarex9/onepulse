@@ -1,11 +1,11 @@
-import { useCallback } from "react"
-import type { LifecycleStatus } from "@coinbase/onchainkit/transaction"
-import { useQueryClient } from "@tanstack/react-query"
+import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
 interface UseTransactionStatusProps {
-  onSuccess?: (txHash: string) => void
-  onError?: (error: Error) => void
-  refetchEligibility: () => void
+  onSuccess?: (txHash: string) => void;
+  onError?: (error: Error) => void;
+  refetchEligibility: () => void;
 }
 
 /**
@@ -17,27 +17,28 @@ export function useTransactionStatus({
   onError,
   refetchEligibility,
 }: UseTransactionStatusProps) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useCallback(
     (status: LifecycleStatus) => {
-      const isSuccess = status.statusName === "success"
-      const isError = status.statusName === "error"
+      const isSuccess = status.statusName === "success";
+      const isError = status.statusName === "error";
 
       if (isSuccess) {
-        refetchEligibility()
-        queryClient.invalidateQueries({ queryKey: ["useReadContract"] })
-        const txHash = status.statusData.transactionReceipts[0]?.transactionHash
-        if (txHash && onSuccess) onSuccess(txHash)
+        refetchEligibility();
+        queryClient.invalidateQueries({ queryKey: ["useReadContract"] });
+        const txHash =
+          status.statusData.transactionReceipts[0]?.transactionHash;
+        if (txHash && onSuccess) onSuccess(txHash);
       }
 
       if (isError && onError) {
         const error = new Error(
           status.statusData.message || "Transaction failed"
-        )
-        onError(error)
+        );
+        onError(error);
       }
     },
     [refetchEligibility, queryClient, onSuccess, onError]
-  )
+  );
 }

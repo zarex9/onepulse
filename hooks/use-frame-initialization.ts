@@ -1,12 +1,12 @@
-import { useEffect } from "react"
-import { useMiniKit } from "@coinbase/onchainkit/minikit"
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useEffect } from "react";
 
 export function useFrameInitialization() {
-  const { isFrameReady, setFrameReady } = useMiniKit()
+  const { isFrameReady, setFrameReady } = useMiniKit();
 
   useEffect(() => {
     if (!isFrameReady) {
-      setFrameReady()
+      setFrameReady();
     }
-  }, [isFrameReady, setFrameReady])
+  }, [isFrameReady, setFrameReady]);
 }

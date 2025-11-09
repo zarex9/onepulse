@@ -1,12 +1,12 @@
-import { useCallback } from "react"
-import type { ContractFunctionParameters } from "viem"
+import { useCallback } from "react";
+import type { ContractFunctionParameters } from "viem";
 
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards"
+import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 
 interface UseClaimContractsProps {
-  address?: string
-  fid?: bigint
-  contractAddress?: string
+  address?: string;
+  fid?: bigint;
+  contractAddress?: string;
 }
 
 /**
@@ -19,13 +19,13 @@ export function useClaimContracts({
   contractAddress,
 }: UseClaimContractsProps) {
   return useCallback(async (): Promise<ContractFunctionParameters[]> => {
-    const hasValidParams = address && fid && contractAddress
+    const hasValidParams = address && fid && contractAddress;
     if (!hasValidParams) {
-      throw new Error("Missing required parameters")
+      throw new Error("Missing required parameters");
     }
 
     // Calculate fresh deadline (5 minutes from now)
-    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300)
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
 
     // Request backend signature (backend reads current nonce from contract)
     const response = await fetch("/api/claims/execute", {
@@ -36,14 +36,14 @@ export function useClaimContracts({
         fid: fid.toString(),
         deadline: deadline.toString(),
       }),
-    })
+    });
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || "Failed to get claim authorization")
+      const error = await response.json();
+      throw new Error(error.message || "Failed to get claim authorization");
     }
 
-    const { signature, nonce: backendNonce } = await response.json()
+    const { signature, nonce: backendNonce } = await response.json();
 
     return [
       {
@@ -58,6 +58,6 @@ export function useClaimContracts({
           signature as `0x${string}`,
         ],
       },
-    ]
-  }, [address, fid, contractAddress])
+    ];
+  }, [address, fid, contractAddress]);
 }

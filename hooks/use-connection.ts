@@ -1,11 +1,11 @@
-import { useSyncExternalStore } from "react"
-import { connectionStore } from "@/stores/connection-store"
+import { useSyncExternalStore } from "react";
+import { connectionStore } from "@/stores/connection-store";
 
 export function useConnection() {
   const connection = useSyncExternalStore(
     (callback) => connectionStore.subscribe(callback),
     () => connectionStore.getSnapshot(),
     () => connectionStore.getServerSnapshot()
-  )
-  return connection
+  );
+  return connection;
 }

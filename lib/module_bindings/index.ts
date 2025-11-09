@@ -6,48 +6,38 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  AlgebraicType as __AlgebraicTypeValue,
-  BinaryReader as __BinaryReader,
+  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
   BinaryWriter as __BinaryWriter,
-  ClientCache as __ClientCache,
-  ConnectionId as __ConnectionId,
+  type CallReducerFlags as __CallReducerFlags,
+  type ClientCache as __ClientCache,
   DbConnectionBuilder as __DbConnectionBuilder,
   DbConnectionImpl as __DbConnectionImpl,
-  deepEqual as __deepEqual,
-  Identity as __Identity,
-  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
-  TableCache as __TableCache,
-  TimeDuration as __TimeDuration,
-  Timestamp as __Timestamp,
-  type AlgebraicType as __AlgebraicTypeType,
-  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
-  type CallReducerFlags as __CallReducerFlags,
   type ErrorContextInterface as __ErrorContextInterface,
   type Event as __Event,
   type EventContextInterface as __EventContextInterface,
   type ReducerEventContextInterface as __ReducerEventContextInterface,
+  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
   type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
-  type TableHandle as __TableHandle,
-} from "spacetimedb"
+} from "spacetimedb";
 
 // Import and reexport all table handle types
-import { GmStatsByAddressTableHandle } from "./gm_stats_by_address_table"
+import { GmStatsByAddressTableHandle } from "./gm_stats_by_address_table";
 // Import and reexport all types
-import { GmStatsByAddress } from "./gm_stats_by_address_type"
+import { GmStatsByAddress } from "./gm_stats_by_address_type";
 // Import and reexport all reducer arg types
-import { IdentityConnected } from "./identity_connected_reducer"
-import { IdentityDisconnected } from "./identity_disconnected_reducer"
-import { ReportGm } from "./report_gm_reducer"
+import { IdentityConnected } from "./identity_connected_reducer";
+import { IdentityDisconnected } from "./identity_disconnected_reducer";
+import { ReportGm } from "./report_gm_reducer";
 
-export { IdentityConnected }
+export { IdentityConnected };
 
-export { IdentityDisconnected }
+export { IdentityDisconnected };
 
-export { ReportGm }
+export { ReportGm };
 
-export { GmStatsByAddressTableHandle }
+export { GmStatsByAddressTableHandle };
 
-export { GmStatsByAddress }
+export { GmStatsByAddress };
 
 const REMOTE_MODULE = {
   tables: {
@@ -90,32 +80,24 @@ const REMOTE_MODULE = {
   eventContextConstructor: (
     imp: __DbConnectionImpl,
     event: __Event<Reducer>
-  ) => {
-    return {
-      ...(imp as DbConnection),
-      event,
-    }
-  },
-  dbViewConstructor: (imp: __DbConnectionImpl) => {
-    return new RemoteTables(imp)
-  },
+  ) => ({
+    ...(imp as DbConnection),
+    event,
+  }),
+  dbViewConstructor: (imp: __DbConnectionImpl) => new RemoteTables(imp),
   reducersConstructor: (
     imp: __DbConnectionImpl,
     setReducerFlags: SetReducerFlags
-  ) => {
-    return new RemoteReducers(imp, setReducerFlags)
-  },
-  setReducerFlagsConstructor: () => {
-    return new SetReducerFlags()
-  },
-}
+  ) => new RemoteReducers(imp, setReducerFlags),
+  setReducerFlagsConstructor: () => new SetReducerFlags(),
+};
 
 // A type representing all the possible variants of a reducer.
 export type Reducer =
   | never
   | { name: "IdentityConnected"; args: IdentityConnected }
   | { name: "IdentityDisconnected"; args: IdentityDisconnected }
-  | { name: "ReportGm"; args: ReportGm }
+  | { name: "ReportGm"; args: ReportGm };
 
 export class RemoteReducers {
   constructor(
@@ -124,19 +106,19 @@ export class RemoteReducers {
   ) {}
 
   onIdentityConnected(callback: (ctx: ReducerEventContext) => void) {
-    this.connection.onReducer("identity_connected", callback)
+    this.connection.onReducer("identity_connected", callback);
   }
 
   removeOnIdentityConnected(callback: (ctx: ReducerEventContext) => void) {
-    this.connection.offReducer("identity_connected", callback)
+    this.connection.offReducer("identity_connected", callback);
   }
 
   onIdentityDisconnected(callback: (ctx: ReducerEventContext) => void) {
-    this.connection.onReducer("identity_disconnected", callback)
+    this.connection.onReducer("identity_disconnected", callback);
   }
 
   removeOnIdentityDisconnected(callback: (ctx: ReducerEventContext) => void) {
-    this.connection.offReducer("identity_disconnected", callback)
+    this.connection.offReducer("identity_disconnected", callback);
   }
 
   reportGm(
@@ -156,15 +138,15 @@ export class RemoteReducers {
       fid,
       displayName,
       username,
-    }
-    let __writer = new __BinaryWriter(1024)
-    ReportGm.serialize(__writer, __args)
-    let __argsBuffer = __writer.getBuffer()
+    };
+    const __writer = new __BinaryWriter(1024);
+    ReportGm.serialize(__writer, __args);
+    const __argsBuffer = __writer.getBuffer();
     this.connection.callReducer(
       "report_gm",
       __argsBuffer,
       this.setCallReducerFlags.reportGmFlags
-    )
+    );
   }
 
   onReportGm(
@@ -179,7 +161,7 @@ export class RemoteReducers {
       username: string | undefined
     ) => void
   ) {
-    this.connection.onReducer("report_gm", callback)
+    this.connection.onReducer("report_gm", callback);
   }
 
   removeOnReportGm(
@@ -194,14 +176,14 @@ export class RemoteReducers {
       username: string | undefined
     ) => void
   ) {
-    this.connection.offReducer("report_gm", callback)
+    this.connection.offReducer("report_gm", callback);
   }
 }
 
 export class SetReducerFlags {
-  reportGmFlags: __CallReducerFlags = "FullUpdate"
+  reportGmFlags: __CallReducerFlags = "FullUpdate";
   reportGm(flags: __CallReducerFlags) {
-    this.reportGmFlags = flags
+    this.reportGmFlags = flags;
   }
 }
 
@@ -216,7 +198,7 @@ export class RemoteTables {
       ).clientCache.getOrCreateTable<GmStatsByAddress>(
         REMOTE_MODULE.tables.gm_stats_by_address
       )
-    )
+    );
   }
 }
 
@@ -235,16 +217,14 @@ export class DbConnection extends __DbConnectionImpl<
     DbConnection,
     ErrorContext,
     SubscriptionEventContext
-  > => {
-    return new __DbConnectionBuilder<
+  > =>
+    new __DbConnectionBuilder<
       DbConnection,
       ErrorContext,
       SubscriptionEventContext
-    >(REMOTE_MODULE, (imp: __DbConnectionImpl) => imp as DbConnection)
-  }
-  subscriptionBuilder = (): SubscriptionBuilder => {
-    return new SubscriptionBuilder(this)
-  }
+    >(REMOTE_MODULE, (imp: __DbConnectionImpl) => imp as DbConnection);
+  subscriptionBuilder = (): SubscriptionBuilder =>
+    new SubscriptionBuilder(this);
 }
 
 export type EventContext = __EventContextInterface<
@@ -252,20 +232,20 @@ export type EventContext = __EventContextInterface<
   RemoteReducers,
   SetReducerFlags,
   Reducer
->
+>;
 export type ReducerEventContext = __ReducerEventContextInterface<
   RemoteTables,
   RemoteReducers,
   SetReducerFlags,
   Reducer
->
+>;
 export type SubscriptionEventContext = __SubscriptionEventContextInterface<
   RemoteTables,
   RemoteReducers,
   SetReducerFlags
->
+>;
 export type ErrorContext = __ErrorContextInterface<
   RemoteTables,
   RemoteReducers,
   SetReducerFlags
->
+>;

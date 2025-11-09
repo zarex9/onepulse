@@ -34,4 +34,4 @@ export const dailyGMAbi = [
     stateMutability: "view",
     type: "function",
   },
-] as const
+] as const;

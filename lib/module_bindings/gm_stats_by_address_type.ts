@@ -4,45 +4,28 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  AlgebraicType as __AlgebraicTypeValue,
-  BinaryReader as __BinaryReader,
-  BinaryWriter as __BinaryWriter,
-  ClientCache as __ClientCache,
-  ConnectionId as __ConnectionId,
-  DbConnectionBuilder as __DbConnectionBuilder,
-  DbConnectionImpl as __DbConnectionImpl,
-  deepEqual as __deepEqual,
-  Identity as __Identity,
-  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
-  TableCache as __TableCache,
-  TimeDuration as __TimeDuration,
-  Timestamp as __Timestamp,
   type AlgebraicType as __AlgebraicTypeType,
-  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
-  type CallReducerFlags as __CallReducerFlags,
-  type ErrorContextInterface as __ErrorContextInterface,
-  type Event as __Event,
-  type EventContextInterface as __EventContextInterface,
-  type ReducerEventContextInterface as __ReducerEventContextInterface,
-  type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
-  type TableHandle as __TableHandle,
-} from "spacetimedb"
+  AlgebraicType as __AlgebraicTypeValue,
+  type BinaryReader as __BinaryReader,
+  type BinaryWriter as __BinaryWriter,
+  type Timestamp as __Timestamp,
+} from "spacetimedb";
 
 export type GmStatsByAddress = {
-  addressChain: string
-  address: string
-  chainId: number
-  currentStreak: number
-  highestStreak: number
-  allTimeGmCount: number
-  lastGmDay: number
-  lastTxHash: string | undefined
-  fid: bigint | undefined
-  displayName: string | undefined
-  username: string | undefined
-  updatedAt: __Timestamp
-}
-let _cached_GmStatsByAddress_type_value: __AlgebraicTypeType | null = null
+  addressChain: string;
+  address: string;
+  chainId: number;
+  currentStreak: number;
+  highestStreak: number;
+  allTimeGmCount: number;
+  lastGmDay: number;
+  lastTxHash: string | undefined;
+  fid: bigint | undefined;
+  displayName: string | undefined;
+  username: string | undefined;
+  updatedAt: __Timestamp;
+};
+let _cached_GmStatsByAddress_type_value: __AlgebraicTypeType | null = null;
 
 /**
  * An object for generated helper functions.
@@ -54,10 +37,10 @@ export const GmStatsByAddress = {
    */
   getTypeScriptAlgebraicType(): __AlgebraicTypeType {
     if (_cached_GmStatsByAddress_type_value)
-      return _cached_GmStatsByAddress_type_value
+      return _cached_GmStatsByAddress_type_value;
     _cached_GmStatsByAddress_type_value = __AlgebraicTypeValue.Product({
       elements: [],
-    })
+    });
     _cached_GmStatsByAddress_type_value.value.elements.push(
       { name: "addressChain", algebraicType: __AlgebraicTypeValue.String },
       { name: "address", algebraicType: __AlgebraicTypeValue.String },
@@ -94,8 +77,8 @@ export const GmStatsByAddress = {
         name: "updatedAt",
         algebraicType: __AlgebraicTypeValue.createTimestampType(),
       }
-    )
-    return _cached_GmStatsByAddress_type_value
+    );
+    return _cached_GmStatsByAddress_type_value;
   },
 
   serialize(writer: __BinaryWriter, value: GmStatsByAddress): void {
@@ -103,15 +86,15 @@ export const GmStatsByAddress = {
       writer,
       GmStatsByAddress.getTypeScriptAlgebraicType(),
       value
-    )
+    );
   },
 
   deserialize(reader: __BinaryReader): GmStatsByAddress {
     return __AlgebraicTypeValue.deserializeValue(
       reader,
       GmStatsByAddress.getTypeScriptAlgebraicType()
-    )
+    );
   },
-}
+};
 
-export default GmStatsByAddress
+export default GmStatsByAddress;

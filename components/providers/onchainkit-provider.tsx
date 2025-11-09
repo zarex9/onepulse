@@ -1,17 +1,16 @@
-import { OnchainKitProvider as Provider } from "@coinbase/onchainkit"
-import { base } from "wagmi/chains"
+import { OnchainKitProvider as Provider } from "@coinbase/onchainkit";
+import { base } from "wagmi/chains";
 
-import "@/styles/onchainkit.css"
+import "@/styles/onchainkit.css";
 
 export function OnchainKitProvider({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <Provider
       apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-      projectId={process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_ID!}
       chain={base}
       config={{
         appearance: {
@@ -36,8 +35,9 @@ export function OnchainKitProvider({
         autoConnect: true,
         notificationProxyUrl: undefined,
       }}
+      projectId={process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_ID!}
     >
       {children}
     </Provider>
-  )
+  );
 }
