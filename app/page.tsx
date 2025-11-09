@@ -33,7 +33,7 @@ function determineOnboardingSaveHandler(
   return shouldEnableSave ? handleMiniAppAdded : undefined;
 }
 
-interface HomeContentProps {
+type HomeContentProps = {
   isFrameReady: boolean;
   inMiniApp: boolean;
   isConnected: boolean;
@@ -41,7 +41,7 @@ interface HomeContentProps {
   handleMiniAppAdded: () => void;
   tab: string;
   setTab: (tab: string) => void;
-}
+};
 
 function HomeContent({
   isFrameReady,
@@ -53,30 +53,28 @@ function HomeContent({
   setTab,
 }: HomeContentProps) {
   return (
-    <>
-      <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
-        <HomeHeader
-          inMiniApp={inMiniApp}
-          isFrameReady={isFrameReady}
-          onMiniAppAdded={handleMiniAppAdded}
-        />
-        <HomeTabs onTabChange={setTab} tab={tab} />
-        <DisconnectWalletSection
-          isConnected={isConnected}
-          onTabChange={setTab}
-          showDisconnect={showDisconnect}
-        />
-      </div>
-    </>
+    <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
+      <HomeHeader
+        inMiniApp={inMiniApp}
+        isFrameReady={isFrameReady}
+        onMiniAppAdded={handleMiniAppAdded}
+      />
+      <HomeTabs onTabChange={setTab} tab={tab} />
+      <DisconnectWalletSection
+        isConnected={isConnected}
+        onTabChange={setTab}
+        showDisconnect={showDisconnect}
+      />
+    </div>
   );
 }
 
-interface HomeBackgroundProps {
+type HomeBackgroundProps = {
   showParticles: boolean;
   prefersReducedMotion: boolean | null;
   particleQuantity: number;
   metaColor: string;
-}
+};
 
 function HomeBackground({
   showParticles,
@@ -114,7 +112,9 @@ export default function Home() {
 
   // Optimize particle count based on screen size for better mobile performance
   const particleQuantity = useMemo(() => {
-    if (typeof window === "undefined") return 100;
+    if (typeof window === "undefined") {
+      return 100;
+    }
     return window.innerWidth < 768 ? 50 : 100;
   }, []);
 
