@@ -15,8 +15,6 @@ import { ProcessingMirror } from "@/components/gm-chain-card/processing-mirror"
 import { SuccessReporter } from "@/components/gm-chain-card/success-reporter"
 import { TransactionToast } from "@/components/transaction-toast"
 
-type TransactionStatus = "default" | "success" | "error" | "pending"
-
 interface GMTransactionProps {
   chainId: number
   contractAddress: `0x${string}`
@@ -83,15 +81,7 @@ export const GMTransaction = React.memo(function GMTransaction({
     <Transaction isSponsored={isSponsored} chainId={chainId} calls={calls}>
       <TransactionButton
         disabled={!isContractReady || processing}
-        render={({
-          onSubmit,
-          isDisabled,
-          status,
-        }: {
-          onSubmit: () => void
-          isDisabled: boolean
-          status: TransactionStatus
-        }) => {
+        render={({ onSubmit, isDisabled, status, context }) => {
           return (
             <>
               <ProcessingMirror status={status} onChange={setProcessing} />
@@ -116,6 +106,7 @@ export const GMTransaction = React.memo(function GMTransaction({
                 address={address}
                 refetchLastGmDay={refetchLastGmDay}
                 chainId={chainId}
+                txHash={context?.transactionHash}
               />
             </>
           )
