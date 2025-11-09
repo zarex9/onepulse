@@ -172,4 +172,6 @@ export function useGmStatsFallback(
     cleanupTimeoutAndAbort,
     fetchFallbackStats,
   ]);
+
+  return _fallbackStats;
 }
