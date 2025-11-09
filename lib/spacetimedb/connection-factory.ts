@@ -39,7 +39,9 @@ const buildDbConnection = () => {
     .onDisconnect(onDisconnect)
     .onConnectError(onConnectError);
 
-  if (token) builder.withToken(token);
+  if (token) {
+    builder.withToken(token);
+  }
 
   return builder.build();
 };

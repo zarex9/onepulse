@@ -5,10 +5,14 @@ export const onSubscriptionChange = (callback: () => void) => {
 };
 
 export const notifySubscriptionApplied = () => {
-  listeners.forEach((callback) => callback());
+  for (const callback of listeners) {
+    callback();
+  }
 };
 export const notifySubscriptionError = () => {
-  listeners.forEach((callback) => callback());
+  for (const callback of listeners) {
+    callback();
+  }
 };
 
 export const cleanupSubscriptionListener = () => {

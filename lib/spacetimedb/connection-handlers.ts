@@ -39,7 +39,6 @@ export const onDisconnect = () => {
 };
 
 export const onConnectError = (_ctx: ErrorContext, error: Error) => {
-  void _ctx;
   connectionStatus.isConnected = false;
   connectionStatus.isSubscribed = false;
   connectionStatus.error = error;
@@ -61,7 +60,6 @@ export const subscribeToQueries = (conn: DbConnection, queries: string[]) => {
           SetReducerFlags
         >
       ) => {
-        void _ctx;
         connectionStatus.isSubscribed = false;
         notifySubscriptionError();
       }

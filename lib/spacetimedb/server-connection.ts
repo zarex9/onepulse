@@ -21,7 +21,9 @@ function createDbConnectionBuilder(config: {
   const builder = DbConnection.builder()
     .withUri(config.uri)
     .withModuleName(config.moduleName);
-  if (config.token) builder.withToken(config.token);
+  if (config.token) {
+    builder.withToken(config.token);
+  }
   return builder;
 }
 
@@ -36,7 +38,9 @@ export function buildServerDbConnection(): DbConnection {
   const builder = DbConnection.builder()
     .withUri(uri)
     .withModuleName(moduleName);
-  if (token) builder.withToken(token);
+  if (token) {
+    builder.withToken(token);
+  }
   return builder.build();
 }
 
@@ -71,14 +75,16 @@ export async function connectServerDbConnection(
   return await new Promise<DbConnection>((resolve, reject) => {
     let resolved = false;
     const timer = setTimeout(() => {
-      if (!resolved) reject(new Error("SpacetimeDB connect timeout"));
+      if (!resolved) {
+        reject(new Error("SpacetimeDB connect timeout"));
+      }
     }, timeoutMs);
 
-    const handleConnect = (built: DbConnection) => {
+    const handleConnect = (connection: DbConnection) => {
       if (!resolved) {
         resolved = true;
         clearTimeout(timer);
-        resolve(built);
+        resolve(connection);
       }
     };
     const handleConnectError = () => {
@@ -145,7 +151,9 @@ export async function callReportGm(
     const updated = new Promise<GmStatsByAddress | null>((resolve) => {
       let resolved = false;
       const finish = () => {
-        if (resolved) return;
+        if (resolved) {
+          return;
+        }
         resolved = true;
         const rows = Array.from(conn.db.gmStatsByAddress.iter()).filter(
           (r) =>

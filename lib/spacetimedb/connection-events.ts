@@ -14,13 +14,19 @@ export const onConnectionChange = (callback: () => void) => {
 };
 
 export const notifyConnectionEstablished = () => {
-  listeners.forEach((callback) => callback());
+  for (const callback of listeners) {
+    callback();
+  }
 };
 export const notifyConnectionDisconnected = () => {
-  listeners.forEach((callback) => callback());
+  for (const callback of listeners) {
+    callback();
+  }
 };
 export const notifyConnectionError = () => {
-  listeners.forEach((callback) => callback());
+  for (const callback of listeners) {
+    callback();
+  }
 };
 
 export const cleanupConnectionListener = () => {
