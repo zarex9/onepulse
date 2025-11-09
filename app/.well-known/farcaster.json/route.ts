@@ -14,7 +14,7 @@ function withValidProperties(
   );
 }
 
-export async function GET() {
+export function GET() {
   const body = {
     accountAssociation: {
       header: minikitConfig.accountAssociation.header,
