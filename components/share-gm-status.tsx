@@ -1,6 +1,7 @@
 "use client";
 
 import { useComposeCast, useOpenUrl } from "@coinbase/onchainkit/minikit";
+import type { UseMutateFunction } from "@tanstack/react-query";
 import { Copy, MessageCircle } from "lucide-react";
 import { Icons } from "@/components/icons";
 import {
@@ -11,7 +12,38 @@ import { Button } from "@/components/ui/button";
 import { type GmStats, useGmStats } from "@/hooks/use-gm-stats";
 import { generateGMStatusMetadata } from "@/lib/og-utils";
 
-interface ShareGMStatusProps {
+type ComposeCastParams<TClose extends boolean | undefined = undefined> = {
+  text?: string;
+  embeds?: [] | [string] | [string, string];
+  parent?: {
+    type: "cast";
+    hash: string;
+  };
+  close?: TClose;
+  channelKey?: string;
+};
+
+type ComposeCastInnerResult = {
+  hash: string;
+  text?: string;
+  embeds?: [] | [string] | [string, string];
+  parent?: {
+    type: "cast";
+    hash: string;
+  };
+  channelKey?: string;
+};
+
+type ComposeCast = UseMutateFunction<
+  {
+    cast: ComposeCastInnerResult | null;
+  },
+  Error,
+  ComposeCastParams<undefined>,
+  unknown
+>;
+
+type ShareGMStatusProps = {
   className?: string;
   variant?:
     | "default"
@@ -22,7 +54,7 @@ interface ShareGMStatusProps {
     | "destructive";
   size?: "default" | "sm" | "lg" | "icon";
   claimedToday?: boolean;
-}
+};
 
 const getUsername = (user: UserContext | null) =>
   user?.username || user?.displayName || "Anonymous";
@@ -33,8 +65,10 @@ const getGMStats = (gmStats: GmStats | undefined) => ({
 });
 
 const hasGMedToday = (gmStats: GmStats | undefined) => {
-  if (!gmStats?.lastGmDay) return false;
-  const today = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
+  if (!gmStats?.lastGmDay) {
+    return false;
+  }
+  const today = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
   return gmStats.lastGmDay === today;
 };
 
@@ -50,20 +84,20 @@ const createShareText = (claimedToday: boolean, currentStreak: number) => {
   return `${baseText} Starting my GM journey!`;
 };
 
-const createShareMetadata = (
-  username: string,
-  currentStreak: number,
-  totalGMs: number,
-  todayGM: boolean,
-  claimedToday: boolean
-) =>
+const createShareMetadata = (options: {
+  username: string;
+  currentStreak: number;
+  totalGMs: number;
+  todayGM: boolean;
+  claimedToday: boolean;
+}) =>
   generateGMStatusMetadata({
-    username,
-    streak: currentStreak,
-    totalGMs,
+    username: options.username,
+    streak: options.currentStreak,
+    totalGMs: options.totalGMs,
     chains: ["Base"],
-    todayGM,
-    claimedToday,
+    todayGM: options.todayGM,
+    claimedToday: options.claimedToday,
   });
 
 function useGMSharing(claimedToday: boolean) {
@@ -77,13 +111,13 @@ function useGMSharing(claimedToday: boolean) {
   const todayGM = hasGMedToday(gmStats);
 
   const shareText = createShareText(claimedToday, currentStreak);
-  const metadata = createShareMetadata(
+  const metadata = createShareMetadata({
     username,
     currentStreak,
     totalGMs,
     todayGM,
-    claimedToday
-  );
+    claimedToday,
+  });
 
   return {
     shareText,
@@ -105,8 +139,7 @@ const shareToTwitter = (
 };
 
 const shareToCast = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  composeCast: any,
+  composeCast: ComposeCast,
   shareText: string,
   shareUrl: string
 ) => {
@@ -146,6 +179,8 @@ export function ShareGMStatus({
         break;
       case "copy":
         shareToClipboard(shareText, shareUrl);
+        break;
+      default:
         break;
     }
   };
