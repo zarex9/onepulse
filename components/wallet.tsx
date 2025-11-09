@@ -28,36 +28,34 @@ function ConnectWallet({
   );
 }
 
-const DisconnectWallet = React.memo(function DisconnectWallet({
-  onDisconnected,
-}: {
-  onDisconnected?: () => void;
-}) {
-  const { isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
-  const miniAppContextData = useMiniAppContext();
+const DisconnectWallet = React.memo(
+  ({ onDisconnected }: { onDisconnected?: () => void }) => {
+    const { isConnected } = useAccount();
+    const { disconnect } = useDisconnect();
+    const miniAppContextData = useMiniAppContext();
 
-  const handleDisconnect = React.useCallback(() => {
-    disconnect();
-    onDisconnected?.();
-  }, [disconnect, onDisconnected]);
+    const handleDisconnect = React.useCallback(() => {
+      disconnect();
+      onDisconnected?.();
+    }, [disconnect, onDisconnected]);
 
-  const isInMiniApp = Boolean(miniAppContextData?.isInMiniApp);
-  return (
-    isConnected &&
-    !isInMiniApp && (
-      <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
-        <Button
-          aria-label="Disconnect wallet"
-          className="w-full"
-          onClick={handleDisconnect}
-          variant="outline"
-        >
-          <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
-        </Button>
-      </div>
-    )
-  );
-});
+    const isInMiniApp = Boolean(miniAppContextData?.isInMiniApp);
+    return (
+      isConnected &&
+      !isInMiniApp && (
+        <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
+          <Button
+            aria-label="Disconnect wallet"
+            className="w-full"
+            onClick={handleDisconnect}
+            variant="outline"
+          >
+            <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
+          </Button>
+        </div>
+      )
+    );
+  }
+);
 
 export { ConnectWallet, DisconnectWallet };
