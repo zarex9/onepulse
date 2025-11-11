@@ -92,6 +92,8 @@ type RewardCardProps = {
   isCheckingEligibility: boolean;
   hasClaimedToday: boolean;
   onClaimSuccess: () => void;
+  address: string | undefined;
+  chainId: number;
 };
 
 function RewardCard({
@@ -101,9 +103,11 @@ function RewardCard({
   isCheckingEligibility,
   hasClaimedToday,
   onClaimSuccess,
+  address,
+  chainId,
 }: RewardCardProps) {
   const config = getStatusConfig(state);
-  const { stats } = useGmStats();
+  const { stats } = useGmStats(address, chainId);
 
   return (
     <Card className="border-border/50">
@@ -255,6 +259,8 @@ export const DegenRewardCard = React.memo(
     const claimState = extractClaimState(claimStatus, hasSentGMToday);
     return (
       <RewardCard
+        address={address}
+        chainId={chainId}
         fid={fid}
         hasClaimedToday={hasClaimedToday}
         isCheckingEligibility={isCheckingEligibility}
