@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import type { Address } from "viem";
 import { useChainId, useReadContract } from "wagmi";
 import type { base, celo, optimism } from "wagmi/chains";
@@ -28,7 +28,6 @@ const computeGMState = (params: {
   isConnected: boolean;
   lastGmDayData: unknown;
   isPendingLastGm: boolean;
-  currentDay: number;
 }) => {
   const {
     address,
@@ -36,7 +35,6 @@ const computeGMState = (params: {
     isConnected,
     lastGmDayData,
     isPendingLastGm,
-    currentDay,
   } = params;
   if (!(address && contractAddress)) {
     return { hasGmToday: false, gmDisabled: !isConnected, targetSec: 0 };
@@ -47,6 +45,8 @@ const computeGMState = (params: {
   }
 
   const lastDay = Number((lastGmDayData as bigint) ?? 0n);
+  const nowSec = Math.floor(Date.now() / 1000);
+  const currentDay = Math.floor(nowSec / 86_400);
   const alreadyGmToday = lastDay >= currentDay;
   const nextDayStartSec = (currentDay + 1) * 86_400;
 
@@ -162,20 +162,6 @@ export const GMChainCard = React.memo(
     const currentChainId = useChainId();
     const onCorrectChain = currentChainId === chainId;
 
-    // Track current day to trigger GM state recalculation when day changes
-    const [currentDay, setCurrentDay] = useState(() =>
-      Math.floor(Date.now() / 86_400)
-    );
-
-    useEffect(() => {
-      const interval = setInterval(() => {
-        const newDay = Math.floor(Date.now() / 86_400);
-        setCurrentDay(newDay);
-      }, 60_000); // Check every minute
-
-      return () => clearInterval(interval);
-    }, []);
-
     const {
       data: lastGmDayData,
       isPending: isPendingLastGm,
@@ -197,16 +183,8 @@ export const GMChainCard = React.memo(
           isConnected,
           lastGmDayData,
           isPendingLastGm,
-          currentDay,
         }),
-      [
-        address,
-        contractAddress,
-        isConnected,
-        lastGmDayData,
-        isPendingLastGm,
-        currentDay,
-      ]
+      [address, contractAddress, isConnected, lastGmDayData, isPendingLastGm]
     );
 
     useEffect(() => {
