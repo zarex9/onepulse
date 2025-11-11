@@ -81,7 +81,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html className="no-scrollbar" lang="en" suppressHydrationWarning>
       <body
         className={cn(
           geist.className,
