@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { DisconnectWalletSection } from "@/components/disconnect-wallet-section";
+import Footer from "@/components/footer";
 import { HomeHeader } from "@/components/home-header";
 import { HomeTabs } from "@/components/home-tabs";
 import { OnboardingModal } from "@/components/onboarding-modal";
@@ -36,8 +36,6 @@ function determineOnboardingSaveHandler(
 type HomeContentProps = {
   isFrameReady: boolean;
   inMiniApp: boolean;
-  isConnected: boolean;
-  showDisconnect: boolean;
   handleMiniAppAdded: () => void;
   tab: string;
   setTab: (tab: string) => void;
@@ -46,8 +44,6 @@ type HomeContentProps = {
 function HomeContent({
   isFrameReady,
   inMiniApp,
-  isConnected,
-  showDisconnect,
   handleMiniAppAdded,
   tab,
   setTab,
@@ -60,11 +56,7 @@ function HomeContent({
         onMiniAppAdded={handleMiniAppAdded}
       />
       <HomeTabs onTabChange={setTab} tab={tab} />
-      <DisconnectWalletSection
-        isConnected={isConnected}
-        onTabChange={setTab}
-        showDisconnect={showDisconnect}
-      />
+      <Footer onTabChange={setTab} />
     </div>
   );
 }
@@ -99,7 +91,7 @@ function HomeBackground({
 
 export default function Home() {
   const miniAppContextData = useMiniAppContext();
-  const { inMiniApp, isConnected } = usePageState();
+  const { inMiniApp } = usePageState();
   const { showParticles, prefersReducedMotion } = useParticlesAnimation();
   const safeAreaStyle = useSafeAreaStyle();
   const { metaColor } = useMetaColor();
@@ -133,10 +125,8 @@ export default function Home() {
       <HomeContent
         handleMiniAppAdded={handleMiniAppAdded}
         inMiniApp={inMiniApp}
-        isConnected={isConnected}
         isFrameReady={isFrameReady}
         setTab={setTab}
-        showDisconnect={!miniAppContextData?.isInMiniApp}
         tab={tab}
       />
       <HomeBackground

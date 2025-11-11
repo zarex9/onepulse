@@ -43,16 +43,15 @@ const DisconnectWallet = React.memo(
     return (
       isConnected &&
       !isInMiniApp && (
-        <div className="fixed inset-x-0 bottom-0 mx-auto w-[95%] max-w-lg p-4">
-          <Button
-            aria-label="Disconnect wallet"
-            className="w-full"
-            onClick={handleDisconnect}
-            variant="outline"
-          >
-            <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
-          </Button>
-        </div>
+        <Button
+          aria-label="Disconnect wallet"
+          className="flex-1"
+          onClick={handleDisconnect}
+          size="sm"
+          variant="outline"
+        >
+          <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
+        </Button>
       )
     );
   }
