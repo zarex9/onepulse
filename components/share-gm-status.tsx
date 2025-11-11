@@ -77,7 +77,7 @@ const createShareText = (
   claimedToday: boolean,
   currentStreak: number,
   totalGMs = 0,
-  _todayGM = false
+  todayGM = false
 ) => {
   // Base messages for claiming vs sharing status
   const claimMessages = [
@@ -173,7 +173,10 @@ const createShareText = (
   const baseMessage = claimedToday
     ? randomFrom(claimMessages)
     : randomFrom(statusMessages);
-  const streakMessage = getStreakMessage(currentStreak, claimedToday);
+  const streakMessage = getStreakMessage(
+    currentStreak,
+    claimedToday || todayGM
+  );
   const milestoneMessage = getMilestoneMessage(totalGMs);
 
   // Special case for first GM ever

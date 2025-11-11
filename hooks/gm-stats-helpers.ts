@@ -44,7 +44,7 @@ export function deriveStatsForAddress(
   }
   return rows.reduce<GmStats>(
     (acc, r) => ({
-      currentStreak: 0,
+      currentStreak: Math.max(acc.currentStreak, r.currentStreak ?? 0),
       highestStreak: Math.max(acc.highestStreak, r.highestStreak ?? 0),
       allTimeGmCount: acc.allTimeGmCount + (r.allTimeGmCount ?? 0),
       lastGmDay: Math.max(acc.lastGmDay, r.lastGmDay ?? 0),
