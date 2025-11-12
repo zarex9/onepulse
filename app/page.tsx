@@ -119,7 +119,7 @@ export default function Home() {
   );
 
   return (
-    <div style={safeAreaStyle}>
+    <div className="font-sans" style={safeAreaStyle}>
       <Content
         handleMiniAppAdded={handleMiniAppAdded}
         inMiniApp={inMiniApp}

@@ -10,16 +10,15 @@ import { RootProvider } from "./root-provider";
 import "@/styles/globals.css";
 
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "swap",
 });
 
-const geist_mono = Geist_Mono({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  display: "swap",
 });
 
 const frame = {
@@ -84,11 +83,7 @@ export default async function RootLayout({
   return (
     <html className="no-scrollbar" lang="en" suppressHydrationWarning>
       <body
-        className={cn(
-          geist.className,
-          geist_mono.className,
-          "font-sans antialiased"
-        )}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <RootProvider>
           <TooltipProvider delayDuration={0}>
