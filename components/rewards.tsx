@@ -22,7 +22,7 @@ export const Rewards = memo(function GMBase({
     : undefined;
 
   return (
-    <div className="my-4 space-y-4">
+    <div className="mt-4 mb-12 space-y-4">
       <VaultBalanceCard />
 
       {isConnected ? (

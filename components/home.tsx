@@ -80,7 +80,7 @@ export const Home = React.memo(
     }, [showCongrats, confettiRef]);
 
     return (
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 mb-12 space-y-4">
         <div className="space-y-2">
           <h2 className="font-semibold text-lg">Daily GM</h2>
           <p className="text-muted-foreground text-sm">
