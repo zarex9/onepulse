@@ -9,6 +9,7 @@ import {
   createConfig,
   createStorage,
   http,
+  injected,
   WagmiProvider as Provider,
   type State,
 } from "wagmi";
@@ -23,6 +24,7 @@ export const config = createConfig({
       appName: minikitConfig.miniapp.name,
       appLogoUrl: minikitConfig.miniapp.iconUrl,
     }),
+    injected(),
   ],
   storage: createStorage({
     storage: cookieStorage,
