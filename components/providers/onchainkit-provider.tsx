@@ -3,16 +3,18 @@ import { base } from "wagmi/chains";
 
 import "@/styles/onchainkit.css";
 import type { ReactNode } from "react";
+import { minikitConfig } from "@/minikit.config";
 
 export function OnchainKitProvider({ children }: { children: ReactNode }) {
   return (
     <Provider
+      analytics={false}
       apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
       chain={base}
       config={{
         appearance: {
           name: process.env.NEXT_PUBLIC_PROJECT_NAME,
-          logo: `${process.env.NEXT_PUBLIC_URL}/logo.png`,
+          logo: minikitConfig.miniapp.iconUrl,
           mode: "auto",
           theme: "custom",
         },
@@ -30,7 +32,6 @@ export function OnchainKitProvider({ children }: { children: ReactNode }) {
       miniKit={{
         enabled: true,
         autoConnect: true,
-        notificationProxyUrl: undefined,
       }}
       projectId={process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_ID}
     >
