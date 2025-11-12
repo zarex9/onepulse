@@ -132,8 +132,6 @@ export const GMModal = React.memo(
   }
 );
 
-// Sub-components for cleaner code
-
 type MainModeProps = {
   chainId: number;
   contractAddress: `0x${string}`;
@@ -376,7 +374,6 @@ const GmToMode = React.memo(
     const sanitizedRecipient = recipient.trim();
     const isRecipientValid = validateRecipient(recipient);
 
-    // Resolve ENS/Basename to address
     const { address: resolvedAddress, isLoading: isResolving } =
       useEnsBasenameResolver(recipient);
 

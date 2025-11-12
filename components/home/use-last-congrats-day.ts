@@ -21,7 +21,6 @@ export function useLastCongratsDay() {
     return Number.isNaN(parsed) ? null : parsed;
   });
 
-  // Persist to localStorage when value changes
   useEffect(() => {
     if (lastCongratsDay == null) {
       return;

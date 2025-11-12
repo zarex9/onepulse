@@ -1,5 +1,3 @@
-// Chain configuration helpers - pure, testable functions
-
 export type Chain = { id: number; name: string };
 
 const DEFAULT_CHAINS: readonly Chain[] = [

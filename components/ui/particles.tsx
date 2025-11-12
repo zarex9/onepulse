@@ -161,14 +161,12 @@ export const Particles: React.FC<ParticlesProps> = ({
 
   const resizeCanvas = useCallback(() => {
     if (canvasContainerRef.current && canvasRef.current && context.current) {
-      // Read layout once
       const w = canvasContainerRef.current.offsetWidth;
       const h = canvasContainerRef.current.offsetHeight;
       canvasSize.current.w = w;
       canvasSize.current.h = h;
       canvasRect.current = canvasRef.current.getBoundingClientRect();
 
-      // Write styles/attrs together to minimize layout thrash
       canvasRef.current.width = w * dpr;
       canvasRef.current.height = h * dpr;
       canvasRef.current.style.width = `${w}px`;
@@ -176,7 +174,6 @@ export const Particles: React.FC<ParticlesProps> = ({
       context.current.setTransform(1, 0, 0, 1, 0, 0);
       context.current.scale(dpr, dpr);
 
-      // Clear existing particles and create new ones with exact quantity
       circles.current = [];
       for (let i = 0; i < effectiveQuantity; i++) {
         const circle = circleParams();
@@ -220,10 +217,10 @@ export const Particles: React.FC<ParticlesProps> = ({
       clearContext();
       circles.current.forEach((circle: Circle, i: number) => {
         const edge = [
-          circle.x + circle.translateX - circle.size, // distance from left edge
-          canvasSize.current.w - circle.x - circle.translateX - circle.size, // distance from right edge
-          circle.y + circle.translateY - circle.size, // distance from top edge
-          canvasSize.current.h - circle.y - circle.translateY - circle.size, // distance from bottom edge
+          circle.x + circle.translateX - circle.size,
+          canvasSize.current.w - circle.x - circle.translateX - circle.size,
+          circle.y + circle.translateY - circle.size,
+          canvasSize.current.h - circle.y - circle.translateY - circle.size,
         ];
         const closestEdge = edge.reduce((a, b) => Math.min(a, b));
         const remapClosestEdge = Number.parseFloat(
@@ -250,7 +247,6 @@ export const Particles: React.FC<ParticlesProps> = ({
 
         drawCircle(circle, true);
 
-        // circle gets out of the canvas
         if (
           circle.x < -circle.size ||
           circle.x > canvasSize.current.w + circle.size ||

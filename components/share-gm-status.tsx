@@ -79,7 +79,6 @@ const createShareText = (
   totalGMs = 0,
   todayGM = false
 ) => {
-  // Base messages for claiming vs sharing status
   const claimMessages = [
     "🚀 Just snagged my daily DEGEN rewards!",
     "💰 DEGEN rewards claimed and secured!",
@@ -96,7 +95,6 @@ const createShareText = (
     "🚀 GM status report:",
   ];
 
-  // Streak-based messages
   const getStreakMessage = (streak: number, claimed: boolean) => {
     const streakConfigs = [
       {
@@ -145,7 +143,6 @@ const createShareText = (
     return config ? (claimed ? config.claimed : config.unclaimed) : "";
   };
 
-  // Total GM milestone messages
   const getMilestoneMessage = (total: number) => {
     const milestones = [
       {
@@ -166,7 +163,6 @@ const createShareText = (
     return milestone?.message || "";
   };
 
-  // Random selection for variety
   const randomFrom = (arr: string[]) =>
     arr[Math.floor(Math.random() * arr.length)];
 
@@ -179,14 +175,12 @@ const createShareText = (
   );
   const milestoneMessage = getMilestoneMessage(totalGMs);
 
-  // Special case for first GM ever
   if (totalGMs === 1 && currentStreak === 1) {
     return claimedToday
       ? "🎉 Just made my very first GM claim! Welcome to the DEGEN life! 🚀"
       : "🌟 Just started my GM journey with my first GM! 💪";
   }
 
-  // Special case for streak milestones
   if (currentStreak === 7) {
     return claimedToday
       ? "🎊 Week-long GM streak achieved! DEGEN rewards flowing! 💰"
@@ -272,7 +266,6 @@ const shareToCast = async (
     });
   } catch (error) {
     console.error("Failed to compose cast:", error);
-    // Fallback to clipboard
     navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
   }
 };

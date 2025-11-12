@@ -22,7 +22,6 @@ class GmStatsByAddressStore {
 
   constructor() {
     onSubscriptionChange(() => {
-      // Global subscription event; refresh snapshot
       this.subscriptionReady = true;
       this.updateSnapshot();
     });
@@ -31,7 +30,6 @@ class GmStatsByAddressStore {
   subscribe(onStoreChange: () => void) {
     this.listeners.add(onStoreChange);
     return () => {
-      // Cleanup on unmount
       this.listeners.delete(onStoreChange);
     };
   }
@@ -43,7 +41,6 @@ class GmStatsByAddressStore {
     } catch (error) {
       const isNotSSR = typeof window !== "undefined";
       if (isNotSSR) {
-        // This would be an unexpected error on the client-side
         console.error("Unexpected error while obtaining snapshot:", error);
       }
       return this.serverSnapshot;
@@ -51,7 +48,6 @@ class GmStatsByAddressStore {
   }
 
   getServerSnapshot() {
-    // Return the same reference to prevent unnecessary SSR re-renders
     return this.serverSnapshot;
   }
 
@@ -70,21 +66,15 @@ class GmStatsByAddressStore {
       return;
     }
 
-    // Signal to all listeners that they should clear their fallback cache
     this.emitRefreshEvent(address);
 
-    // Temporarily mark subscription as not ready to trigger fallback API fetch
-    // Don't emit change yet - batch it with the pull below
     this.subscriptionReady = false;
 
-    // Small delay to let components start fallback fetch
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Now pull fresh snapshot and restore ready state, emit only once
     try {
       this.updateSnapshot();
       this.subscriptionReady = true;
-      // Emit change only once after both state updates
       this.emitChange();
     } catch (error) {
       console.error(
@@ -123,7 +113,6 @@ class GmStatsByAddressStore {
     }
     const addr = address.toLowerCase();
 
-    // If already subscribed to this address, do nothing
     if (
       this.subscribedAddress?.toLowerCase() === addr &&
       this.subscriptionReady
@@ -133,13 +122,11 @@ class GmStatsByAddressStore {
 
     this.subscribedAddress = address;
     this.subscriptionReady = false;
-    // Clear snapshot while (re)subscribing to avoid showing stale data
     this.cachedSnapshot = [];
     this.emitChange();
 
     const conn = this.getConnection();
 
-    // Small delay to allow connection to establish
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
@@ -151,7 +138,6 @@ class GmStatsByAddressStore {
         })
         .onError(() => {
           this.subscriptionReady = false;
-          // Keep snapshot empty on error; UI can show zeros gracefully
           this.emitChange();
         })
         .subscribe([

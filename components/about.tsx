@@ -31,7 +31,7 @@ export function About() {
     async (url: string) => {
       try {
         await sdk.actions.openMiniApp({ url });
-      } catch (error) {
+      } catch (_error) {
         toast.error("Failed to open Mini App");
         openUrl(url);
       }
@@ -55,14 +55,12 @@ export function About() {
 
   return (
     <div
-      aria-labelledby="about-heading"
       className="mt-4 mb-12 flex flex-col gap-2 rounded-lg border"
     >
       <div className="flex w-full justify-center p-4 data-[align=start]:items-start data-[align=end]:items-end data-[align=center]:items-center">
         <div>
           <h1
             className="text-balance font-bold text-xl tracking-tight"
-            id="about-heading"
           >
             About OnePulse
           </h1>

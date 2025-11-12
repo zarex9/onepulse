@@ -57,7 +57,6 @@ export const GMTransaction = React.memo(
         ];
       }
 
-      // gmTo requires valid recipient
       const hasValidRecipient = recipient && isAddress(recipient);
       if (transactionType !== "gmTo" || !hasValidRecipient) {
         return [];

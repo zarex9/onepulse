@@ -21,7 +21,6 @@ import { CarouselNext, CarouselPrevious } from "../ui/carousel";
 import { ActionButton } from "./action-button";
 import { CountdownText } from "./countdown-text";
 
-// Helper functions - extracted for clarity and testability
 const computeGMState = (params: {
   address: string | undefined;
   contractAddress: `0x${string}`;
@@ -80,7 +79,6 @@ const getChainIconName = (chainId: number, name: string): string => {
   return "base";
 };
 
-// Separate stats display component to reduce complexity
 const StatsDisplay = React.memo(
   ({
     stats,
@@ -118,7 +116,6 @@ const StatsDisplay = React.memo(
   }
 );
 
-// Individual stat column to reduce repetition
 const StatColumn = React.memo(
   ({ value, label }: { value: number | undefined; label: string }) => (
     <div className="flex flex-col items-center gap-1">
@@ -201,7 +198,6 @@ export const GMChainCard = React.memo(
       [chainId, name]
     );
 
-    // Callback to open modal with refetch function
     const handleOpenModal = React.useCallback(() => {
       if (onOpenModal) {
         onOpenModal(refetchLastGmDay);

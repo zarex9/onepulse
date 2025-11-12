@@ -49,16 +49,14 @@ export const ActionButton = React.memo(
       if (!gmDisabled) {
         onOpenModal();
       }
-    }, [gmDisabled, onOpenModal]); // ✓ Dependencies are stable and necessary
+    }, [gmDisabled, onOpenModal]);
 
-    // User not connected
     if (!isConnected) {
       return (
         <ConnectWallet className={`w-full ${chainBtnClasses}`} size="lg" />
       );
     }
 
-    // User on wrong chain
     if (!onCorrectChain) {
       if (hasGmToday) {
         return (
@@ -87,7 +85,6 @@ export const ActionButton = React.memo(
       );
     }
 
-    // User on correct chain - show main action
     return (
       <Button
         className={`w-full ${chainBtnClasses}`}

@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-// Helper function to parse URL parameters
 function parseGMStatusParams(searchParams: URLSearchParams) {
   return {
     username: searchParams.get("username") || "Anonymous",
@@ -15,7 +14,6 @@ function parseGMStatusParams(searchParams: URLSearchParams) {
   };
 }
 
-// Helper function to generate the header section
 function generateHeader(claimedToday: boolean) {
   return (
     <div
@@ -46,7 +44,6 @@ function generateHeader(claimedToday: boolean) {
   );
 }
 
-// Helper function to generate the username section
 function generateUsername(username: string) {
   return (
     <div
@@ -62,7 +59,6 @@ function generateUsername(username: string) {
   );
 }
 
-// Helper function to generate the status grid
 function generateStatusGrid(
   streak: number,
   totalGMs: number,
@@ -159,7 +155,6 @@ function generateStatusGrid(
   );
 }
 
-// Helper function to generate the chains section
 function generateChainsSection(chains: string[]) {
   return (
     <div
@@ -204,7 +199,6 @@ function generateChainsSection(chains: string[]) {
   );
 }
 
-// Helper function to generate the footer
 function generateFooter(claimedToday: boolean) {
   return (
     <div
@@ -221,7 +215,6 @@ function generateFooter(claimedToday: boolean) {
   );
 }
 
-// Helper function to generate the main OG image
 function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
   const { username, streak, totalGMs, chains, todayGM, claimedToday } = params;
 
@@ -250,7 +243,6 @@ function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
   );
 }
 
-// Helper function to generate fallback image
 function generateFallbackImage() {
   return (
     <div

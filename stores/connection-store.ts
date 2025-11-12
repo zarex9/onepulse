@@ -15,7 +15,6 @@ class ConnectionStore {
   subscribe(onStoreChange: () => void) {
     this.listeners.add(onStoreChange);
     return () => {
-      // Cleanup on unmount
       this.listeners.delete(onStoreChange);
     };
   }

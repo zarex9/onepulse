@@ -12,7 +12,6 @@ export function generateGMStatusOGUrl(params: {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   const searchParams = new URLSearchParams();
 
-  // Define parameter mappings to reduce conditional complexity
   const paramMappings = [
     { key: "username", value: params.username },
     { key: "streak", value: params.streak?.toString() },

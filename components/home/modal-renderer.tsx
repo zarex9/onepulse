@@ -13,7 +13,6 @@ type ModalRendererProps = {
   onClose: () => void;
 };
 
-// Helper to get chain button classes
 const getChainBtnClassesForId = (chainId: number): string => {
   if (chainId === 42_220) {
     return "bg-[#FCFF52] text-black hover:bg-[#FCFF52]/90 dark:bg-[#476520] dark:text-white dark:hover:bg-[#476520]/90";

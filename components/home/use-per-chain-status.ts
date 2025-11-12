@@ -14,7 +14,6 @@ export function usePerChainStatus() {
   const handleStatus = useCallback(
     (s: { chainId: number; hasGmToday: boolean; targetSec: number }) => {
       setStatusMap((prev) => {
-        // Avoid re-render if unchanged
         if (
           prev[s.chainId]?.hasGmToday === s.hasGmToday &&
           prev[s.chainId]?.targetSec === s.targetSec

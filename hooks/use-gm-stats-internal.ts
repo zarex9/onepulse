@@ -43,7 +43,6 @@ export function useGmStatsFallback(
   const abortControllerRef = useRef<AbortController | null>(null);
   const normalizedAddress = normalizeAddress(address);
 
-  // Listen for refresh events and clear fallback cache for this address
   useEffect(() => {
     if (!(address && normalizedAddress)) {
       return;
@@ -86,7 +85,6 @@ export function useGmStatsFallback(
         return true;
       }
 
-      // Don't fetch more than once every 2 seconds to prevent stale overwrites
       const now = Date.now();
       return now - lastFetchTime < 2000;
     },
@@ -135,7 +133,7 @@ export function useGmStatsFallback(
         }
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") {
-          return; // Request was cancelled, don't log
+          return;
         }
         console.error("[useGmStatsFallback] Fallback fetch failed:", error);
       }

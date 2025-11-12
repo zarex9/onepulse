@@ -1,4 +1,3 @@
-// Helper to determine button state and label
 export type ButtonState = {
   label: string;
   disabled: boolean;

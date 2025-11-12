@@ -17,7 +17,6 @@ export function useConfettiControl(
   const confettiRef = useRef<ConfettiRef>(null);
   const confettiTriggeredRef = useRef<number | null>(null);
 
-  // Trigger confetti after congratulations dialog is shown (only when connected)
   useEffect(() => {
     if (!(showCongrats && isConnected)) {
       return;

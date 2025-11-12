@@ -69,7 +69,6 @@ export const CongratsDialog = React.memo(
   }
 );
 
-// Lightweight countdown that only updates itself once per second
 const CountdownValue = React.memo(({ targetSec }: { targetSec: number }) => {
   const [text, setText] = React.useState("--:--:--");
   React.useEffect(() => {

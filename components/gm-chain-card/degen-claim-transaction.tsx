@@ -50,7 +50,6 @@ export const DegenClaimTransaction = React.memo(
       contractAddress,
     });
 
-    // Handle transaction status updates
     const handleStatus = useTransactionStatus({
       onSuccess,
       onError,
@@ -66,7 +65,6 @@ export const DegenClaimTransaction = React.memo(
       !hasSentGMToday ||
       isEligibilityPending;
 
-    // Determine button state and fallback UI
     const buttonState = getButtonState(
       Boolean(address),
       isEligibilityPending,

@@ -123,7 +123,6 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const init = async () => {
       try {
-        // Use Farcaster MiniApp SDK's built-in detection utility
         const inMiniApp = await sdk.isInMiniApp();
 
         setMiniAppContext({

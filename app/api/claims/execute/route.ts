@@ -12,7 +12,6 @@ import { base } from "viem/chains";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { getDailyRewardsAddress } from "@/lib/constants";
 
-// Backend signer for claim authorizations
 const BACKEND_SIGNER_PRIVATE_KEY = process.env.BACKEND_SIGNER_PRIVATE_KEY;
 
 if (!BACKEND_SIGNER_PRIVATE_KEY) {
@@ -115,7 +114,6 @@ async function generateClaimAuthorization(params: {
     )
   );
 
-  // Sign the message hash (personal_sign)
   const signature = await walletClient.signMessage({
     message: { raw: messageHash },
   });
@@ -130,7 +128,6 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Validate request
     const validation = validateRequest(body);
     if (!validation.valid) {
       return NextResponse.json(
@@ -141,7 +138,6 @@ export async function POST(req: NextRequest) {
 
     const { claimer, fid, deadline } = validation.data;
 
-    // Generate backend signature with nonce
     const { signature, nonce } = await generateClaimAuthorization({
       claimer,
       fid,

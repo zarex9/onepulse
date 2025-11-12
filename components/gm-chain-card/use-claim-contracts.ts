@@ -24,10 +24,8 @@ export function useClaimContracts({
       throw new Error("Missing required parameters");
     }
 
-    // Calculate fresh deadline (5 minutes from now)
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
 
-    // Request backend signature (backend reads current nonce from contract)
     const response = await fetch("/api/claims/execute", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

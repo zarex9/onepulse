@@ -24,8 +24,8 @@ type ClaimEligibility = {
 
 const CHAIN_ID = 8453;
 const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
-const REFETCH_ELIGIBILITY_MS = 60_000; // 60 seconds (reduced from 10s to minimize server load)
-const REFETCH_VAULT_MS = 120_000; // 120 seconds (reduced from 30s)
+const REFETCH_ELIGIBILITY_MS = 60_000; // 60 seconds
+const REFETCH_VAULT_MS = 120_000; // 120 seconds
 
 function formatClaimEligibility(claimStatus: ClaimEligibility | undefined) {
   return {
@@ -115,7 +115,7 @@ export function useRewardVaultStatus() {
     address: (contractAddress as `0x${string}`) || undefined,
     abi: dailyRewardsAbi,
     functionName: "getVaultStatus",
-    chainId: CHAIN_ID, // Always read from Base network
+    chainId: CHAIN_ID,
     query: {
       enabled: contractAddress !== "",
       refetchInterval: REFETCH_VAULT_MS,

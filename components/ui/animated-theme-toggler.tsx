@@ -46,7 +46,6 @@ export const AnimatedThemeToggler = ({
 
     const nextTheme = isDark ? "light" : "dark";
 
-    // Read layout before we make any DOM writes to avoid sync reflow
     const { top, left, width, height } =
       buttonRef.current.getBoundingClientRect();
     const x = left + width / 2;
@@ -65,7 +64,6 @@ export const AnimatedThemeToggler = ({
 
     await vt.ready;
 
-    // Defer animation kick-off to the next frame to separate reads/writes
     requestAnimationFrame(() => {
       document.documentElement.animate(
         {
@@ -82,7 +80,6 @@ export const AnimatedThemeToggler = ({
       );
     });
 
-    // Update next-themes so resolvedTheme updates across the app
     setTheme(nextTheme);
   }, [isDark, duration, setTheme]);
 
