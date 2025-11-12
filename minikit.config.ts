@@ -29,7 +29,7 @@ export const minikitConfig = {
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
     primaryCategory: "social",
-    tags: ["base", "celo", "op", "gm", "daily"],
+    tags: ["daily", "gm", "habit", "rewards", "streaks"],
     heroImageUrl: `${ROOT_URL}/hero.png`,
     tagline: "Your daily onchain habit",
     ogTitle: "OnePulse",
