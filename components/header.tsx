@@ -2,10 +2,9 @@
 
 import { sdk } from "@farcaster/miniapp-sdk";
 import { Bookmark } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import { HeaderUserInfo } from "@/components/header-user-info";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
   type MiniAppContext,
@@ -13,15 +12,15 @@ import {
   useMiniAppContext,
 } from "@/components/providers/miniapp-provider";
 import { Button } from "@/components/ui/button";
+import { UserInfo } from "@/components/user-info";
 import { minikitConfig } from "@/minikit.config";
 
-type HomeHeaderProps = {
+type HeaderProps = {
   isFrameReady: boolean;
   inMiniApp: boolean;
   onMiniAppAdded: () => void;
 };
 
-// Extract user from context
 const extractUserFromContext = (
   context: MiniAppContext | null | undefined
 ): UserContext | undefined =>
@@ -34,31 +33,30 @@ const extractUserFromContext = (
       }
     : undefined;
 
-// Determine if save button should be shown
 const shouldShowSaveButton = (
   isFrameReady: boolean,
   inMiniApp: boolean,
   clientAdded: boolean | undefined
 ): boolean => isFrameReady && inMiniApp && clientAdded !== true;
 
-// Subcomponent for right side (save button & theme toggle)
 type HeaderRightProps = {
   showSaveButton: boolean;
   onSaveClick: () => void;
 };
 
-const HeaderRight = React.memo(
+const HeaderRight = memo(
   ({ showSaveButton, onSaveClick }: HeaderRightProps) => (
     <div>
       {showSaveButton && (
         <Button
-          className="mr-2"
+          className="group/toggle extend-touch-target mr-2 size-8"
           onClick={onSaveClick}
-          size={"sm"}
-          variant={"outline"}
+          size="icon"
+          title="Save"
+          variant="ghost"
         >
-          <Bookmark />
-          Save
+          <Bookmark className="size-4.5" />
+          <span className="sr-only">Save</span>
         </Button>
       )}
       <ModeToggle />
@@ -66,11 +64,11 @@ const HeaderRight = React.memo(
   )
 );
 
-export function HomeHeader({
+export function Header({
   isFrameReady,
   inMiniApp,
   onMiniAppAdded,
-}: HomeHeaderProps) {
+}: HeaderProps) {
   const miniAppContextData = useMiniAppContext();
   const { address } = useAccount();
   const [miniAppAddedLocally, setMiniAppAddedLocally] = useState(false);
@@ -85,7 +83,6 @@ export function HomeHeader({
         toast.success("Saved without notification");
       }
 
-      // Update local state immediately
       setMiniAppAddedLocally(true);
       onMiniAppAdded();
     } catch (error) {
@@ -99,15 +96,13 @@ export function HomeHeader({
     shouldShowSaveButton(isFrameReady, inMiniApp, clientAdded) &&
     !miniAppAddedLocally;
 
-  // Show user info if user exists from Farcaster context OR if wallet is connected
-  // Otherwise show app name
   const shouldShowUserInfo = !!user || !!address;
 
   return (
-    <div className="mt-3 mb-6 flex items-center justify-between">
+    <div className="sticky top-4 mt-1 flex h-16 items-center justify-between rounded-lg border border-border bg-background px-2">
       <div className="flex-1">
         {shouldShowUserInfo ? (
-          <HeaderUserInfo address={address} user={user} />
+          <UserInfo address={address} user={user} />
         ) : (
           <div className="font-bold text-2xl">{minikitConfig.miniapp.name}</div>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { memo } from "react";
 import { useAccount } from "wagmi";
 import { ConnectWalletCard } from "@/components/connect-wallet-card";
 import { DegenRewardCard } from "@/components/degen-reward-card";
@@ -9,7 +9,7 @@ import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { VaultBalanceCard } from "@/components/vault-balance-card";
 import { VerifyingIdentityCard } from "@/components/verifying-identity-card";
 
-export const RewardsBase = React.memo(function GMBase({
+export const Rewards = memo(function GMBase({
   sponsored,
 }: {
   sponsored?: boolean;
@@ -22,22 +22,19 @@ export const RewardsBase = React.memo(function GMBase({
     : undefined;
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="my-4 space-y-4">
       <VaultBalanceCard />
 
       {isConnected ? (
         fid ? (
-          <>
-            <DegenRewardCard fid={fid} sponsored={Boolean(sponsored)} />
-
-            <HowItWorksCard />
-          </>
+          <DegenRewardCard fid={fid} sponsored={Boolean(sponsored)} />
         ) : (
           <VerifyingIdentityCard />
         )
       ) : (
         <ConnectWalletCard />
       )}
+      <HowItWorksCard />
     </div>
   );
 });

@@ -10,7 +10,7 @@ A Farcaster Mini App for saying "GM" daily across Base, Celo, and Optimism netwo
 
 ## ✨ Overview
 
-OnePulse is a Farcaster Mini App that lets users say "GM" (Good Morning) daily across multiple blockchain networks, track their streaks, and earn DEGEN token rewards. Built with modern Web3 technologies, it demonstrates seamless integration between Farcaster, smart contracts, and real-time databases.
+OnePulse is a Base app/Farcaster Mini App that lets users say "GM" (Good Morning) daily across multiple blockchain networks, track their streaks, and earn DEGEN token rewards. Built with modern Web3 technologies, it demonstrates seamless integration between Farcaster, smart contracts, and real-time databases.
 
 ### 🚀 Key Features
 

@@ -1,0 +1,69 @@
+"use client";
+
+import { Gift, House, Info } from "lucide-react";
+import { Home } from "@/components/home";
+import { Rewards } from "@/components/rewards";
+import {
+  Tabs as TabsComponent,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { About } from "./about";
+import { useMiniAppContext } from "./providers/miniapp-provider";
+
+type TabsProps = {
+  tab: string;
+  onTabChange: (tab: string) => void;
+};
+
+export function Tabs({ tab, onTabChange }: TabsProps) {
+  const miniAppContext = useMiniAppContext();
+
+  const isBaseApp = miniAppContext?.context?.client.clientFid === 309_857;
+
+  const allowedChainIds = isBaseApp ? [8453, 10] : [8453, 42_220, 10];
+
+  return (
+    <div className="my-4">
+      <TabsComponent onValueChange={onTabChange} value={tab}>
+        <TabsContent value="home">
+          <Home allowedChainIds={allowedChainIds} sponsored={isBaseApp} />
+        </TabsContent>
+        <TabsContent value="rewards">
+          <Rewards sponsored={isBaseApp} />
+        </TabsContent>
+        <TabsContent value="about">
+          <About />
+        </TabsContent>
+        <div className="fixed right-0 bottom-0 left-0 mx-auto h-18 w-full max-w-lg bg-transparent px-4 py-1">
+          <div className="mb-1 h-16 rounded-lg border border-border bg-background p-2">
+            <TabsList className="mx-auto flex h-12 w-full max-w-lg gap-2 rounded-lg bg-background p-0 py-0">
+              <TabsTrigger
+                className="flex h-full flex-col items-center justify-center gap-1 border-0 data-[state=active]:bg-foreground/10"
+                value="home"
+              >
+                <House className="h-5 w-5" />
+                <span className="text-xs">Home</span>
+              </TabsTrigger>
+              <TabsTrigger
+                className="flex h-full flex-col items-center justify-center gap-1 border-0 data-[state=active]:bg-foreground/10"
+                value="rewards"
+              >
+                <Gift className="h-5 w-5" />
+                <span className="text-xs">Rewards</span>
+              </TabsTrigger>
+              <TabsTrigger
+                className="flex h-full flex-col items-center justify-center gap-1 border-0 data-[state=active]:bg-foreground/10"
+                value="about"
+              >
+                <Info className="h-5 w-5" />
+                <span className="text-xs">About</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+      </TabsComponent>
+    </div>
+  );
+}

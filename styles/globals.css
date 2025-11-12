@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant fixed (&:is(.layout-fixed *));
 
 :root {
   --font-sans: "Geist", sans-serif;
@@ -186,5 +187,11 @@
 
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@utility extend-touch-target {
+  @media (pointer: coarse) {
+    @apply relative touch-manipulation after:absolute after:-inset-2;
   }
 }

@@ -1,7 +1,7 @@
 import { ConnectWallet as Connect } from "@coinbase/onchainkit/wallet";
 import type { VariantProps } from "class-variance-authority";
 import { Unplug } from "lucide-react";
-import React from "react";
+import { memo, useCallback } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { Button, type buttonVariants } from "@/components/ui/button";
@@ -28,13 +28,13 @@ function ConnectWallet({
   );
 }
 
-const DisconnectWallet = React.memo(
+const DisconnectWallet = memo(
   ({ onDisconnected }: { onDisconnected?: () => void }) => {
     const { isConnected } = useAccount();
     const { disconnect } = useDisconnect();
     const miniAppContextData = useMiniAppContext();
 
-    const handleDisconnect = React.useCallback(() => {
+    const handleDisconnect = useCallback(() => {
       disconnect();
       onDisconnected?.();
     }, [disconnect, onDisconnected]);

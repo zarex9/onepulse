@@ -2,11 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import Footer from "@/components/footer";
-import { HomeHeader } from "@/components/home-header";
-import { HomeTabs } from "@/components/home-tabs";
+import { Header } from "@/components/header";
 import { OnboardingModal } from "@/components/onboarding-modal";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
+import { Tabs } from "@/components/tabs";
 import { useFrameInitialization } from "@/hooks/use-frame-initialization";
 import { useMetaColor } from "@/hooks/use-meta-color";
 import { useMiniAppFlow } from "@/hooks/use-miniapp-flow";
@@ -33,7 +32,7 @@ function determineOnboardingSaveHandler(
   return shouldEnableSave ? handleMiniAppAdded : undefined;
 }
 
-type HomeContentProps = {
+type ContentProps = {
   isFrameReady: boolean;
   inMiniApp: boolean;
   handleMiniAppAdded: () => void;
@@ -41,39 +40,38 @@ type HomeContentProps = {
   setTab: (tab: string) => void;
 };
 
-function HomeContent({
+function Content({
   isFrameReady,
   inMiniApp,
   handleMiniAppAdded,
   tab,
   setTab,
-}: HomeContentProps) {
+}: ContentProps) {
   return (
     <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
-      <HomeHeader
+      <Header
         inMiniApp={inMiniApp}
         isFrameReady={isFrameReady}
         onMiniAppAdded={handleMiniAppAdded}
       />
-      <HomeTabs onTabChange={setTab} tab={tab} />
-      <Footer onTabChange={setTab} />
+      <Tabs onTabChange={setTab} tab={tab} />
     </div>
   );
 }
 
-type HomeBackgroundProps = {
+type BackgroundProps = {
   showParticles: boolean;
   prefersReducedMotion: boolean | null;
   particleQuantity: number;
   metaColor: string;
 };
 
-function HomeBackground({
+function Background({
   showParticles,
   prefersReducedMotion,
   particleQuantity,
   metaColor,
-}: HomeBackgroundProps) {
+}: BackgroundProps) {
   if (!showParticles || prefersReducedMotion) {
     return null;
   }
@@ -122,14 +120,14 @@ export default function Home() {
 
   return (
     <div style={safeAreaStyle}>
-      <HomeContent
+      <Content
         handleMiniAppAdded={handleMiniAppAdded}
         inMiniApp={inMiniApp}
         isFrameReady={isFrameReady}
         setTab={setTab}
         tab={tab}
       />
-      <HomeBackground
+      <Background
         metaColor={metaColor}
         particleQuantity={particleQuantity}
         prefersReducedMotion={prefersReducedMotion}

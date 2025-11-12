@@ -15,16 +15,16 @@ import {
   areAllChainsComplete,
   getChainList,
   getNextTargetSec,
-} from "./gm-base/chain-config";
-import { CongratsDialog } from "./gm-base/congrats-dialog";
-import { ModalRenderer } from "./gm-base/modal-renderer";
-import { useConfettiControl } from "./gm-base/use-confetti-control";
-import { useCongratsLogic } from "./gm-base/use-congrats-logic";
-import { useLastCongratsDay } from "./gm-base/use-last-congrats-day";
-import { useModalManagement } from "./gm-base/use-modal-management";
-import { usePerChainStatus } from "./gm-base/use-per-chain-status";
+} from "./home/chain-config";
+import { CongratsDialog } from "./home/congrats-dialog";
+import { ModalRenderer } from "./home/modal-renderer";
+import { useConfettiControl } from "./home/use-confetti-control";
+import { useCongratsLogic } from "./home/use-congrats-logic";
+import { useLastCongratsDay } from "./home/use-last-congrats-day";
+import { useModalManagement } from "./home/use-modal-management";
+import { usePerChainStatus } from "./home/use-per-chain-status";
 
-export const GMBase = React.memo(
+export const Home = React.memo(
   ({
     sponsored,
     allowedChainIds,
@@ -40,7 +40,6 @@ export const GMBase = React.memo(
       setProcessing,
     } = useModalManagement();
 
-    // Store refetch function for active chain
     const [activeRefetchFn, setActiveRefetchFn] = React.useState<
       (() => Promise<unknown>) | undefined
     >(undefined);
@@ -51,10 +50,8 @@ export const GMBase = React.memo(
     );
     const chainIds = useMemo(() => chains.map((c) => c.id), [chains]);
 
-    // Track per-chain status
     const { statusMap, handleStatus } = usePerChainStatus();
 
-    // Derive all-done and next target from chain status
     const allDone = useMemo(
       () => areAllChainsComplete(chainIds, statusMap),
       [chainIds, statusMap]
@@ -65,7 +62,6 @@ export const GMBase = React.memo(
       [chainIds, statusMap]
     );
 
-    // Manage congratulations day persistently
     const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay();
 
     const { confettiRef } = useConfettiControl(false, isConnected);
@@ -77,7 +73,6 @@ export const GMBase = React.memo(
       onLastCongratsDayUpdate: setLastCongratsDay,
     });
 
-    // Update confetti trigger when showing congrats
     React.useEffect(() => {
       if (showCongrats) {
         confettiRef.current?.fire?.();
@@ -124,7 +119,6 @@ export const GMBase = React.memo(
           </CarouselContent>
         </Carousel>
 
-        {/* Global modal rendered at root level */}
         <ModalRenderer
           activeModalChainId={activeModalChainId}
           address={address}
@@ -154,7 +148,6 @@ export const GMBase = React.memo(
   }
 );
 
-// Separate component to handle per-chain stats
 const ChainSlide = React.memo(
   ({
     chainId,
