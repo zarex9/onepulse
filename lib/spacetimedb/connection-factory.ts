@@ -37,25 +37,29 @@ const buildDbConnection = () => {
     process.env.SPACETIMEDB_HOST_URL ||
     "wss://maincloud.spacetimedb.com";
   const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse";
-  
+
   // SEC-001: Enforce WSS (WebSocket Secure) in production environments
-  if (process.env.NODE_ENV === "production") {
-    if (!uri.startsWith("wss://")) {
-      throw new Error(
-        `Production requires WSS (wss://) protocol. Received: ${uri}. ` +
+  if (process.env.NODE_ENV === "production" && !uri.startsWith("wss://")) {
+    throw new Error(
+      `Production requires WSS (wss://) protocol. Received: ${uri}. ` +
         "Please update SPACETIMEDB_HOST or SPACETIMEDB_HOST_URL to use wss:// for secure connections."
-      );
-    }
-  }
-  
-  // Development warning for unencrypted connections
-  if (process.env.NODE_ENV === "development" && uri.startsWith("ws://") && !uri.includes("127.0.0.1") && !uri.includes("localhost")) {
-    console.warn(
-      "⚠️  Security Warning: Using ws:// (unencrypted) for non-local connection. " +
-      "Production MUST use wss:// protocol. Current URI: " + uri
     );
   }
-  
+
+  // Development warning for unencrypted connections
+  if (
+    process.env.NODE_ENV === "development" &&
+    uri.startsWith("ws://") &&
+    !uri.includes("127.0.0.1") &&
+    !uri.includes("localhost")
+  ) {
+    console.warn(
+      "⚠️  Security Warning: Using ws:// (unencrypted) for non-local connection. " +
+        "Production MUST use wss:// protocol. Current URI: " +
+        uri
+    );
+  }
+
   const token = getAuthToken();
   const builder = DbConnection.builder()
     .withUri(uri)
@@ -86,7 +90,7 @@ const attemptReconnect = () => {
 
   const delay = reconnectionStrategy.getNextDelay();
   const attemptCount = reconnectionStrategy.getAttemptCount();
-  
+
   console.log(
     `[SpacetimeDB] Attempting reconnection (attempt ${attemptCount}) in ${delay}ms...`
   );
@@ -102,8 +106,10 @@ const attemptReconnect = () => {
 
   reconnectionTimeoutId = setTimeout(() => {
     try {
-      console.log(`[SpacetimeDB] Executing reconnection attempt ${attemptCount}`);
-      
+      console.log(
+        `[SpacetimeDB] Executing reconnection attempt ${attemptCount}`
+      );
+
       // Clean up existing connection to prevent multiple connections
       if (singletonConnection) {
         singletonConnection.disconnect();
@@ -135,7 +141,7 @@ export const startAutoReconnect = () => {
  */
 export const stopAutoReconnect = () => {
   console.log("[SpacetimeDB] Stopping auto-reconnect");
-  
+
   // Clear timeout to prevent memory leaks
   if (reconnectionTimeoutId) {
     clearTimeout(reconnectionTimeoutId);
@@ -151,7 +157,7 @@ export const stopAutoReconnect = () => {
 export const disconnectDbConnection = () => {
   // Stop auto-reconnect when manually disconnecting
   stopAutoReconnect();
-  
+
   if (singletonConnection) {
     singletonConnection.disconnect();
     singletonConnection = null;

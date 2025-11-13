@@ -5,7 +5,7 @@
 export class ExponentialBackoffReconnectionStrategy {
   private attemptCount = 0;
   private readonly maxAttempts = Number.POSITIVE_INFINITY;
-  private readonly maxBackoffMs = 30000; // 30 seconds
+  private readonly maxBackoffMs = 30_000; // 30 seconds
   private readonly baseDelayMs = 1000; // 1 second
 
   /**
@@ -16,10 +16,10 @@ export class ExponentialBackoffReconnectionStrategy {
    */
   getNextDelay(): number {
     const delayMs = Math.min(
-      this.baseDelayMs * Math.pow(2, this.attemptCount),
+      this.baseDelayMs * 2 ** this.attemptCount,
       this.maxBackoffMs
     );
-    this.attemptCount++;
+    this.attemptCount += 1;
     return delayMs;
   }
 
