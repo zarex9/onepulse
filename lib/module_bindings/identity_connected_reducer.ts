@@ -4,10 +4,28 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  type AlgebraicType as __AlgebraicTypeType,
   AlgebraicType as __AlgebraicTypeValue,
-  type BinaryReader as __BinaryReader,
-  type BinaryWriter as __BinaryWriter,
+  BinaryReader as __BinaryReader,
+  BinaryWriter as __BinaryWriter,
+  ClientCache as __ClientCache,
+  ConnectionId as __ConnectionId,
+  DbConnectionBuilder as __DbConnectionBuilder,
+  DbConnectionImpl as __DbConnectionImpl,
+  Identity as __Identity,
+  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
+  TableCache as __TableCache,
+  TimeDuration as __TimeDuration,
+  Timestamp as __Timestamp,
+  deepEqual as __deepEqual,
+  type AlgebraicType as __AlgebraicTypeType,
+  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
+  type CallReducerFlags as __CallReducerFlags,
+  type ErrorContextInterface as __ErrorContextInterface,
+  type Event as __Event,
+  type EventContextInterface as __EventContextInterface,
+  type ReducerEventContextInterface as __ReducerEventContextInterface,
+  type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
+  type TableHandle as __TableHandle,
 } from "spacetimedb";
 
 export type IdentityConnected = {};
@@ -18,33 +36,26 @@ let _cached_IdentityConnected_type_value: __AlgebraicTypeType | null = null;
  */
 export const IdentityConnected = {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   getTypeScriptAlgebraicType(): __AlgebraicTypeType {
-    if (_cached_IdentityConnected_type_value)
-      return _cached_IdentityConnected_type_value;
-    _cached_IdentityConnected_type_value = __AlgebraicTypeValue.Product({
-      elements: [],
-    });
-    _cached_IdentityConnected_type_value.value.elements.push();
+    if (_cached_IdentityConnected_type_value) return _cached_IdentityConnected_type_value;
+    _cached_IdentityConnected_type_value = __AlgebraicTypeValue.Product({ elements: [] });
+    _cached_IdentityConnected_type_value.value.elements.push(
+    );
     return _cached_IdentityConnected_type_value;
   },
 
   serialize(writer: __BinaryWriter, value: IdentityConnected): void {
-    __AlgebraicTypeValue.serializeValue(
-      writer,
-      IdentityConnected.getTypeScriptAlgebraicType(),
-      value
-    );
+    __AlgebraicTypeValue.serializeValue(writer, IdentityConnected.getTypeScriptAlgebraicType(), value);
   },
 
   deserialize(reader: __BinaryReader): IdentityConnected {
-    return __AlgebraicTypeValue.deserializeValue(
-      reader,
-      IdentityConnected.getTypeScriptAlgebraicType()
-    );
+    return __AlgebraicTypeValue.deserializeValue(reader, IdentityConnected.getTypeScriptAlgebraicType());
   },
-};
+
+}
 
 export default IdentityConnected;
+

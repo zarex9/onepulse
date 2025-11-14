@@ -31,28 +31,28 @@ export const getDbConnection = (): DbConnection => {
   return singletonConnection;
 };
 
-const buildDbConnection = () => {
+export const getConnectionBuilder = () => {
   const uri =
     process.env.SPACETIMEDB_HOST ||
     process.env.SPACETIMEDB_HOST_URL ||
     "wss://maincloud.spacetimedb.com";
   const moduleName = process.env.SPACETIMEDB_MODULE || "onepulse";
 
-  // SEC-001: Enforce WSS (WebSocket Secure) in production environments
   if (process.env.NODE_ENV === "production" && !uri.startsWith("wss://")) {
+    // SEC-001: Enforce WSS (WebSocket Secure) in production environments
     throw new Error(
       `Production requires WSS (wss://) protocol. Received: ${uri}. ` +
         "Please update SPACETIMEDB_HOST or SPACETIMEDB_HOST_URL to use wss:// for secure connections."
     );
   }
 
-  // Development warning for unencrypted connections
   if (
     process.env.NODE_ENV === "development" &&
     uri.startsWith("ws://") &&
     !uri.includes("127.0.0.1") &&
     !uri.includes("localhost")
   ) {
+    // Development warning for unencrypted connections
     console.warn(
       "⚠️  Security Warning: Using ws:// (unencrypted) for non-local connection. " +
         "Production MUST use wss:// protocol. Current URI: " +
@@ -71,6 +71,12 @@ const buildDbConnection = () => {
   if (token) {
     builder.withToken(token);
   }
+
+  return builder;
+};
+
+const buildDbConnection = () => {
+  const builder = getConnectionBuilder();
 
   return builder.build();
 };
