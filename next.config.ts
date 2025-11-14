@@ -6,9 +6,7 @@ const nextConfig: NextConfig = {
     inlineCss: true,
   },
   turbopack: {},
-  transpilePackages: [
-    "spacetimedb",
-  ],
+  transpilePackages: ["spacetimedb"],
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
