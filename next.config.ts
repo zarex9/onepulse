@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   experimental: {
     inlineCss: true,
   },
+  turbopack: {},
+  transpilePackages: [
+    "spacetimedb",
+  ],
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;

@@ -8,7 +8,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "Preserve",
+    "module": "ESNext",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleResolution": "bundler",
@@ -34,9 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    ".next\\dev/types/**/*.ts",
-    ".next\\dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
