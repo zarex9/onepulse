@@ -1,25 +1,16 @@
-import { SafeArea } from "@coinbase/onchainkit/minikit";
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
+import { SafeAreaProvider } from "@/components/safe-area-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { minikitConfig } from "@/minikit.config";
-
 import { RootProvider } from "./root-provider";
 
 import "@/styles/globals.css";
 
 import type { ReactNode } from "react";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { fontVariables } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 
 const frame = {
   version: minikitConfig.miniapp.version,
@@ -69,6 +60,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  colorScheme: "dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
@@ -80,17 +72,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const headersData = await headers();
+  const cookies = headersData.get("cookie");
   return (
-    <html className="no-scrollbar" lang="en" suppressHydrationWarning>
+    <html
+      className="no-scrollbar layout-fixed"
+      lang="en"
+      suppressHydrationWarning
+    >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={cn("overscroll-none font-sans antialiased", fontVariables)}
       >
-        <RootProvider>
+        <RootProvider cookies={cookies}>
           <TooltipProvider delayDuration={0}>
-            <SafeArea>
-              <Toaster closeButton position="top-center" richColors />
+            <SafeAreaProvider>
               {children}
-            </SafeArea>
+              <Toaster closeButton position="top-center" />
+            </SafeAreaProvider>
           </TooltipProvider>
         </RootProvider>
       </body>
