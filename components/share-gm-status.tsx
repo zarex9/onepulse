@@ -225,7 +225,7 @@ const shareToTwitter = (
 type ComposeCastFn = (params: {
   text?: string;
   embeds?: [] | [string] | [string, string];
-  parent?: { type: 'cast'; hash: string };
+  parent?: { type: "cast"; hash: string };
   close?: boolean;
   channelKey?: string;
 }) => Promise<{ cast: unknown | null }>;
