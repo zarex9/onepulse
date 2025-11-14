@@ -1,34 +1,13 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+"use client";
+
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { isServer, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { deserialize, serialize } from "wagmi";
-
-function makeQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60 * 1000,
-      },
-    },
-  });
-}
-
-let browserQueryClient: QueryClient | undefined;
-
-function getQueryClient() {
-  if (isServer) {
-    return makeQueryClient();
-  }
-  if (!browserQueryClient) {
-    browserQueryClient = makeQueryClient();
-  }
-  return browserQueryClient;
-}
+import { getQueryClient } from "@/lib/client";
 
 const persister = createAsyncStoragePersister({
+  storage: typeof window !== "undefined" ? window.localStorage : undefined,
   serialize,
-  storage: AsyncStorage,
   deserialize,
 });
 
