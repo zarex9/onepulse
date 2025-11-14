@@ -1,7 +1,6 @@
 "use client";
 
 import { useComposeCast, useOpenUrl } from "@coinbase/onchainkit/minikit";
-import type { UseMutateFunction } from "@tanstack/react-query";
 import { Copy, MessageCircle } from "lucide-react";
 import { Icons } from "@/components/icons";
 import {
@@ -11,37 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { generateGMStatusMetadata } from "@/lib/og-utils";
-
-type ComposeCastParams<TClose extends boolean | undefined = undefined> = {
-  text?: string;
-  embeds?: [] | [string] | [string, string];
-  parent?: {
-    type: "cast";
-    hash: string;
-  };
-  close?: TClose;
-  channelKey?: string;
-};
-
-type ComposeCastInnerResult = {
-  hash: string;
-  text?: string;
-  embeds?: [] | [string] | [string, string];
-  parent?: {
-    type: "cast";
-    hash: string;
-  };
-  channelKey?: string;
-};
-
-type ComposeCast = UseMutateFunction<
-  {
-    cast: ComposeCastInnerResult | null;
-  },
-  Error,
-  ComposeCastParams<undefined>,
-  unknown
->;
 
 type ShareGMStatusProps = {
   className?: string;
@@ -254,8 +222,16 @@ const shareToTwitter = (
   openUrl(twitterUrl);
 };
 
+type ComposeCastFn = (params: {
+  text?: string;
+  embeds?: [] | [string] | [string, string];
+  parent?: { type: 'cast'; hash: string };
+  close?: boolean;
+  channelKey?: string;
+}) => Promise<{ cast: unknown | null }>;
+
 const shareToCast = async (
-  composeCast: ComposeCast,
+  composeCast: ComposeCastFn,
   shareText: string,
   shareUrl: string
 ) => {
@@ -293,7 +269,7 @@ export function ShareGMStatus({
         shareToTwitter(shareText, shareUrl, openUrl);
         break;
       case "cast":
-        await shareToCast(composeCast, shareText, shareUrl);
+        await shareToCast(composeCast as ComposeCastFn, shareText, shareUrl);
         break;
       case "copy":
         shareToClipboard(shareText, shareUrl);
