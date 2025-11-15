@@ -1,7 +1,7 @@
 "use client";
 
-import { useComposeCast, useOpenUrl } from "@coinbase/onchainkit/minikit";
-import type { UseMutateFunction } from "@tanstack/react-query";
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { Copy, MessageCircle } from "lucide-react";
 import { Icons } from "@/components/icons";
 import {
@@ -11,37 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { generateGMStatusMetadata } from "@/lib/og-utils";
-
-type ComposeCastParams<TClose extends boolean | undefined = undefined> = {
-  text?: string;
-  embeds?: [] | [string] | [string, string];
-  parent?: {
-    type: "cast";
-    hash: string;
-  };
-  close?: TClose;
-  channelKey?: string;
-};
-
-type ComposeCastInnerResult = {
-  hash: string;
-  text?: string;
-  embeds?: [] | [string] | [string, string];
-  parent?: {
-    type: "cast";
-    hash: string;
-  };
-  channelKey?: string;
-};
-
-type ComposeCast = UseMutateFunction<
-  {
-    cast: ComposeCastInnerResult | null;
-  },
-  Error,
-  ComposeCastParams<undefined>,
-  unknown
->;
 
 type ShareGMStatusProps = {
   className?: string;
@@ -214,7 +183,6 @@ const createShareMetadata = (options: {
 
 function useGMSharing(claimedToday: boolean, gmStats?: GmStats) {
   const miniAppContextData = useMiniAppContext();
-  const { composeCast } = useComposeCast();
   const openUrl = useOpenUrl();
 
   const username = getUsername(miniAppContextData?.context?.user ?? null);
@@ -238,7 +206,6 @@ function useGMSharing(claimedToday: boolean, gmStats?: GmStats) {
   return {
     shareText,
     shareUrl: metadata.url,
-    composeCast,
     openUrl,
   };
 }
@@ -254,13 +221,9 @@ const shareToTwitter = (
   openUrl(twitterUrl);
 };
 
-const shareToCast = async (
-  composeCast: ComposeCast,
-  shareText: string,
-  shareUrl: string
-) => {
+const shareToCast = async (shareText: string, shareUrl: string) => {
   try {
-    await composeCast({
+    await sdk.actions.composeCast({
       text: `${shareText}`,
       embeds: [shareUrl],
     });
@@ -282,10 +245,7 @@ export function ShareGMStatus({
   claimedToday = false,
   gmStats,
 }: ShareGMStatusProps) {
-  const { shareText, shareUrl, composeCast, openUrl } = useGMSharing(
-    claimedToday,
-    gmStats
-  );
+  const { shareText, shareUrl, openUrl } = useGMSharing(claimedToday, gmStats);
 
   const handleShare = async (platform: "twitter" | "cast" | "copy") => {
     switch (platform) {
@@ -293,7 +253,7 @@ export function ShareGMStatus({
         shareToTwitter(shareText, shareUrl, openUrl);
         break;
       case "cast":
-        await shareToCast(composeCast, shareText, shareUrl);
+        await shareToCast(shareText, shareUrl);
         break;
       case "copy":
         shareToClipboard(shareText, shareUrl);

@@ -4,20 +4,38 @@
 /* eslint-disable */
 /* tslint:disable */
 import {
-  type AlgebraicType as __AlgebraicTypeType,
   AlgebraicType as __AlgebraicTypeValue,
-  type BinaryReader as __BinaryReader,
-  type BinaryWriter as __BinaryWriter,
+  BinaryReader as __BinaryReader,
+  BinaryWriter as __BinaryWriter,
+  ClientCache as __ClientCache,
+  ConnectionId as __ConnectionId,
+  DbConnectionBuilder as __DbConnectionBuilder,
+  DbConnectionImpl as __DbConnectionImpl,
+  Identity as __Identity,
+  SubscriptionBuilderImpl as __SubscriptionBuilderImpl,
+  TableCache as __TableCache,
+  TimeDuration as __TimeDuration,
+  Timestamp as __Timestamp,
+  deepEqual as __deepEqual,
+  type AlgebraicType as __AlgebraicTypeType,
+  type AlgebraicTypeVariants as __AlgebraicTypeVariants,
+  type CallReducerFlags as __CallReducerFlags,
+  type ErrorContextInterface as __ErrorContextInterface,
+  type Event as __Event,
+  type EventContextInterface as __EventContextInterface,
+  type ReducerEventContextInterface as __ReducerEventContextInterface,
+  type SubscriptionEventContextInterface as __SubscriptionEventContextInterface,
+  type TableHandle as __TableHandle,
 } from "spacetimedb";
 
 export type ReportGm = {
-  address: string;
-  chainId: number;
-  lastGmDayOnchain: number;
-  txHash: string | undefined;
-  fid: bigint | undefined;
-  displayName: string | undefined;
-  username: string | undefined;
+  address: string,
+  chainId: number,
+  lastGmDayOnchain: number,
+  txHash: string | undefined,
+  fid: bigint | undefined,
+  displayName: string | undefined,
+  username: string | undefined,
 };
 let _cached_ReportGm_type_value: __AlgebraicTypeType | null = null;
 
@@ -26,60 +44,33 @@ let _cached_ReportGm_type_value: __AlgebraicTypeType | null = null;
  */
 export const ReportGm = {
   /**
-   * A function which returns this type represented as an AlgebraicType.
-   * This function is derived from the AlgebraicType used to generate this type.
-   */
+  * A function which returns this type represented as an AlgebraicType.
+  * This function is derived from the AlgebraicType used to generate this type.
+  */
   getTypeScriptAlgebraicType(): __AlgebraicTypeType {
     if (_cached_ReportGm_type_value) return _cached_ReportGm_type_value;
-    _cached_ReportGm_type_value = __AlgebraicTypeValue.Product({
-      elements: [],
-    });
+    _cached_ReportGm_type_value = __AlgebraicTypeValue.Product({ elements: [] });
     _cached_ReportGm_type_value.value.elements.push(
       { name: "address", algebraicType: __AlgebraicTypeValue.String },
       { name: "chainId", algebraicType: __AlgebraicTypeValue.I32 },
       { name: "lastGmDayOnchain", algebraicType: __AlgebraicTypeValue.I32 },
-      {
-        name: "txHash",
-        algebraicType: __AlgebraicTypeValue.createOptionType(
-          __AlgebraicTypeValue.String
-        ),
-      },
-      {
-        name: "fid",
-        algebraicType: __AlgebraicTypeValue.createOptionType(
-          __AlgebraicTypeValue.I64
-        ),
-      },
-      {
-        name: "displayName",
-        algebraicType: __AlgebraicTypeValue.createOptionType(
-          __AlgebraicTypeValue.String
-        ),
-      },
-      {
-        name: "username",
-        algebraicType: __AlgebraicTypeValue.createOptionType(
-          __AlgebraicTypeValue.String
-        ),
-      }
+      { name: "txHash", algebraicType: __AlgebraicTypeValue.createOptionType(__AlgebraicTypeValue.String) },
+      { name: "fid", algebraicType: __AlgebraicTypeValue.createOptionType(__AlgebraicTypeValue.I64) },
+      { name: "displayName", algebraicType: __AlgebraicTypeValue.createOptionType(__AlgebraicTypeValue.String) },
+      { name: "username", algebraicType: __AlgebraicTypeValue.createOptionType(__AlgebraicTypeValue.String) },
     );
     return _cached_ReportGm_type_value;
   },
 
   serialize(writer: __BinaryWriter, value: ReportGm): void {
-    __AlgebraicTypeValue.serializeValue(
-      writer,
-      ReportGm.getTypeScriptAlgebraicType(),
-      value
-    );
+    __AlgebraicTypeValue.serializeValue(writer, ReportGm.getTypeScriptAlgebraicType(), value);
   },
 
   deserialize(reader: __BinaryReader): ReportGm {
-    return __AlgebraicTypeValue.deserializeValue(
-      reader,
-      ReportGm.getTypeScriptAlgebraicType()
-    );
+    return __AlgebraicTypeValue.deserializeValue(reader, ReportGm.getTypeScriptAlgebraicType());
   },
-};
+
+}
 
 export default ReportGm;
+
