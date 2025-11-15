@@ -9,7 +9,8 @@ export function MiniAppRequiredCard() {
     // Try to open in Warpcast (Farcaster) or Base app
     window.open(
       `https://farcaster.xyz/?launchFrameUrl=${encodeURIComponent(appUrl)}`,
-      "_blank"
+      "_blank",
+      "noopener,noreferrer"
     );
   };
 
