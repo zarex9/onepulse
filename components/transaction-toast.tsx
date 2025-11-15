@@ -1,6 +1,11 @@
 import { useTransactionContext } from "@coinbase/onchainkit/transaction";
 import { type ReactNode, type RefObject, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import {
+  ERROR_MESSAGES,
+  LOADING_MESSAGES,
+  SUCCESS_MESSAGES,
+} from "@/lib/error-handling";
 import { cn, getChainExplorer } from "@/lib/utils";
 
 function useSafeTransactionContext() {
@@ -141,13 +146,13 @@ function useToastCreation(options: {
       );
 
       toast.promise(transactionPromise, {
-        loading: "Processing transaction...",
+        loading: LOADING_MESSAGES.TRANSACTION_PENDING,
         success: () => ({
-          message: "Transaction successful",
+          message: SUCCESS_MESSAGES.TRANSACTION_SUCCESS,
           action: createSuccessAction(txHashRef.current, txChainId),
         }),
         error: () => ({
-          message: errorMessage || "Something went wrong",
+          message: errorMessage || ERROR_MESSAGES.TRANSACTION_FAILED,
           action: createErrorAction(onSubmit),
         }),
       });
