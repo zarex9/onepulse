@@ -4,7 +4,6 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { Bookmark } from "lucide-react";
 import { memo, useCallback, useState } from "react";
-import { toast } from "sonner";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
   type MiniAppContext,
@@ -13,6 +12,13 @@ import {
 } from "@/components/providers/miniapp-provider";
 import { Button } from "@/components/ui/button";
 import { UserInfo } from "@/components/user-info";
+import {
+  ERROR_MESSAGES,
+  extractErrorMessage,
+  handleError,
+  handleSuccess,
+  SUCCESS_MESSAGES,
+} from "@/lib/error-handling";
 import { canSaveMiniApp } from "@/lib/utils";
 import { minikitConfig } from "@/minikit.config";
 
@@ -73,15 +79,18 @@ export function Header({
       const response = await sdk.actions.addMiniApp();
 
       if (response.notificationDetails) {
-        toast.success("Saved");
+        handleSuccess(SUCCESS_MESSAGES.MINI_APP_ADDED);
       } else {
-        toast.success("Saved without notification");
+        handleSuccess(SUCCESS_MESSAGES.MINI_APP_ADDED_NO_NOTIF);
       }
 
       setMiniAppAddedLocally(true);
       onMiniAppAdded();
     } catch (error) {
-      toast.error(`Error: ${error}`);
+      handleError(error, ERROR_MESSAGES.MINI_APP_ADD, {
+        operation: "mini-app-add",
+        errorMessage: extractErrorMessage(error),
+      });
     }
   }, [onMiniAppAdded]);
 
