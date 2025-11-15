@@ -157,8 +157,8 @@ export const GMChainCard = memo(
     isStatsReady,
     onOpenModal,
   }: GMChainCardProps) => {
-    const { chainId: curentChainId } = useAppKitNetwork();
-    const numericChainId = normalizeChainId(curentChainId);
+    const { chainId: currentChainId } = useAppKitNetwork();
+    const numericChainId = normalizeChainId(currentChainId);
     const onCorrectChain = numericChainId === chainId;
 
     const {
