@@ -10,6 +10,12 @@ import { Unplug } from "lucide-react";
 import { memo, useCallback } from "react";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { Button, type buttonVariants } from "@/components/ui/button";
+import {
+  ERROR_MESSAGES,
+  handleError,
+  handleSuccess,
+  SUCCESS_MESSAGES,
+} from "@/lib/error-handling";
 import { cn } from "@/lib/utils";
 
 type ButtonSize = VariantProps<typeof buttonVariants>["size"];
@@ -46,13 +52,15 @@ const DisconnectWallet = memo(
     const handleDisconnect = useCallback(async () => {
       try {
         await disconnect({ namespace: "eip155" });
+        handleSuccess(SUCCESS_MESSAGES.WALLET_DISCONNECTED);
       } catch (error) {
-        console.error("Failed to disconnect wallet:", error);
+        handleError(error, ERROR_MESSAGES.WALLET_DISCONNECT, {
+          operation: "wallet-disconnect",
+        });
       } finally {
         onDisconnected?.();
       }
     }, [disconnect, onDisconnected]);
-
     const isInMiniApp = Boolean(miniAppContextData?.isInMiniApp);
     return (
       isConnected &&
