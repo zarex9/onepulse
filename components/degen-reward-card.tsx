@@ -1,7 +1,8 @@
 "use client";
 
+import { useAppKitAccount } from "@reown/appkit/react";
 import { memo, useState } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useChainId, useSwitchChain } from "wagmi";
 import { base } from "wagmi/chains";
 import { DegenClaimTransaction } from "@/components/gm-chain-card/degen-claim-transaction";
 import { ShareGMStatus } from "@/components/share-gm-status";
@@ -232,7 +233,7 @@ function WrongNetworkCard() {
 export const DegenRewardCard = memo(
   ({ fid, sponsored }: DegenRewardCardProps) => {
     const [hasClaimedToday, setHasClaimedToday] = useState(false);
-    const { address, isConnected } = useAccount();
+    const { address, isConnected } = useAppKitAccount({ namespace: "eip155" });
     const chainId = useChainId();
     const {
       claimStatus,
