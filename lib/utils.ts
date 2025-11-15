@@ -63,7 +63,7 @@ export function getChainExplorer(chainId?: number) {
 
 export function normalizeChainId(input: unknown): number | undefined {
   if (typeof input === "number") {
-    return Number.isInteger(input) && input > 0 ? input : undefined;
+    return Number.isSafeInteger(input) && input > 0 ? input : undefined;
   }
   if (typeof input === "string") {
     // Reject empty, whitespace-only, or non-digit strings
@@ -72,14 +72,14 @@ export function normalizeChainId(input: unknown): number | undefined {
       return;
     }
     const parsed = Number.parseInt(trimmed, 10);
-    return parsed > 0 ? parsed : undefined;
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
   }
   return;
 }
 
 export function parseEip155NetworkId(value: unknown): number | undefined {
   if (typeof value === "number") {
-    if (Number.isInteger(value) && value > 0) {
+    if (Number.isSafeInteger(value) && value > 0) {
       return value;
     }
     return; // invalid numeric id
