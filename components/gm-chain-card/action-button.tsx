@@ -2,10 +2,15 @@
 
 import { useAppKitNetwork } from "@reown/appkit/react";
 import { memo, type ReactNode, useCallback, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
+import {
+  ERROR_MESSAGES,
+  handleError,
+  handleSuccess,
+  SUCCESS_MESSAGES,
+} from "@/lib/error-handling";
 import { networks } from "@/lib/wagmi";
 
 type ActionButtonProps = {
@@ -40,20 +45,28 @@ export const ActionButton = memo(
     const handleSwitchChain = useCallback(async () => {
       const targetNetwork = networks.find((net) => net.id === chainId);
       if (!targetNetwork) {
-        toast.error("Unsupported network");
+        handleError(
+          new Error(`Network ${chainId} not found`),
+          ERROR_MESSAGES.NETWORK_UNSUPPORTED,
+          { operation: "network-switch", chainId }
+        );
         return;
       }
 
       setIsSwitching(true);
       try {
         await switchNetwork(targetNetwork);
-      } catch {
-        toast.error("Failed to switch network. Please try again.");
+        handleSuccess(SUCCESS_MESSAGES.NETWORK_SWITCHED);
+      } catch (error) {
+        handleError(error, ERROR_MESSAGES.NETWORK_SWITCH, {
+          operation: "network-switch",
+          chainId,
+          networkName: targetNetwork.name,
+        });
       } finally {
         setIsSwitching(false);
       }
     }, [switchNetwork, chainId]);
-
     const handleOpenModal = useCallback(() => {
       if (!gmDisabled) {
         onOpenModal();
