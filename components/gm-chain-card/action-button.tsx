@@ -1,12 +1,12 @@
 "use client";
 
-import { memo, type ReactNode, useCallback } from "react";
+import { useAppKitNetwork } from "@reown/appkit/react";
+import { memo, type ReactNode, useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useSwitchChain } from "wagmi";
-
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
+import { networks } from "@/lib/wagmi";
 
 type ActionButtonProps = {
   isConnected: boolean;
@@ -34,17 +34,25 @@ export const ActionButton = memo(
     onOpenModal,
     renderCountdown,
   }: ActionButtonProps) => {
-    const { switchChain, isPending: isSwitching } = useSwitchChain();
+    const [isSwitching, setIsSwitching] = useState(false);
+    const { switchNetwork } = useAppKitNetwork();
 
     const handleSwitchChain = useCallback(() => {
+      const targetNetwork = networks.find((net) => net.id === chainId);
+      if (!targetNetwork) {
+        toast.error("Unsupported network");
+        return;
+      }
+
+      setIsSwitching(true);
       try {
-        switchChain({
-          chainId: chainId as 10 | 8453 | 42220,
-        });
+        switchNetwork(targetNetwork);
       } catch {
         toast.error("Failed to switch network. Please try again.");
+      } finally {
+        setIsSwitching(false);
       }
-    }, [switchChain, chainId]);
+    }, [switchNetwork, chainId]);
 
     const handleOpenModal = useCallback(() => {
       if (!gmDisabled) {
