@@ -44,8 +44,13 @@ const DisconnectWallet = memo(
     const miniAppContextData = useMiniAppContext();
 
     const handleDisconnect = useCallback(async () => {
-      await disconnect({ namespace: "eip155" });
-      onDisconnected?.();
+      try {
+        await disconnect({ namespace: "eip155" });
+      } catch (error) {
+        console.error("Failed to disconnect wallet:", error);
+      } finally {
+        onDisconnected?.();
+      }
     }, [disconnect, onDisconnected]);
 
     const isInMiniApp = Boolean(miniAppContextData?.isInMiniApp);

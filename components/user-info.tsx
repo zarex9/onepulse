@@ -75,7 +75,13 @@ const UserAvatar = memo(
         <DropdownMenuContent align="start" className="w-40">
           <DropdownMenuItem
             inset
-            onSelect={async () => await disconnect({ namespace: "eip155" })}
+            onSelect={async () => {
+              try {
+                await disconnect({ namespace: "eip155" });
+              } catch (error) {
+                console.error("Failed to disconnect wallet:", error);
+              }
+            }}
             variant="destructive"
           >
             Disconnect
