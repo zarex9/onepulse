@@ -3,7 +3,6 @@
 import { base } from "@reown/appkit/networks";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { memo, useState } from "react";
-import { useSwitchChain } from "wagmi";
 import { DegenClaimTransaction } from "@/components/gm-chain-card/degen-claim-transaction";
 import { ShareGMStatus } from "@/components/share-gm-status";
 import { Button } from "@/components/ui/button";
@@ -205,10 +204,10 @@ function DepletedVaultCard() {
 }
 
 function WrongNetworkCard() {
-  const { switchChain } = useSwitchChain();
+  const { switchNetwork } = useAppKitNetwork();
 
   const handleSwitchToBase = () => {
-    switchChain({ chainId: base.id });
+    switchNetwork(base);
   };
 
   return (
