@@ -37,7 +37,7 @@ export const ActionButton = memo(
     const [isSwitching, setIsSwitching] = useState(false);
     const { switchNetwork } = useAppKitNetwork();
 
-    const handleSwitchChain = useCallback(() => {
+    const handleSwitchChain = useCallback(async () => {
       const targetNetwork = networks.find((net) => net.id === chainId);
       if (!targetNetwork) {
         toast.error("Unsupported network");
@@ -46,7 +46,7 @@ export const ActionButton = memo(
 
       setIsSwitching(true);
       try {
-        switchNetwork(targetNetwork);
+        await switchNetwork(targetNetwork);
       } catch {
         toast.error("Failed to switch network. Please try again.");
       } finally {
