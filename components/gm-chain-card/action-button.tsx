@@ -1,14 +1,15 @@
 "use client";
 
 import { useAppKitNetwork } from "@reown/appkit/react";
-import { memo, type ReactNode, useCallback, useState } from "react";
+import { memo, type ReactNode, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
+import { useAsyncOperation } from "@/hooks/use-async-operation";
 import {
   ERROR_MESSAGES,
   handleError,
-  handleSuccess,
+  LOADING_MESSAGES,
   SUCCESS_MESSAGES,
 } from "@/lib/error-handling";
 import { networks } from "@/lib/wagmi";
@@ -39,11 +40,27 @@ export const ActionButton = memo(
     onOpenModal,
     renderCountdown,
   }: ActionButtonProps) => {
-    const [isSwitching, setIsSwitching] = useState(false);
     const { switchNetwork } = useAppKitNetwork();
+    const targetNetwork = useMemo(
+      () => networks.find((net) => net.id === chainId),
+      [chainId]
+    );
 
-    const handleSwitchChain = useCallback(async () => {
-      const targetNetwork = networks.find((net) => net.id === chainId);
+    const op = useCallback(() => {
+      if (!targetNetwork) {
+        return Promise.reject(new Error(`Network ${chainId} not supported`));
+      }
+      return switchNetwork(targetNetwork);
+    }, [switchNetwork, targetNetwork, chainId]);
+
+    const { execute: doSwitch, isLoading } = useAsyncOperation(op, {
+      loadingMessage: LOADING_MESSAGES.NETWORK_SWITCHING,
+      successMessage: SUCCESS_MESSAGES.NETWORK_SWITCHED,
+      errorMessage: ERROR_MESSAGES.NETWORK_SWITCH,
+      context: { operation: "network-switch", chainId },
+    });
+
+    const handleSwitchChain = useCallback(() => {
       if (!targetNetwork) {
         handleError(
           new Error(`Network ${chainId} not found`),
@@ -52,21 +69,8 @@ export const ActionButton = memo(
         );
         return;
       }
-
-      setIsSwitching(true);
-      try {
-        await switchNetwork(targetNetwork);
-        handleSuccess(SUCCESS_MESSAGES.NETWORK_SWITCHED);
-      } catch (error) {
-        handleError(error, ERROR_MESSAGES.NETWORK_SWITCH, {
-          operation: "network-switch",
-          chainId,
-          networkName: targetNetwork.name,
-        });
-      } finally {
-        setIsSwitching(false);
-      }
-    }, [switchNetwork, chainId]);
+      doSwitch();
+    }, [doSwitch, targetNetwork, chainId]);
     const handleOpenModal = useCallback(() => {
       if (!gmDisabled) {
         onOpenModal();
@@ -90,13 +94,13 @@ export const ActionButton = memo(
 
       return (
         <Button
-          aria-busy={isSwitching}
+          aria-busy={isLoading}
           className={`w-full ${chainBtnClasses}`}
-          disabled={isSwitching}
+          disabled={isLoading}
           onClick={handleSwitchChain}
           size="lg"
         >
-          {isSwitching ? (
+          {isLoading ? (
             <>
               <Spinner /> Switching…
             </>
