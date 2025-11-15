@@ -6,7 +6,7 @@ import {
   useName,
 } from "@coinbase/onchainkit/identity";
 import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
-import { memo, type ReactNode } from "react";
+import { memo, type ReactNode, useCallback, useMemo } from "react";
 import type { Address } from "viem";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,14 +54,25 @@ const UserAvatar = memo(
     isConnected: boolean;
   }) => {
     const { disconnect } = useDisconnect();
-    const { execute: disconnectWallet, isLoading } = useAsyncOperation(
+
+    const op = useCallback(
       () => disconnect({ namespace: "eip155" }),
-      {
+      [disconnect]
+    );
+
+    const options = useMemo(
+      () => ({
         loadingMessage: LOADING_MESSAGES.WALLET_DISCONNECTING,
         successMessage: SUCCESS_MESSAGES.WALLET_DISCONNECTED,
         errorMessage: ERROR_MESSAGES.WALLET_DISCONNECT,
         context: { operation: "dropdown-disconnect" },
-      }
+      }),
+      []
+    );
+
+    const { execute: disconnectWallet, isLoading } = useAsyncOperation(
+      op,
+      options
     );
 
     if (!isConnected) {
