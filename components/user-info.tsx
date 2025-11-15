@@ -11,6 +11,12 @@ import type { Address } from "viem";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { truncateAddress } from "@/lib/ens-utils";
+import {
+  ERROR_MESSAGES,
+  handleError,
+  handleSuccess,
+  SUCCESS_MESSAGES,
+} from "@/lib/error-handling";
 
 import type { UserContext } from "./providers/miniapp-provider";
 import { Button } from "./ui/button";
@@ -78,8 +84,11 @@ const UserAvatar = memo(
             onSelect={async () => {
               try {
                 await disconnect({ namespace: "eip155" });
+                handleSuccess(SUCCESS_MESSAGES.WALLET_DISCONNECTED);
               } catch (error) {
-                console.error("Failed to disconnect wallet:", error);
+                handleError(error, ERROR_MESSAGES.WALLET_DISCONNECT, {
+                  operation: "dropdown-disconnect",
+                });
               }
             }}
             variant="destructive"
