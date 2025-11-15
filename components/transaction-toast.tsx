@@ -1,8 +1,7 @@
 import { useTransactionContext } from "@coinbase/onchainkit/transaction";
-import { useAppKitState } from "@reown/appkit/react";
 import { type ReactNode, type RefObject, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { cn, getChainExplorer, parseEip155NetworkId } from "@/lib/utils";
+import { cn, getChainExplorer } from "@/lib/utils";
 
 function useSafeTransactionContext() {
   const context = useTransactionContext();
@@ -56,16 +55,16 @@ function getTransactionState(params: {
 
 function createSuccessAction(
   txHash: string | undefined,
-  accountChainId: number | undefined
+  txChainId: number | undefined
 ): ReactNode {
-  const isValidChain = typeof accountChainId === "number" && accountChainId > 0;
+  const isValidChain = typeof txChainId === "number" && txChainId > 0;
   if (!txHash) {
     return null;
   }
   if (!isValidChain) {
     return null;
   }
-  const chainExplorer = getChainExplorer(accountChainId);
+  const chainExplorer = getChainExplorer(txChainId);
   return (
     <a
       className="ml-auto"
@@ -112,7 +111,7 @@ function useToastVisibility(
 
 function useToastCreation(options: {
   state: string;
-  accountChainId: number;
+  txChainId?: number;
   errorMessage: string | undefined;
   onSubmit: (() => void) | undefined;
   txHashRef: RefObject<string | undefined>;
@@ -124,7 +123,7 @@ function useToastCreation(options: {
 }) {
   const {
     state,
-    accountChainId,
+    txChainId,
     errorMessage,
     onSubmit,
     txHashRef,
@@ -145,7 +144,7 @@ function useToastCreation(options: {
         loading: "Processing transaction...",
         success: () => ({
           message: "Transaction successful",
-          action: createSuccessAction(txHashRef.current, accountChainId),
+          action: createSuccessAction(txHashRef.current, txChainId),
         }),
         error: () => ({
           message: errorMessage || "Something went wrong",
@@ -157,7 +156,7 @@ function useToastCreation(options: {
     }
   }, [
     state,
-    accountChainId,
+    txChainId,
     errorMessage,
     onSubmit,
     toastControllerRef,
@@ -202,10 +201,14 @@ export function TransactionToast() {
     transactionHash,
     transactionId,
     onSubmit,
+    chainId: contextChainId,
   } = context;
 
-  const { selectedNetworkId } = useAppKitState();
-  const accountChainId = parseEip155NetworkId(selectedNetworkId);
+  // Prefer the transaction's own chainId from context; do not rely on global selection
+  const txChainId =
+    typeof contextChainId === "number" && contextChainId > 0
+      ? contextChainId
+      : undefined;
 
   const toastCreatedRef = useRef<boolean>(false);
   const toastControllerRef = useRef<{
@@ -231,7 +234,7 @@ export function TransactionToast() {
   useToastVisibility(state, errorMessage, toastCreatedRef);
   useToastCreation({
     state,
-    accountChainId: accountChainId ?? 0,
+    txChainId,
     errorMessage,
     onSubmit,
     txHashRef,
