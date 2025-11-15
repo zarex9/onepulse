@@ -9,6 +9,8 @@ import {
 } from "viem";
 import { base, celo, optimism } from "viem/chains";
 
+const digitRegex = /^\d+$/;
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -56,4 +58,20 @@ export function getChainExplorer(chainId?: number) {
   }
 
   return chainExplorerMap[chainId] ?? "https://basescan.org";
+}
+
+export function normalizeChainId(input: unknown): number | undefined {
+  if (typeof input === "number") {
+    return Number.isInteger(input) && input > 0 ? input : undefined;
+  }
+  if (typeof input === "string") {
+    // Reject empty, whitespace-only, or non-digit strings
+    const trimmed = input.trim();
+    if (!digitRegex.test(trimmed)) {
+      return;
+    }
+    const parsed = Number.parseInt(trimmed, 10);
+    return parsed > 0 ? parsed : undefined;
+  }
+  return;
 }
