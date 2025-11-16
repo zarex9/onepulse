@@ -8,7 +8,10 @@ import {
   type UserContext,
   useMiniAppContext,
 } from "@/components/providers/miniapp-provider";
-import { STREAK_NARRATIVES } from "@/components/share-narratives";
+import {
+  getSpecialMilestone,
+  STREAK_NARRATIVES,
+} from "@/components/share-narratives";
 import { Button } from "@/components/ui/button";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { generateGMStatusMetadata } from "@/lib/og-utils";
@@ -78,23 +81,10 @@ const createShareText = (
     return context?.text || "";
   };
 
-  // Special milestone celebrations
-  if (totalGMs === 1 && currentStreak === 1) {
-    return claimedToday
-      ? "🎉 Just claimed my very first reward!\n\nClaim yours on OnePulse and start your streak 🚀"
-      : "🌟 I just logged my first GM!\n\nJoin me on OnePulse 💪";
-  }
-
-  if (currentStreak === 7) {
-    return claimedToday
-      ? "🎊 One week of daily claims on OnePulse!\n\nThis streak is just getting started. 💰"
-      : "⚡ One week on OnePulse!\n\nThis streak is building for real. 🔥";
-  }
-
-  if (currentStreak === 30) {
-    return claimedToday
-      ? "👑 A full month on OnePulse!\n\nThis habit is locked in. 💎"
-      : "🏆 Thirty days on OnePulse!\n\nThis streak feels unbreakable now. 🚀";
+  // Check for special milestone messages (takes precedence over generic narrative)
+  const specialMilestone = getSpecialMilestone(currentStreak, totalGMs);
+  if (specialMilestone) {
+    return claimedToday ? specialMilestone.claimed : specialMilestone.unclaimed;
   }
 
   // Regular format: headline + narrative + context
