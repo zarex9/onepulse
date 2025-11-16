@@ -9,15 +9,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import type { useGmStats } from "@/hooks/use-gm-stats";
 import { About } from "./about";
 import { useMiniAppContext } from "./providers/miniapp-provider";
 
 type TabsProps = {
   tab: string;
   onTabChange: (tab: string) => void;
+  onGmStatsChange: (stats: ReturnType<typeof useGmStats>) => void;
+  onShareClick: () => void;
 };
 
-export function Tabs({ tab, onTabChange }: TabsProps) {
+export function Tabs({
+  tab,
+  onTabChange,
+  onGmStatsChange,
+  onShareClick,
+}: TabsProps) {
   const miniAppContext = useMiniAppContext();
 
   const isBaseApp = miniAppContext?.context?.client.clientFid === 309_857;
@@ -28,7 +36,12 @@ export function Tabs({ tab, onTabChange }: TabsProps) {
     <div className="my-4">
       <TabsComponent onValueChange={onTabChange} value={tab}>
         <TabsContent value="home">
-          <Home allowedChainIds={allowedChainIds} sponsored={isBaseApp} />
+          <Home
+            allowedChainIds={allowedChainIds}
+            onGmStatsChange={onGmStatsChange}
+            onShareClick={onShareClick}
+            sponsored={isBaseApp}
+          />
         </TabsContent>
         <TabsContent value="rewards">
           <Rewards sponsored={isBaseApp} />

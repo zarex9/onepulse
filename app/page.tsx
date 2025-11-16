@@ -53,14 +53,26 @@ function Content({
   tab,
   setTab,
 }: ContentProps) {
+  const [gmStats, setGmStats] = useState<ReturnType<
+    typeof import("@/hooks/use-gm-stats").useGmStats
+  > | null>(null);
+
   return (
     <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
       <Header
+        gmStats={gmStats?.stats}
         inMiniApp={inMiniApp}
         isMiniAppReady={isMiniAppReady}
         onMiniAppAdded={handleMiniAppAdded}
       />
-      <Tabs onTabChange={setTab} tab={tab} />
+      <Tabs
+        onGmStatsChange={setGmStats}
+        onShareClick={() =>
+          window.dispatchEvent(new CustomEvent("open-share-modal"))
+        }
+        onTabChange={setTab}
+        tab={tab}
+      />
     </div>
   );
 }

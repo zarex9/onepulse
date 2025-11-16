@@ -2,16 +2,18 @@
 
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { Bookmark } from "lucide-react";
-import { memo, useCallback, useState } from "react";
+import { Bookmark, Share2 } from "lucide-react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
   type MiniAppContext,
   type UserContext,
   useMiniAppContext,
 } from "@/components/providers/miniapp-provider";
+import { ShareModal } from "@/components/share-modal";
 import { Button } from "@/components/ui/button";
 import { UserInfo } from "@/components/user-info";
+import type { GmStats } from "@/hooks/use-gm-stats";
 import {
   ERROR_MESSAGES,
   extractErrorMessage,
@@ -26,6 +28,7 @@ type HeaderProps = {
   isMiniAppReady: boolean;
   inMiniApp: boolean;
   onMiniAppAdded: () => void;
+  gmStats?: GmStats;
 };
 
 const extractUserFromContext = (
@@ -42,15 +45,34 @@ const extractUserFromContext = (
 
 type HeaderRightProps = {
   showSaveButton: boolean;
+  showShareButton: boolean;
   onSaveClick: () => void;
+  onShareClick: () => void;
 };
 
 const HeaderRight = memo(
-  ({ showSaveButton, onSaveClick }: HeaderRightProps) => (
-    <div>
+  ({
+    showSaveButton,
+    showShareButton,
+    onSaveClick,
+    onShareClick,
+  }: HeaderRightProps) => (
+    <div className="flex items-center gap-1">
+      {showShareButton && (
+        <Button
+          className="group/toggle extend-touch-target size-8"
+          onClick={onShareClick}
+          size="icon"
+          title="Share"
+          variant="ghost"
+        >
+          <Share2 className="size-4.5" />
+          <span className="sr-only">Share</span>
+        </Button>
+      )}
       {showSaveButton && (
         <Button
-          className="group/toggle extend-touch-target mr-2 size-8"
+          className="group/toggle extend-touch-target size-8"
           onClick={onSaveClick}
           size="icon"
           title="Save"
@@ -69,10 +91,19 @@ export function Header({
   isMiniAppReady,
   inMiniApp,
   onMiniAppAdded,
+  gmStats,
 }: HeaderProps) {
   const miniAppContextData = useMiniAppContext();
   const { address } = useAppKitAccount({ namespace: "eip155" });
   const [miniAppAddedLocally, setMiniAppAddedLocally] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  // Allow external triggers (e.g., Congrats dialog) to open share modal via custom event.
+  useEffect(() => {
+    const handler = () => setIsShareModalOpen(true);
+    window.addEventListener("open-share-modal", handler);
+    return () => window.removeEventListener("open-share-modal", handler);
+  }, []);
 
   const handleAddMiniApp = useCallback(async () => {
     try {
@@ -104,20 +135,34 @@ export function Header({
     }) && !miniAppAddedLocally;
 
   const shouldShowUserInfo = !!user || !!address;
+  const showShareButton =
+    !!gmStats && (gmStats.allTimeGmCount > 0 || gmStats.currentStreak > 0);
 
   return (
-    <div className="sticky top-4 mt-1 flex h-16 items-center justify-between rounded-lg border border-border bg-background px-2">
-      <div className="flex-1">
-        {shouldShowUserInfo ? (
-          <UserInfo address={address} user={user} />
-        ) : (
-          <div className="font-bold text-2xl">{minikitConfig.miniapp.name}</div>
-        )}
+    <>
+      <div className="sticky top-4 mt-1 flex h-16 items-center justify-between rounded-lg border border-border bg-background px-2">
+        <div className="flex-1">
+          {shouldShowUserInfo ? (
+            <UserInfo address={address} user={user} />
+          ) : (
+            <div className="font-bold text-2xl">
+              {minikitConfig.miniapp.name}
+            </div>
+          )}
+        </div>
+        <HeaderRight
+          onSaveClick={handleAddMiniApp}
+          onShareClick={() => setIsShareModalOpen(true)}
+          showSaveButton={showSaveButton}
+          showShareButton={showShareButton}
+        />
       </div>
-      <HeaderRight
-        onSaveClick={handleAddMiniApp}
-        showSaveButton={showSaveButton}
+
+      <ShareModal
+        gmStats={gmStats}
+        onOpenChange={setIsShareModalOpen}
+        open={isShareModalOpen}
       />
-    </div>
+    </>
   );
 }

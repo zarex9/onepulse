@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppKitAccount } from "@reown/appkit/react";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GMChainCard } from "@/components/gm-chain-card/gm-chain-card";
 import {
   Carousel,
@@ -28,9 +28,13 @@ export const Home = memo(
   ({
     sponsored,
     allowedChainIds,
+    onGmStatsChange,
+    onShareClick,
   }: {
     sponsored?: boolean;
     allowedChainIds?: number[];
+    onGmStatsChange?: (stats: ReturnType<typeof useGmStats>) => void;
+    onShareClick?: () => void;
   }) => {
     const { isConnected, address } = useAppKitAccount({ namespace: "eip155" });
     const {
@@ -49,6 +53,35 @@ export const Home = memo(
       [allowedChainIds]
     );
     const chainIds = useMemo(() => chains.map((c) => c.id), [chains]);
+
+    // Overall GM stats for sharing (aggregate across chains)
+    const gmStatsResult = useGmStats(address);
+
+    // Notify parent only when stats actually change (prevents infinite re-render loop)
+    const prevStatsRef = useRef<ReturnType<typeof useGmStats>["stats"] | null>(
+      null
+    );
+    useEffect(() => {
+      if (!onGmStatsChange) {
+        return;
+      }
+      const stats = gmStatsResult.stats;
+      if (!stats) {
+        return;
+      }
+      const prev = prevStatsRef.current;
+      const changed =
+        !prev ||
+        prev.currentStreak !== stats.currentStreak ||
+        prev.highestStreak !== stats.highestStreak ||
+        prev.allTimeGmCount !== stats.allTimeGmCount ||
+        prev.lastGmDay !== stats.lastGmDay;
+      if (!changed) {
+        return;
+      }
+      prevStatsRef.current = stats;
+      onGmStatsChange(gmStatsResult);
+    }, [gmStatsResult, onGmStatsChange]);
 
     const { statusMap, handleStatus } = usePerChainStatus();
 
@@ -135,12 +168,14 @@ export const Home = memo(
 
         <CongratsDialog
           confettiRef={confettiRef}
+          gmStats={gmStatsResult.stats}
           nextTargetSec={nextTargetSec}
           onOpenChange={(val) => {
             if (!val) {
               setShowCongrats(false);
             }
           }}
+          onShare={onShareClick}
           open={Boolean(showCongrats && allDone)}
         />
       </div>

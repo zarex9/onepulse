@@ -1,5 +1,6 @@
 "use client";
 
+import { Share2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { memo, type RefObject, useCallback, useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { GmStats } from "@/hooks/use-gm-stats";
 
 const Confetti = dynamic(
   () => import("@/components/ui/confetti").then((m) => m.Confetti),
@@ -24,6 +26,8 @@ type CongratsDialogProps = {
   nextTargetSec: number;
   onOpenChange: (open: boolean) => void;
   confettiRef: RefObject<ConfettiRef>;
+  onShare?: () => void;
+  gmStats?: GmStats;
 };
 
 /**
@@ -31,10 +35,25 @@ type CongratsDialogProps = {
  * Displays countdown to next GM time and triggers confetti animation
  */
 export const CongratsDialog = memo(
-  ({ open, nextTargetSec, onOpenChange, confettiRef }: CongratsDialogProps) => {
+  ({
+    open,
+    nextTargetSec,
+    onOpenChange,
+    confettiRef,
+    onShare,
+    gmStats,
+  }: CongratsDialogProps) => {
     const handleClose = useCallback(() => {
       onOpenChange(false);
     }, [onOpenChange]);
+
+    const handleShare = useCallback(() => {
+      handleClose();
+      onShare?.();
+    }, [handleClose, onShare]);
+
+    const showShareButton =
+      !!gmStats && (gmStats.allTimeGmCount > 0 || gmStats.currentStreak > 0);
 
     return (
       <Dialog onOpenChange={onOpenChange} open={open}>
@@ -54,8 +73,18 @@ export const CongratsDialog = memo(
             </p>
           </div>
 
-          <DialogFooter>
-            <Button className="w-full" onClick={handleClose}>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            {showShareButton && (
+              <Button
+                className="w-full sm:flex-1"
+                onClick={handleShare}
+                variant="outline"
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share Progress
+              </Button>
+            )}
+            <Button className="w-full sm:flex-1" onClick={handleClose}>
               Close
             </Button>
           </DialogFooter>
