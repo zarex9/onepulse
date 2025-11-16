@@ -237,7 +237,6 @@ function WrongNetworkCard() {
 
 export const DegenRewardCard = memo(
   ({ fid, sponsored }: DegenRewardCardProps) => {
-    const [hasClaimedToday, setHasClaimedToday] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const { address, isConnected } = useAppKitAccount({ namespace: "eip155" });
     const { chainId } = useAppKitNetwork();
@@ -252,8 +251,9 @@ export const DegenRewardCard = memo(
     });
     const { hasRewards } = useRewardVaultStatus();
 
+    const hasClaimedToday = claimStatus?.claimerClaimedToday ?? false;
+
     const handleClaimSuccess = () => {
-      setHasClaimedToday(true);
       setIsShareModalOpen(true);
     };
 
