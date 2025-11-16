@@ -30,7 +30,15 @@ export const ZERO: GmStats = {
 
 export const EMPTY_ROWS: GmStatsByAddress[] = [];
 
-export function useGmStats(address?: string | null, chainId?: number) {
+export type GmStatsResult = {
+  stats: GmStats;
+  isReady: boolean;
+};
+
+export function useGmStats(
+  address?: string | null,
+  chainId?: number
+): GmStatsResult {
   const normalizedAddress = normalizeAddress(address);
   const snapshot = useGmStatsSubscription(address);
   const rowsByAddress = useMemo(() => groupRowsByAddress(snapshot), [snapshot]);

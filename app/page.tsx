@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { OnboardingModal } from "@/components/onboarding-modal";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { Tabs } from "@/components/tabs";
+import type { GmStatsResult } from "@/hooks/use-gm-stats";
 import { useMetaColor } from "@/hooks/use-meta-color";
 import { useMiniAppFlow } from "@/hooks/use-miniapp-flow";
 import { useMiniAppInitialization } from "@/hooks/use-miniapp-initialization";
@@ -53,9 +54,7 @@ function Content({
   tab,
   setTab,
 }: ContentProps) {
-  const [gmStats, setGmStats] = useState<ReturnType<
-    typeof import("@/hooks/use-gm-stats").useGmStats
-  > | null>(null);
+  const [gmStats, setGmStats] = useState<GmStatsResult | null>(null);
 
   return (
     <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
