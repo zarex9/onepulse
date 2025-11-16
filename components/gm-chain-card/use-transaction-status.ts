@@ -6,12 +6,15 @@ import { ERROR_MESSAGES, handleError } from "@/lib/error-handling";
 type UseTransactionStatusProps = {
   onSuccess?: (txHash: string) => void;
   onError?: (error: Error) => void;
-  refetchEligibility: () => void;
+  refetchEligibility: () => Promise<unknown> | void;
 };
 
 /**
  * Hook to handle transaction lifecycle status updates.
  * Manages cache invalidation and callbacks for success/error states.
+ *
+ * Ensures eligibility is refreshed and queries are invalidated before
+ * calling onSuccess, so the modal opens with fresh data.
  */
 export function useTransactionStatus({
   onSuccess,
@@ -21,13 +24,17 @@ export function useTransactionStatus({
   const queryClient = useQueryClient();
 
   return useCallback(
-    (status: LifecycleStatus) => {
+    async (status: LifecycleStatus) => {
       const isSuccess = status.statusName === "success";
       const isError = status.statusName === "error";
 
       if (isSuccess) {
-        refetchEligibility();
-        queryClient.invalidateQueries({ queryKey: ["useReadContract"] });
+        // Await eligibility refresh to ensure fresh data before opening modal
+        await Promise.all([
+          Promise.resolve(refetchEligibility()),
+          queryClient.invalidateQueries({ queryKey: ["useReadContract"] }),
+        ]);
+
         const txHash =
           status.statusData.transactionReceipts[0]?.transactionHash;
         if (txHash && onSuccess) {
