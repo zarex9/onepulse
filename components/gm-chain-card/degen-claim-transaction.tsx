@@ -53,7 +53,7 @@ export const DegenClaimTransaction = memo(
       contractAddress,
     });
 
-    const handleStatus = useTransactionStatus({
+    const { onStatus } = useTransactionStatus({
       onSuccess,
       onError,
       refetchEligibility,
@@ -85,7 +85,7 @@ export const DegenClaimTransaction = memo(
           calls={getClaimContracts}
           chainId={numericChainId}
           isSponsored={sponsored}
-          onStatus={handleStatus}
+          onStatus={onStatus}
         >
           <TransactionButton
             className="w-full"

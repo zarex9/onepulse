@@ -9,36 +9,58 @@ type UseTransactionStatusProps = {
   refetchEligibility: () => Promise<unknown> | undefined;
 };
 
+type TransactionStatusHandlers = {
+  onStatus: (status: LifecycleStatus) => void;
+  handleRefreshAfterSuccess: (txHash: string) => Promise<void>;
+};
+
 /**
  * Hook to handle transaction lifecycle status updates.
- * Manages cache invalidation and callbacks for success/error states.
- *
- * Ensures eligibility is refreshed and queries are invalidated before
- * calling onSuccess, so the modal opens with fresh data.
+ * Returns a synchronous onStatus callback for OnchainKit and a separate
+ * async handler for refreshing eligibility after success.
  */
 export function useTransactionStatus({
   onSuccess,
   onError,
   refetchEligibility,
-}: UseTransactionStatusProps) {
+}: UseTransactionStatusProps): TransactionStatusHandlers {
   const queryClient = useQueryClient();
 
-  return useCallback(
-    async (status: LifecycleStatus) => {
-      const isSuccess = status.statusName === "success";
-      const isError = status.statusName === "error";
-
-      if (isSuccess) {
-        // Await eligibility refresh to ensure fresh data before opening modal
+  const handleRefreshAfterSuccess = useCallback(
+    async (txHash: string) => {
+      try {
         await Promise.all([
           Promise.resolve(refetchEligibility()),
           queryClient.invalidateQueries({ queryKey: ["useReadContract"] }),
         ]);
+        if (onSuccess) {
+          onSuccess(txHash);
+        }
+      } catch (error) {
+        // Log but don't block success flow - transaction already succeeded
+        console.error(
+          "Failed to refresh eligibility after transaction:",
+          error
+        );
+        if (onSuccess) {
+          onSuccess(txHash);
+        }
+      }
+    },
+    [refetchEligibility, queryClient, onSuccess]
+  );
 
+  const onStatus = useCallback(
+    (status: LifecycleStatus) => {
+      const isSuccess = status.statusName === "success";
+      const isError = status.statusName === "error";
+
+      if (isSuccess) {
         const txHash =
           status.statusData.transactionReceipts[0]?.transactionHash;
-        if (txHash && onSuccess) {
-          onSuccess(txHash);
+        if (txHash) {
+          // Fire and forget - handleRefreshAfterSuccess runs async without blocking
+          handleRefreshAfterSuccess(txHash);
         }
       }
 
@@ -53,6 +75,8 @@ export function useTransactionStatus({
         onError(error);
       }
     },
-    [refetchEligibility, queryClient, onSuccess, onError]
+    [handleRefreshAfterSuccess, onError]
   );
+
+  return { onStatus, handleRefreshAfterSuccess };
 }
