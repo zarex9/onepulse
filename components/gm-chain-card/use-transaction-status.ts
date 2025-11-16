@@ -6,7 +6,7 @@ import { ERROR_MESSAGES, handleError } from "@/lib/error-handling";
 type UseTransactionStatusProps = {
   onSuccess?: (txHash: string) => void;
   onError?: (error: Error) => void;
-  refetchEligibility: () => Promise<unknown> | undefined;
+  refetchEligibility?: () => Promise<unknown>;
 };
 
 type TransactionStatusHandlers = {
@@ -30,18 +30,18 @@ export function useTransactionStatus({
     async (txHash: string) => {
       try {
         await Promise.all([
-          Promise.resolve(refetchEligibility()),
+          refetchEligibility
+            ? Promise.resolve(refetchEligibility())
+            : Promise.resolve(),
           queryClient.invalidateQueries({ queryKey: ["useReadContract"] }),
         ]);
-        if (onSuccess) {
-          onSuccess(txHash);
-        }
       } catch (error) {
         // Log but don't block success flow - transaction already succeeded
         console.error(
           "Failed to refresh eligibility after transaction:",
           error
         );
+      } finally {
         if (onSuccess) {
           onSuccess(txHash);
         }
