@@ -8,6 +8,7 @@ import {
   type UserContext,
   useMiniAppContext,
 } from "@/components/providers/miniapp-provider";
+import { STREAK_NARRATIVES } from "@/components/share-narratives";
 import { Button } from "@/components/ui/button";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { generateGMStatusMetadata } from "@/lib/og-utils";
@@ -49,51 +50,12 @@ const createShareText = (
   todayGM = false
 ) => {
   const getStreakNarrative = (streak: number, claimed: boolean) => {
-    const narratives = [
-      {
-        max: 0,
-        claimed: "Just kicked off my streak on OnePulse! 👑",
-        unclaimed: "About to start my OnePulse journey! 💪",
-      },
-      {
-        max: 1,
-        claimed: "I just logged my first GM! 🎉",
-        unclaimed: "I'm one day into my OnePulse streak! 🚀",
-      },
-      {
-        max: 2,
-        claimed: `I'm on a ${streak}-day streak on OnePulse! 📈`,
-        unclaimed: `${streak} days of daily GMs and counting! ⚡`,
-      },
-      {
-        max: 6,
-        claimed: `${streak} days of daily GMs on OnePulse! 🔥`,
-        unclaimed: `${streak} days in and momentum's building! 💨`,
-      },
-      {
-        max: 13,
-        claimed: `${streak} days of consistency. That's real. 👑`,
-        unclaimed: `${streak} days in and still showing up! 💪`,
-      },
-      {
-        max: 29,
-        claimed: `${streak} days in and I'm just getting started! 🌟`,
-        unclaimed: `${streak} days in. This habit is taking shape. 🚀`,
-      },
-      {
-        max: 49,
-        claimed: `${streak} days of showing up. Every single day. ⚡`,
-        unclaimed: `${streak} days, ${streak} GMs. Dialed in. 💎`,
-      },
-      {
-        max: Number.POSITIVE_INFINITY,
-        claimed: `${streak} days of habit mastery. 🔥`,
-        unclaimed: `${streak} days straight. This streak feels unbreakable. 👑`,
-      },
-    ];
+    const narrative = STREAK_NARRATIVES.find((n) => streak <= n.max);
+    if (!narrative) {
+      return "";
+    }
 
-    const narrative = narratives.find((n) => streak <= n.max);
-    return narrative ? (claimed ? narrative.claimed : narrative.unclaimed) : "";
+    return claimed ? narrative.claimed(streak) : narrative.unclaimed(streak);
   };
 
   const getMilestoneContext = (total: number) => {
