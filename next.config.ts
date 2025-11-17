@@ -32,7 +32,6 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["spacetimedb"],
   serverExternalPackages: ["pino-pretty"],
-  // biome-ignore lint/suspicious/useAwait: This is a valid async function
   async headers() {
     return [
       {
