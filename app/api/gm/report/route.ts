@@ -3,6 +3,7 @@ import { type Address, createPublicClient, http, isAddress } from "viem";
 import { base, celo, optimism } from "viem/chains";
 
 import { dailyGMAbi } from "@/lib/abi/daily-gm";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import type { GmStatsByAddress } from "@/lib/module_bindings";
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection";
 import { getDailyGmAddress } from "@/lib/utils";
@@ -50,7 +51,8 @@ function validateReportGmRequest(body: Record<string, unknown>) {
     return addressResult;
   }
 
-  const chainId = typeof body.chainId === "number" ? body.chainId : 8453;
+  const chainId =
+    typeof body.chainId === "number" ? body.chainId : BASE_CHAIN_ID;
   const contractResult = validateContractAddress(chainId);
   if ("error" in contractResult) {
     return contractResult;

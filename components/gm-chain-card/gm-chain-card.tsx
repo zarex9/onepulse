@@ -21,6 +21,7 @@ import { SECONDS_PER_DAY } from "@/lib/constants";
 import {
   getCurrentTimestampSeconds,
   isCeloChain,
+  isOptimismChain,
   normalizeChainId,
   timestampToDayNumber,
 } from "@/lib/utils";
@@ -64,9 +65,9 @@ const computeGMState = (params: {
   };
 };
 
-const getChainBtnClasses = (chainId: number, name: string): string => {
+const getChainBtnClasses = (chainId: number): string => {
   const isCelo = isCeloChain(chainId);
-  const isOptimism = name.toLowerCase() === "optimism" || chainId === 10;
+  const isOptimism = isOptimismChain(chainId);
 
   if (isCelo) {
     return "bg-[#FCFF52] text-black hover:bg-[#FCFF52]/90 dark:bg-[#476520] dark:text-white dark:hover:bg-[#476520]/90";
@@ -77,8 +78,8 @@ const getChainBtnClasses = (chainId: number, name: string): string => {
   return "bg-[#0052ff] text-white hover:bg-[#0052ff]/90";
 };
 
-const getChainIconName = (chainId: number, name: string): string => {
-  if (name.toLowerCase() === "optimism" || chainId === 10) {
+const getChainIconName = (chainId: number): string => {
+  if (isOptimismChain(chainId)) {
     return "optimism";
   }
   if (isCeloChain(chainId)) {
@@ -198,14 +199,11 @@ export const GMChainCard = memo(
     }, [chainId, hasGmToday, targetSec, onStatusChange]);
 
     const chainBtnClasses = useMemo(
-      () => getChainBtnClasses(chainId, name),
-      [chainId, name]
+      () => getChainBtnClasses(chainId),
+      [chainId]
     );
 
-    const chainIconName = useMemo(
-      () => getChainIconName(chainId, name),
-      [chainId, name]
-    );
+    const chainIconName = useMemo(() => getChainIconName(chainId), [chainId]);
 
     const handleOpenModal = useCallback(() => {
       if (onOpenModal) {

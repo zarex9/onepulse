@@ -9,7 +9,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import { useGmStats } from "@/hooks/use-gm-stats";
-import { DAILY_GM_ADDRESSES } from "@/lib/constants";
+import { BASE_CHAIN_ID, DAILY_GM_ADDRESSES } from "@/lib/constants";
 import { minikitConfig } from "@/minikit.config";
 import {
   areAllChainsComplete,
@@ -157,7 +157,7 @@ export const Home = memo(
                       setActiveRefetchFn(() => refetch);
                     }}
                     onStatusChange={handleStatus}
-                    sponsored={Boolean(sponsored) && c.id === 8453}
+                    sponsored={Boolean(sponsored) && c.id === BASE_CHAIN_ID}
                   />
                 </CarouselItem>
               ) : null;

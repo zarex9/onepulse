@@ -9,10 +9,13 @@ import {
 } from "viem";
 import { base, celo, optimism } from "viem/chains";
 import {
+  BASE_CHAIN_ID,
+  CELO_CHAIN_ID,
   DAILY_GM_ADDRESS,
   DAILY_GM_ADDRESSES,
   DAILY_REWARDS_ADDRESSES,
   MILLISECONDS_PER_DAY,
+  OPTIMISM_CHAIN_ID,
   SECONDS_PER_DAY,
 } from "./constants";
 
@@ -38,7 +41,7 @@ export function getDailyGmAddress(chainId?: number): `0x${string}` | "" {
  */
 export function getDailyRewardsAddress(chainId?: number): `0x${string}` | "" {
   if (!chainId) {
-    return DAILY_REWARDS_ADDRESSES[8453] || ("" as const);
+    return DAILY_REWARDS_ADDRESSES[BASE_CHAIN_ID] || ("" as const);
   }
   return DAILY_REWARDS_ADDRESSES[chainId] || ("" as const);
 }
@@ -173,7 +176,15 @@ export function normalizeAddress(address?: string | null): string | null {
  * Check if a chain ID is the Celo network
  */
 export function isCeloChain(chainId?: number): boolean {
-  return chainId === 42_220;
+  return chainId === CELO_CHAIN_ID;
+}
+
+export function isBaseChain(chainId?: number): boolean {
+  return chainId === BASE_CHAIN_ID;
+}
+
+export function isOptimismChain(chainId?: number): boolean {
+  return chainId === OPTIMISM_CHAIN_ID;
 }
 
 export function canSaveMiniApp(params: {

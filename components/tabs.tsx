@@ -11,7 +11,11 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import type { useGmStats } from "@/hooks/use-gm-stats";
-import { CELO_CHAIN_ID } from "@/lib/constants";
+import {
+  BASE_CHAIN_ID,
+  CELO_CHAIN_ID,
+  OPTIMISM_CHAIN_ID,
+} from "@/lib/constants";
 import { About } from "./about";
 
 type TabsProps = {
@@ -31,7 +35,9 @@ export function Tabs({
 
   const isBaseApp = miniAppContext?.context?.client.clientFid === 309_857;
 
-  const allowedChainIds = isBaseApp ? [8453, 10] : [8453, CELO_CHAIN_ID, 10];
+  const allowedChainIds = isBaseApp
+    ? [BASE_CHAIN_ID, OPTIMISM_CHAIN_ID]
+    : [BASE_CHAIN_ID, CELO_CHAIN_ID, OPTIMISM_CHAIN_ID];
 
   return (
     <div className="my-4">

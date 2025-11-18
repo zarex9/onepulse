@@ -1,6 +1,11 @@
 import { memo } from "react";
 import { GMModal } from "@/components/gm-chain-card/gm-modal";
-import { DAILY_GM_ADDRESSES } from "@/lib/constants";
+import {
+  BASE_CHAIN_ID,
+  CELO_CHAIN_ID,
+  DAILY_GM_ADDRESSES,
+  OPTIMISM_CHAIN_ID,
+} from "@/lib/constants";
 
 type ModalRendererProps = {
   activeModalChainId: number | null;
@@ -14,10 +19,10 @@ type ModalRendererProps = {
 };
 
 const getChainBtnClassesForId = (chainId: number): string => {
-  if (chainId === 42_220) {
+  if (chainId === CELO_CHAIN_ID) {
     return "bg-[#FCFF52] text-black hover:bg-[#FCFF52]/90 dark:bg-[#476520] dark:text-white dark:hover:bg-[#476520]/90";
   }
-  if (chainId === 10) {
+  if (chainId === OPTIMISM_CHAIN_ID) {
     return "bg-[#ff0420] text-white hover:bg-[#ff0420]/90";
   }
   return "bg-[#0052ff] text-white hover:bg-[#0052ff]/90";
@@ -56,7 +61,7 @@ export const ModalRenderer = memo(
         contractAddress={activeContractAddress}
         isContractReady={Boolean(activeContractAddress)}
         isOpen={true}
-        isSponsored={sponsored && activeModalChainId === 8453}
+        isSponsored={sponsored && activeModalChainId === BASE_CHAIN_ID}
         onClose={onClose}
         processing={processing}
         refetchLastGmDay={refetchLastGmDay}
