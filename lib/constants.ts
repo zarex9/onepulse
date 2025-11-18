@@ -36,5 +36,10 @@ export const DAILY_REWARDS_ADDRESSES: Record<number, `0x${string}`> = {
     ("" as `0x${string}`),
 };
 
+export const DAILY_REWARDS_ADDRESS =
+  process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS ||
+  DAILY_REWARDS_ADDRESSES[BASE_CHAIN_ID] ||
+  "";
+
 export const SECONDS_PER_DAY = 86_400;
 export const MILLISECONDS_PER_DAY = SECONDS_PER_DAY * 1000;

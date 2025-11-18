@@ -13,6 +13,7 @@ import {
   CELO_CHAIN_ID,
   DAILY_GM_ADDRESS,
   DAILY_GM_ADDRESSES,
+  DAILY_REWARDS_ADDRESS,
   DAILY_REWARDS_ADDRESSES,
   MILLISECONDS_PER_DAY,
   OPTIMISM_CHAIN_ID,
@@ -42,7 +43,7 @@ export function getDailyGmAddress(chainId?: number): `0x${string}` | "" {
  */
 export function getDailyRewardsAddress(chainId?: number): `0x${string}` | "" {
   if (!chainId) {
-    return DAILY_REWARDS_ADDRESSES[BASE_CHAIN_ID] || ("" as const);
+    return DAILY_REWARDS_ADDRESS as `0x${string}` | "";
   }
   return DAILY_REWARDS_ADDRESSES[chainId] || ("" as const);
 }
