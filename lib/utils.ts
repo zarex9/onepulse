@@ -21,6 +21,7 @@ import {
 
 const digitRegex = /^\d+$/;
 const EIP155_REGEX = /^eip155:(\d+)$/;
+const DOMAIN_LABEL_PATTERN = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -154,15 +155,49 @@ export function timestampToDayNumber(timestampSeconds: number): number {
 
 /**
  * Check if a string is a valid ENS or Base domain
+ * Validates domain structure: labels separated by dots, each label following DNS rules
  */
 export function isDomainFormat(input: string): boolean {
-  if (!input) {
+  const trimmed = input?.trim();
+  if (!trimmed) {
     return false;
   }
-  if (!input.includes(".")) {
+
+  // Reject leading/trailing dots or consecutive dots
+  if (
+    trimmed.startsWith(".") ||
+    trimmed.endsWith(".") ||
+    trimmed.includes("..")
+  ) {
     return false;
   }
-  return input.endsWith(".eth") || input.endsWith(".base.eth");
+
+  // Check for valid suffix
+  const isValid = trimmed.endsWith(".eth") || trimmed.endsWith(".base.eth");
+  if (!isValid) {
+    return false;
+  }
+
+  // Split into labels and validate each
+  const labels = trimmed.split(".");
+  if (labels.length < 2) {
+    return false;
+  }
+
+  // Each label must:
+  // - Be 1-63 characters
+  // - Contain only ASCII letters, numbers, and hyphens
+  // - Not start or end with a hyphen
+  for (const label of labels) {
+    if (label.length === 0) {
+      return false;
+    }
+    if (!DOMAIN_LABEL_PATTERN.test(label)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
