@@ -131,6 +131,14 @@ class GmStatsByAddressStore {
     while (retries < maxRetries && !connectionStatus.isConnected) {
       retries += 1;
       await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+      if (
+        this.subscribedAddress &&
+        this.subscribedAddress.toLowerCase() !== addr
+      ) {
+        // Abort if a newer subscribeToAddress call changed the target address
+        return;
+      }
     }
 
     if (!connectionStatus.isConnected) {
