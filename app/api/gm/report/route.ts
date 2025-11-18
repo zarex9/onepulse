@@ -147,12 +147,15 @@ export async function POST(req: Request) {
     }
     return NextResponse.json(formatReportGmResponse(row));
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: "internal error",
-        message: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    const response: { error: string; message?: string } = {
+      error: "internal error",
+    };
+
+    if (process.env.NODE_ENV !== "production") {
+      response.message =
+        error instanceof Error ? error.message : "Unknown error";
+    }
+
+    return NextResponse.json(response, { status: 500 });
   }
 }
