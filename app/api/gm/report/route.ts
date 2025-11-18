@@ -3,10 +3,9 @@ import { type Address, createPublicClient, http, isAddress } from "viem";
 import { base, celo, optimism } from "viem/chains";
 
 import { dailyGMAbi } from "@/lib/abi/daily-gm";
-import { BASE_CHAIN_ID } from "@/lib/constants";
 import type { GmStatsByAddress } from "@/lib/module_bindings";
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection";
-import { getDailyGmAddress } from "@/lib/utils";
+import { getDailyGmAddress, normalizeChainId } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -51,8 +50,11 @@ function validateReportGmRequest(body: Record<string, unknown>) {
     return addressResult;
   }
 
-  const chainId =
-    typeof body.chainId === "number" ? body.chainId : BASE_CHAIN_ID;
+  const normalizedChainId = normalizeChainId(body.chainId);
+  if (!normalizedChainId) {
+    return { error: "invalid chainId", status: 400 };
+  }
+  const chainId = normalizedChainId;
   const contractResult = validateContractAddress(chainId);
   if ("error" in contractResult) {
     return contractResult;
