@@ -21,8 +21,8 @@ import { useModalManagement } from "./home/use-modal-management";
 import { usePerChainStatus } from "./home/use-per-chain-status";
 
 /**
- * Performs shallow comparison of two objects by checking if any key's value differs.
- * Returns true if prev is null/undefined or if any property value has changed.
+ * Performs shallow comparison of two objects by checking if any key's value differs or if the set of keys differs.
+ * Returns true if prev is null/undefined or if any property value has changed or if keys were added/removed.
  * Use this helper whenever comparing GmStats or similar data structures to avoid
  * manual field-by-field comparisons that become fragile when fields are added.
  */
@@ -33,7 +33,12 @@ function hasChanged<T extends Record<string, unknown>>(
   if (!prev) {
     return true;
   }
-  return Object.keys(current).some((key) => prev[key] !== current[key]);
+  const currentKeys = Object.keys(current);
+  const prevKeys = Object.keys(prev);
+  if (currentKeys.length !== prevKeys.length) {
+    return true;
+  }
+  return currentKeys.some((key) => prev[key] !== current[key]);
 }
 
 export const Home = memo(
@@ -71,8 +76,13 @@ export const Home = memo(
 
     // Notify parent only when stats actually change (prevents infinite re-render loop)
     const prevStatsRef = useRef<ReturnType<typeof useGmStats> | null>(null);
+    const prevOnGmStatsChangeRef = useRef(onGmStatsChange);
 
     useEffect(() => {
+      if (prevOnGmStatsChangeRef.current !== onGmStatsChange) {
+        prevStatsRef.current = null;
+      }
+      prevOnGmStatsChangeRef.current = onGmStatsChange;
       if (!onGmStatsChange) {
         return;
       }
