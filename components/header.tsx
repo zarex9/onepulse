@@ -122,6 +122,11 @@ export function Header({
     }
   }, [onMiniAppAddedAction]);
 
+  const handleShareClick = useCallback(
+    () => onShareModalOpenChangeAction(true),
+    [onShareModalOpenChangeAction]
+  );
+
   const user = extractUserFromContext(miniAppContextData?.context);
   const clientAdded = miniAppContextData?.context?.client?.added;
   const showSaveButton =
@@ -148,7 +153,7 @@ export function Header({
         </div>
         <HeaderRight
           onSaveClick={handleAddMiniApp}
-          onShareClick={() => onShareModalOpenChangeAction(true)}
+          onShareClick={handleShareClick}
           showSaveButton={showSaveButton}
           showShareButton={showShareButton}
         />
