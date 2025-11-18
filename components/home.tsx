@@ -3,11 +3,6 @@
 import { useAppKitAccount } from "@reown/appkit/react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GMChainCard } from "@/components/gm-chain-card/gm-chain-card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { useGmStats } from "@/hooks/use-gm-stats";
 import { DAILY_GM_ADDRESSES } from "@/lib/constants";
 import { isSponsoredOnChain } from "@/lib/utils";
@@ -135,36 +130,27 @@ export const Home = memo(
           </p>
         </div>
 
-        <Carousel
-          className="w-full"
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-        >
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {chains.map((c) => {
-              const contractAddress = DAILY_GM_ADDRESSES[c.id];
-              return contractAddress ? (
-                <CarouselItem className="basis-full pl-2 md:pl-4" key={c.id}>
-                  <ChainSlide
-                    address={address}
-                    chainId={c.id}
-                    chainName={c.name}
-                    contractAddress={contractAddress}
-                    isConnected={Boolean(isConnected)}
-                    onOpenModal={(refetch) => {
-                      setActiveModalChainId(c.id);
-                      setActiveRefetchFn(() => refetch);
-                    }}
-                    onStatusChange={handleStatus}
-                    sponsored={isSponsoredOnChain(Boolean(sponsored), c.id)}
-                  />
-                </CarouselItem>
-              ) : null;
-            })}
-          </CarouselContent>
-        </Carousel>
+        <div className="space-y-4">
+          {chains.map((c) => {
+            const contractAddress = DAILY_GM_ADDRESSES[c.id];
+            return contractAddress ? (
+              <ChainSlide
+                address={address}
+                chainId={c.id}
+                chainName={c.name}
+                contractAddress={contractAddress}
+                isConnected={Boolean(isConnected)}
+                key={c.id}
+                onOpenModal={(refetch) => {
+                  setActiveModalChainId(c.id);
+                  setActiveRefetchFn(() => refetch);
+                }}
+                onStatusChange={handleStatus}
+                sponsored={isSponsoredOnChain(Boolean(sponsored), c.id)}
+              />
+            ) : null;
+          })}
+        </div>
 
         <ModalRenderer
           activeModalChainId={activeModalChainId}

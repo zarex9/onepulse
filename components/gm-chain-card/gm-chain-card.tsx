@@ -8,7 +8,6 @@ import type { base, celo, optimism } from "wagmi/chains";
 import { Icons } from "@/components/icons";
 import {
   Item,
-  ItemActions,
   ItemContent,
   ItemDescription,
   ItemFooter,
@@ -26,7 +25,6 @@ import {
   normalizeChainId,
   timestampToDayNumber,
 } from "@/lib/utils";
-import { CarouselNext, CarouselPrevious } from "../ui/carousel";
 import { ActionButton } from "./action-button";
 import { CountdownText } from "./countdown-text";
 
@@ -212,12 +210,6 @@ export const GMChainCard = memo(
           </ItemMedia>
           <ItemDescription>Amplify your {name} GM</ItemDescription>
         </ItemContent>
-        <ItemActions>
-          <div className="flex items-center justify-center gap-2">
-            <CarouselPrevious className="static translate-y-0" />
-            <CarouselNext className="static translate-y-0" />
-          </div>
-        </ItemActions>
         <ItemFooter className="flex-col">
           <div className="mb-4 w-full">
             <StatsDisplay
