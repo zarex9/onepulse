@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { GmStats } from "@/hooks/use-gm-stats";
+import { shouldShowShareButton } from "@/lib/share";
 
 const Confetti = dynamic(
   () => import("@/components/ui/confetti").then((m) => m.Confetti),
@@ -52,8 +53,7 @@ export const CongratsDialog = memo(
       onShare?.();
     }, [handleClose, onShare]);
 
-    const showShareButton =
-      !!gmStats && (gmStats.allTimeGmCount > 0 || gmStats.currentStreak > 0);
+    const showShareButton = shouldShowShareButton(gmStats);
 
     return (
       <Dialog onOpenChange={onOpenChange} open={open}>

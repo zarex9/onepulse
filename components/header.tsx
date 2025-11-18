@@ -21,6 +21,7 @@ import {
   handleSuccess,
   SUCCESS_MESSAGES,
 } from "@/lib/error-handling";
+import { shouldShowShareButton } from "@/lib/share";
 import { canSaveMiniApp } from "@/lib/utils";
 import { minikitConfig } from "@/minikit.config";
 
@@ -135,8 +136,7 @@ export function Header({
     }) && !miniAppAddedLocally;
 
   const shouldShowUserInfo = !!user || !!address;
-  const showShareButton =
-    !!gmStats && (gmStats.allTimeGmCount > 0 || gmStats.currentStreak > 0);
+  const showShareButton = shouldShowShareButton(gmStats);
 
   return (
     <>
