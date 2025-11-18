@@ -2,13 +2,9 @@
 
 import { useMemo } from "react";
 import type { GmStatsByAddress } from "@/lib/module_bindings";
+import { normalizeAddress } from "@/lib/utils";
 import { gmStatsByAddressStore } from "@/stores/gm-store";
-
-import {
-  deriveStatsForAddress,
-  groupRowsByAddress,
-  normalizeAddress,
-} from "./gm-stats-helpers";
+import { deriveStatsForAddress, groupRowsByAddress } from "./gm-stats-helpers";
 import {
   useGmStatsFallback,
   useGmStatsSubscription,
