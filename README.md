@@ -28,7 +28,7 @@ OnePulse is a Base app/Farcaster Mini App that lets users say "GM" (Good Morning
 |----------|------------|---------|
 | **Frontend** | Next.js, React, TypeScript | 16.0, 19.0, 5.0 |
 | **Styling** | Tailwind CSS | 4.1 |
-| **Web3** | OnchainKit, Wagmi, Viem | latest, 2.19, 2.38 |
+| **Web3** | OnchainKit, Wagmi, Viem, AppKit (Reown) | latest, 2.19, 2.38, 1.8.14 |
 | **Database** | SpacetimeDB | 1.7 |
 | **Farcaster** | MiniApp SDK | 0.2.1 |
 | **UI** | Radix UI, Motion | latest |
