@@ -14,7 +14,6 @@ import {
 } from "./home/chain-config";
 import { CongratsDialog } from "./home/congrats-dialog";
 import { ModalRenderer } from "./home/modal-renderer";
-import { useConfettiControl } from "./home/use-confetti-control";
 import { useCongratsLogic } from "./home/use-congrats-logic";
 import { useLastCongratsDay } from "./home/use-last-congrats-day";
 import { useModalManagement } from "./home/use-modal-management";
@@ -112,20 +111,12 @@ export const Home = memo(
 
     const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay();
 
-    const { confettiRef } = useConfettiControl(false, isConnected);
-
     const { showCongrats, setShowCongrats } = useCongratsLogic({
       allDone,
       isConnected,
       lastCongratsDay,
       onLastCongratsDayUpdateAction: setLastCongratsDay,
     });
-
-    useEffect(() => {
-      if (showCongrats) {
-        confettiRef.current?.fire?.();
-      }
-    }, [showCongrats, confettiRef]);
 
     return (
       <div className="mt-4 mb-12 space-y-4">
@@ -173,7 +164,6 @@ export const Home = memo(
         />
 
         <CongratsDialog
-          confettiRef={confettiRef}
           gmStats={gmStatsResult.stats}
           nextTargetSec={nextTargetSec}
           onOpenChange={(val) => {

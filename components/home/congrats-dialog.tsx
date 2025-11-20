@@ -1,11 +1,9 @@
 "use client";
 
 import { Share2 } from "lucide-react";
-import dynamic from "next/dynamic";
-import { memo, type RefObject, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { ConfettiRef } from "@/components/ui/confetti";
 import {
   Dialog,
   DialogContent,
@@ -17,16 +15,10 @@ import {
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { shouldShowShareButton } from "@/lib/share";
 
-const Confetti = dynamic(
-  () => import("@/components/ui/confetti").then((m) => m.Confetti),
-  { ssr: false }
-);
-
 type CongratsDialogProps = {
   open: boolean;
   nextTargetSec: number;
   onOpenChange: (open: boolean) => void;
-  confettiRef: RefObject<ConfettiRef>;
   onShare?: () => void;
   gmStats?: GmStats;
 };
@@ -40,7 +32,6 @@ export const CongratsDialog = memo(
     open,
     nextTargetSec,
     onOpenChange,
-    confettiRef,
     onShare,
     gmStats,
   }: CongratsDialogProps) => {
@@ -89,10 +80,6 @@ export const CongratsDialog = memo(
             </Button>
           </DialogFooter>
         </DialogContent>
-        <Confetti
-          className="pointer-events-none absolute top-0 left-0 z-0 size-full"
-          ref={confettiRef}
-        />
       </Dialog>
     );
   }
