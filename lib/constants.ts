@@ -13,7 +13,10 @@ export const SUPPORTED_CHAINS: readonly SupportedChain[] = [
   { id: OPTIMISM_CHAIN_ID, name: "Optimism" },
 ] as const;
 
-export const DAILY_GM_ADDRESSES: Record<number, `0x${string}` | ""> = {
+export const DAILY_GM_ADDRESSES: Record<
+  SupportedChain["id"],
+  `0x${string}` | ""
+> = {
   [BASE_CHAIN_ID]:
     (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_BASE as `0x${string}`) || "",
   [CELO_CHAIN_ID]:
@@ -21,14 +24,20 @@ export const DAILY_GM_ADDRESSES: Record<number, `0x${string}` | ""> = {
   [OPTIMISM_CHAIN_ID]:
     (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_OPTIMISM as `0x${string}`) || "",
 };
+
 export const DAILY_GM_ADDRESS =
   process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS ||
   DAILY_GM_ADDRESSES[BASE_CHAIN_ID] ||
   "";
-export const DAILY_REWARDS_ADDRESSES: Record<number, `0x${string}` | ""> = {
+
+export const DAILY_REWARDS_ADDRESSES: Record<
+  SupportedChain["id"],
+  `0x${string}` | ""
+> = {
   [BASE_CHAIN_ID]:
     (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_BASE as `0x${string}`) || "",
 };
+
 export const DAILY_REWARDS_ADDRESS =
   process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS ||
   DAILY_REWARDS_ADDRESSES[BASE_CHAIN_ID] ||
