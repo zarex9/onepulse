@@ -4,7 +4,7 @@ import { OnchainKitProvider as Provider } from "@coinbase/onchainkit";
 import type { ReactNode } from "react";
 import { base } from "wagmi/chains";
 import { minikitConfig } from "@/minikit.config";
-import "@/styles/onchainkit.css";
+import "@coinbase/onchainkit/styles.css";
 
 export function OnchainKitProvider({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +17,6 @@ export function OnchainKitProvider({ children }: { children: ReactNode }) {
           name: process.env.NEXT_PUBLIC_PROJECT_NAME,
           logo: minikitConfig.miniapp.splashImageUrl,
           mode: "auto",
-          theme: "custom",
         },
         wallet: {
           display: "modal",
