@@ -131,6 +131,9 @@ export function useGmStatsFallback(
               highestStreak: json.highestStreak ?? 0,
               allTimeGmCount: json.allTimeGmCount ?? 0,
               lastGmDay: json.lastGmDay ?? 0,
+              baseGm: json.baseGm ?? 0,
+              celoGm: json.celoGm ?? 0,
+              optimismGm: json.optimismGm ?? 0,
             },
           });
         }
