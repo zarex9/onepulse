@@ -18,6 +18,9 @@ export type GmStats = {
   highestStreak: number;
   allTimeGmCount: number;
   lastGmDay: number;
+  baseGm: number;
+  celoGm: number;
+  optimismGm: number;
 };
 
 export const ZERO: GmStats = {
@@ -25,6 +28,9 @@ export const ZERO: GmStats = {
   highestStreak: 0,
   allTimeGmCount: 0,
   lastGmDay: 0,
+  baseGm: 0,
+  celoGm: 0,
+  optimismGm: 0,
 };
 
 export const EMPTY_ROWS: GmStatsByAddress[] = [];

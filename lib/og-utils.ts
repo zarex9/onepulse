@@ -3,25 +3,24 @@
  */
 export function generateGMStatusOGUrl(params: {
   username?: string;
-  streak?: number;
-  totalGMs?: number;
-  chains?: string[];
+  displayName?: string;
+  pfp?: string;
   todayGM?: boolean;
   claimedToday?: boolean;
+  basegm?: number;
+  celogm?: number;
+  optimismgm?: number;
 }): string {
   const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
   const searchParams = new URLSearchParams();
 
   const paramMappings = [
     { key: "username", value: params.username },
-    { key: "streak", value: params.streak?.toString() },
-    { key: "totalGMs", value: params.totalGMs?.toString() },
-    {
-      key: "chains",
-      value: params.chains?.length ? params.chains.join(",") : undefined,
-    },
-    { key: "todayGM", value: params.todayGM?.toString() },
-    { key: "claimedToday", value: params.claimedToday?.toString() },
+    { key: "displayName", value: params.displayName },
+    { key: "pfp", value: params.pfp },
+    { key: "basegm", value: params.basegm?.toString() },
+    { key: "celogm", value: params.celogm?.toString() },
+    { key: "optimismgm", value: params.optimismgm?.toString() },
   ];
 
   for (const { key, value } of paramMappings) {
@@ -30,7 +29,7 @@ export function generateGMStatusOGUrl(params: {
     }
   }
 
-  return `${baseUrl}/api/og/gm-status?${searchParams.toString()}`;
+  return `${baseUrl}/api/og?${searchParams.toString()}`;
 }
 
 /**
@@ -38,14 +37,19 @@ export function generateGMStatusOGUrl(params: {
  */
 export function generateGMStatusMetadata(params: {
   username?: string;
+  displayName?: string;
+  pfp?: string;
   streak?: number;
   totalGMs?: number;
   chains?: string[];
   todayGM?: boolean;
   claimedToday?: boolean;
+  basegm?: number;
+  celogm?: number;
+  optimismgm?: number;
 }) {
   const imageUrl = generateGMStatusOGUrl(params);
-  const username = params.username || "Anonymous";
+  const username = params.username || "user";
   const streak = params.streak || 0;
   const claimedToday = params.claimedToday;
 
@@ -57,6 +61,6 @@ export function generateGMStatusMetadata(params: {
     title: `${username}'s GM Achievement`,
     description: `${username} ${achievementText}. Join the daily GM movement with OnePulse!`,
     image: imageUrl,
-    url: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+    url: imageUrl,
   };
 }
