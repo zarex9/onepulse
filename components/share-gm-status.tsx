@@ -45,8 +45,17 @@ const hasGMedToday = (gmStats: GmStats | undefined) => {
   return gmStats.lastGmDay === today;
 };
 
-const createShareText = (claimedToday: boolean, completedAllChains: boolean) =>
-  getShareText(claimedToday, completedAllChains);
+const createShareText = (
+  claimedToday: boolean,
+  completedAllChains: boolean
+) => {
+  const text = getShareText(claimedToday, completedAllChains);
+  const baseUrl =
+    process.env.NEXT_PUBLIC_URL ||
+    process.env.VERCEL_URL ||
+    "http://localhost:3000";
+  return `${text}\n${baseUrl}`;
+};
 
 const createShareMetadata = (options: {
   username: string;
