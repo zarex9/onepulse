@@ -3,7 +3,6 @@
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { Copy, MessageCircle } from "lucide-react";
-import { Icons } from "@/components/icons";
 import {
   type UserContext,
   useMiniAppContext,
@@ -113,17 +112,6 @@ function useGMSharing(
   };
 }
 
-const shareToTwitter = (
-  shareText: string,
-  shareUrl: string,
-  openUrl: (url: string) => void
-) => {
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-    shareText
-  )}&url=${encodeURIComponent(shareUrl)}`;
-  openUrl(twitterUrl);
-};
-
 const shareToCast = async (shareText: string, shareUrl: string) => {
   try {
     await sdk.actions.composeCast({
@@ -149,17 +137,14 @@ export function ShareGMStatus({
   completedAllChains = false,
   gmStats,
 }: ShareGMStatusProps) {
-  const { shareText, shareUrl, openUrl } = useGMSharing(
+  const { shareText, shareUrl } = useGMSharing(
     claimedToday,
     completedAllChains,
     gmStats
   );
 
-  const handleShare = async (platform: "twitter" | "cast" | "copy") => {
+  const handleShare = async (platform: "cast" | "copy") => {
     switch (platform) {
-      case "twitter":
-        shareToTwitter(shareText, shareUrl, openUrl);
-        break;
       case "cast":
         await shareToCast(shareText, shareUrl);
         break;
@@ -173,15 +158,6 @@ export function ShareGMStatus({
 
   return (
     <div className={`flex gap-2 ${className}`}>
-      <Button
-        className="flex-1"
-        onClick={() => handleShare("twitter")}
-        size={size}
-        variant={variant}
-      >
-        <Icons.twitter className="mr-2 h-4 w-4" />
-        Twitter
-      </Button>
       <Button
         className="flex-1"
         onClick={() => handleShare("cast")}
