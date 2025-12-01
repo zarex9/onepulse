@@ -82,7 +82,7 @@ export const GMTransaction = memo(
                 chainId={chainId}
                 onReported={onClose}
                 refetchLastGmDay={refetchLastGmDay}
-                status={String(status)}
+                status={status}
                 txHash={context?.transactionHash}
               />
             </>

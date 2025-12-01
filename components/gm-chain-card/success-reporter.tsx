@@ -2,9 +2,10 @@
 
 import { memo } from "react";
 import { useSuccessReporterLogic } from "./use-success-reporter-logic";
+import type { TransactionStatus } from "@/types/transaction";
 
 type SuccessReporterProps = {
-  status: string;
+  status: TransactionStatus;
   onReported?: () => void;
   address?: string;
   refetchLastGmDay?: () => Promise<unknown>;
