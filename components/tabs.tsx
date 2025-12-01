@@ -2,7 +2,6 @@
 
 import { Gift, House, Info } from "lucide-react";
 import { Home } from "@/components/home";
-import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { Rewards } from "@/components/rewards";
 import {
   Tabs as TabsComponent,
@@ -11,12 +10,8 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import type { useGmStats } from "@/hooks/use-gm-stats";
-import {
-  BASE_CHAIN_ID,
-  CELO_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-} from "@/lib/constants";
 import { About } from "./about";
+import { useTabsLogic } from "./tabs/use-tabs-logic";
 
 type TabsProps = {
   tab: string;
@@ -33,13 +28,7 @@ export function Tabs({
   onShareClickAction,
   onAllDoneChangeAction,
 }: TabsProps) {
-  const miniAppContext = useMiniAppContext();
-
-  const isBaseApp = miniAppContext?.context?.client.clientFid === 309_857;
-
-  const allowedChainIds = isBaseApp
-    ? [BASE_CHAIN_ID, OPTIMISM_CHAIN_ID]
-    : [BASE_CHAIN_ID, CELO_CHAIN_ID, OPTIMISM_CHAIN_ID];
+  const { isBaseApp, allowedChainIds } = useTabsLogic();
 
   return (
     <div className="my-4">
