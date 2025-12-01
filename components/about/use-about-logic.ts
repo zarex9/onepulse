@@ -27,7 +27,8 @@ export const useAboutLogic = () => {
     async (url: string) => {
       try {
         await sdk.actions.openMiniApp({ url });
-      } catch (_error) {
+      } catch (error) {
+        console.error("Failed to open Mini App:", error);
         toast.error("Failed to open Mini App");
         openUrl(url);
       }
@@ -35,24 +36,10 @@ export const useAboutLogic = () => {
     [openUrl]
   );
 
-  const handleOpenUrl = useCallback(
-    (url: string) => {
-      openUrl(url);
-    },
-    [openUrl]
-  );
-
-  const handleViewProfile = useCallback(
-    (fid: number) => {
-      viewProfile(fid);
-    },
-    [viewProfile]
-  );
-
   return {
     isInMiniApp,
     handleOpenMiniApp,
-    handleOpenUrl,
-    handleViewProfile,
+    handleOpenUrl: openUrl,
+    handleViewProfile: viewProfile,
   };
 };
