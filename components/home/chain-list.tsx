@@ -7,7 +7,6 @@ type ChainListProps = {
   chains: Chain[];
   address: string | undefined;
   isConnected: boolean;
-  sponsored: boolean;
   setActiveModalChainId: (id: number) => void;
   setActiveRefetchFn: Dispatch<
     SetStateAction<(() => Promise<unknown>) | undefined>

@@ -58,7 +58,6 @@ export const Home = memo(
           isConnected={Boolean(isConnected)}
           setActiveModalChainId={setActiveModalChainId}
           setActiveRefetchFn={setActiveRefetchFn}
-          sponsored={Boolean(sponsored)}
         />
 
         <ModalRenderer
