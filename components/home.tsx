@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import type { useGmStats } from "@/hooks/use-gm-stats";
 import { minikitConfig } from "@/minikit.config";
 import { ChainList } from "./home/chain-list";
@@ -42,6 +42,11 @@ export const Home = memo(
       onAllDoneChange,
     });
 
+    const handleModalClose = useCallback(
+      () => setActiveModalChainId(null),
+      [setActiveModalChainId]
+    );
+
     return (
       <div className="my-12 space-y-4">
         <div className="space-y-2">
@@ -64,7 +69,7 @@ export const Home = memo(
           activeModalChainId={activeModalChainId}
           address={address}
           chains={chains}
-          onClose={() => setActiveModalChainId(null)}
+          onClose={handleModalClose}
           processing={processing}
           refetchLastGmDay={activeRefetchFn}
           setProcessing={setProcessing}
