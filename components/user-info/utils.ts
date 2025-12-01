@@ -46,7 +46,7 @@ export const determineDisplayState = (
   if (!hasIdentity) {
     return "hidden";
   }
-  if (hasIdentity && isLoading) {
+  if (isLoading) {
     return "loading";
   }
   if (address && !user) {
