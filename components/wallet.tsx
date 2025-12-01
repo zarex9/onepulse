@@ -9,27 +9,24 @@ import { useConnectWalletLogic } from "./wallet/use-connect-wallet-logic";
 import { useDisconnectWalletLogic } from "./wallet/use-disconnect-wallet-logic";
 
 type ButtonSize = VariantProps<typeof buttonVariants>["size"];
-function ConnectWallet({
-  size = "lg" as ButtonSize,
-  className,
-}: {
-  size?: ButtonSize;
-  className?: string;
-}) {
-  const { connectWallet } = useConnectWalletLogic();
-  const buttonSize = size === "lg" ? "size-lg" : "size-sm";
-  return (
-    <div className="mx-auto w-full">
-      <Button
-        aria-label="Connect wallet"
-        className={cn(className, buttonSize)}
-        onClick={connectWallet}
-      >
-        Connect Wallet
-      </Button>
-    </div>
-  );
-}
+
+const ConnectWallet = memo(
+  ({ size = "lg", className }: { size?: ButtonSize; className?: string }) => {
+    const { connectWallet } = useConnectWalletLogic();
+    const buttonSize = size === "lg" ? "size-lg" : "size-sm";
+    return (
+      <div className="mx-auto w-full">
+        <Button
+          aria-label="Connect wallet"
+          className={cn(className, buttonSize)}
+          onClick={connectWallet}
+        >
+          Connect Wallet
+        </Button>
+      </div>
+    );
+  }
+);
 
 const DisconnectWallet = memo(
   ({ onDisconnected }: { onDisconnected?: () => void }) => {
