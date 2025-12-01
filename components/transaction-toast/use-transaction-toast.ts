@@ -16,7 +16,7 @@ type UseTransactionToastParams = {
   className?: string;
   position?: "top-center" | "bottom-center";
   label?: string;
-  onStatusChange?: (status: string) => void;
+  onStatusChangeAction?: (status: string) => void;
 };
 
 function updateToastState(
@@ -85,7 +85,7 @@ export function useTransactionToast({
   className,
   position = "bottom-center",
   label,
-  onStatusChange,
+  onStatusChangeAction,
 }: UseTransactionToastParams) {
   const {
     errorMessage,
@@ -110,8 +110,8 @@ export function useTransactionToast({
       transactionHash,
     });
 
-    if (onStatusChange) {
-      onStatusChange(state);
+    if (onStatusChangeAction) {
+      onStatusChangeAction(state);
     }
 
     updateToastState(state, toastId, {
@@ -135,6 +135,6 @@ export function useTransactionToast({
     className,
     label,
     position,
-    onStatusChange,
+    onStatusChangeAction,
   ]);
 }
