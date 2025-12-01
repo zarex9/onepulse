@@ -50,6 +50,9 @@ export const GmToMode = memo(
       isResolving,
     } = useGmToModeLogic({ recipient });
 
+    const shouldShowError =
+      sanitizedRecipient !== "" && !isRecipientValid && !isResolving;
+
     return (
       <>
         <CardHeader>
@@ -62,12 +65,8 @@ export const GmToMode = memo(
         </CardHeader>
         <CardContent>
           <input
-            aria-describedby={
-              sanitizedRecipient !== "" && !isRecipientValid
-                ? "recipient-error"
-                : undefined
-            }
-            aria-invalid={sanitizedRecipient !== "" && !isRecipientValid}
+            aria-describedby={shouldShowError ? "recipient-error" : undefined}
+            aria-invalid={shouldShowError}
             aria-label="Recipient wallet address"
             autoCapitalize="none"
             autoComplete="off"
