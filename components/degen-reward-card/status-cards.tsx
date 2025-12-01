@@ -2,6 +2,7 @@
 
 import { base } from "@reown/appkit/networks";
 import { useAppKitNetwork } from "@reown/appkit/react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -10,12 +11,14 @@ type StatusCardProps = {
   title: string;
   description: string;
   titleClassName?: string;
+  children?: ReactNode;
 };
 
 export function StatusCard({
   title,
   description,
   titleClassName,
+  children,
 }: StatusCardProps) {
   return (
     <Card className="border-border/50">
@@ -25,6 +28,7 @@ export function StatusCard({
             {title}
           </h3>
           <p className="text-muted-foreground text-sm">{description}</p>
+          {children}
         </div>
       </CardContent>
     </Card>
@@ -52,27 +56,31 @@ export function DepletedVaultCard() {
 
 export function WrongNetworkCard() {
   const { switchNetwork } = useAppKitNetwork();
+  const [isSwitching, setIsSwitching] = useState(false);
 
-  const handleSwitchToBase = () => {
-    switchNetwork(base);
+  const handleSwitchToBase = async () => {
+    try {
+      setIsSwitching(true);
+      await switchNetwork(base);
+    } catch (error) {
+      console.error("Failed to switch network:", error);
+    } finally {
+      setIsSwitching(false);
+    }
   };
 
   return (
-    <Card className="border-border/50">
-      <CardContent className="py-12 text-center">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-xl">Switch to Base</h3>
-          <p className="text-muted-foreground text-sm">
-            DEGEN rewards are only available on Base network
-          </p>
-          <Button
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={handleSwitchToBase}
-          >
-            Switch to Base
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <StatusCard
+      description="DEGEN rewards are only available on Base network"
+      title="Switch to Base"
+    >
+      <Button
+        className="bg-blue-600 text-white hover:bg-blue-700"
+        disabled={isSwitching}
+        onClick={handleSwitchToBase}
+      >
+        {isSwitching ? "Switching..." : "Switch to Base"}
+      </Button>
+    </StatusCard>
   );
 }
