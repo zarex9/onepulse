@@ -1,6 +1,5 @@
 import { type Dispatch, memo, type SetStateAction } from "react";
 import { DAILY_GM_ADDRESSES } from "@/lib/constants";
-import { isSponsoredOnChain } from "@/lib/utils";
 import type { Chain } from "./chain-config";
 import { ChainSlide } from "./chain-slide";
 
@@ -25,7 +24,6 @@ export const ChainList = memo(
     chains,
     address,
     isConnected,
-    sponsored,
     setActiveModalChainId,
     setActiveRefetchFn,
     handleStatus,
@@ -46,7 +44,6 @@ export const ChainList = memo(
               setActiveRefetchFn(() => refetch);
             }}
             onStatusChange={handleStatus}
-            sponsored={isSponsoredOnChain(sponsored, c.id)}
           />
         ) : null;
       })}

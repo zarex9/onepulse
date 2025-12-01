@@ -26,7 +26,6 @@ export type GMChainCardProps = {
     hasGmToday: boolean;
     targetSec: number;
   }) => void;
-  sponsored: boolean;
   stats: GmStats;
   isStatsReady: boolean;
   onOpenModal?: (refetch: () => Promise<unknown>) => void;
@@ -99,3 +98,4 @@ export const GMChainCard = memo(
     );
   }
 );
+GMChainCard.displayName = "GMChainCard";

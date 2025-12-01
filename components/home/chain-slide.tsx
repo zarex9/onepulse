@@ -10,7 +10,6 @@ type ChainSlideProps = {
   contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: string;
-  sponsored: boolean;
   onStatusChange: (status: {
     chainId: number;
     hasGmToday: boolean;
@@ -26,7 +25,6 @@ export const ChainSlide = memo(
     contractAddress,
     isConnected,
     address,
-    sponsored,
     onStatusChange,
     onOpenModal,
   }: ChainSlideProps) => {
@@ -46,7 +44,6 @@ export const ChainSlide = memo(
         name={chainName}
         onOpenModal={handleOpenModal}
         onStatusChange={onStatusChange}
-        sponsored={sponsored}
         stats={stats}
       />
     );
