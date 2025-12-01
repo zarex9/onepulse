@@ -55,7 +55,7 @@ export const CongratsDialog = memo(
 
           <div className="py-2">
             <p>
-              You already completed GM on all chains, comeback in{" "}
+              You already completed GM on all chains, come back in{" "}
               <CountdownValue targetSec={nextTargetSec} /> to continue your
               streaks!
             </p>
