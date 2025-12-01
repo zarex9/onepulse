@@ -16,7 +16,7 @@ const frame = {
   version: minikitConfig.miniapp.version,
   imageUrl: minikitConfig.miniapp.heroImageUrl,
   button: {
-    title: "GM on Base",
+    title: "Open OnePulse",
     action: {
       type: "launch_frame",
       name: minikitConfig.miniapp.name,

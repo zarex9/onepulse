@@ -9,7 +9,7 @@ function parseGMStatusParams(searchParams: URLSearchParams) {
     ? chainsParam.split(",").map((c) => {
         const [name, count] = c.split(":");
         return {
-          name: name || "Unknown",
+          name: name ? decodeURIComponent(name) : "Unknown",
           count: Number.parseInt(count || "0", 10),
         };
       })

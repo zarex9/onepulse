@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import { ShareGMStatus } from "@/components/share-gm-status";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -51,12 +50,6 @@ export const ShareModal = memo(
             size="default"
             variant="outline"
           />
-        </div>
-
-        <div className="flex justify-end">
-          <Button onClick={() => onOpenChange(false)} variant="ghost">
-            Close
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

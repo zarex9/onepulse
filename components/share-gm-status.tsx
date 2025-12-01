@@ -10,8 +10,7 @@ import {
 import { getShareText } from "@/components/share-narratives";
 import { Button } from "@/components/ui/button";
 import type { GmStats } from "@/hooks/use-gm-stats";
-import { MILLISECONDS_PER_DAY } from "@/lib/constants";
-import { generateGMStatusMetadata } from "@/lib/og-utils";
+import { generateSharePageUrl } from "@/lib/og-utils";
 
 type ShareGMStatusProps = {
   className?: string;
@@ -29,53 +28,15 @@ type ShareGMStatusProps = {
 };
 
 const getUsername = (user: UserContext | null) =>
-  user?.username || user?.displayName || "Anonymous";
-
-const getGMStats = (gmStats: GmStats | undefined) => ({
-  currentStreak: gmStats?.currentStreak || 0,
-  totalGMs: gmStats?.allTimeGmCount || 0,
-});
-
-const hasGMedToday = (gmStats: GmStats | undefined) => {
-  if (!gmStats?.lastGmDay) {
-    return false;
-  }
-  const today = Math.floor(Date.now() / MILLISECONDS_PER_DAY);
-  return gmStats.lastGmDay === today;
-};
+  user?.username || user?.displayName || "User";
 
 const createShareText = (
   claimedToday: boolean,
   completedAllChains: boolean
 ) => {
   const text = getShareText(claimedToday, completedAllChains);
-  const baseUrl =
-    process.env.NEXT_PUBLIC_URL ||
-    process.env.VERCEL_URL ||
-    "http://localhost:3000";
-  return `${text}\n${baseUrl}`.trimEnd();
+  return `${text}`.trimEnd();
 };
-
-const createShareMetadata = (options: {
-  username: string;
-  displayName: string;
-  pfp: string;
-  currentStreak: number;
-  totalGMs: number;
-  todayGM: boolean;
-  claimedToday: boolean;
-  chains: { name: string; count: number }[];
-}) =>
-  generateGMStatusMetadata({
-    username: options.username,
-    displayName: options.displayName,
-    pfp: options.pfp,
-    streak: options.currentStreak,
-    totalGMs: options.totalGMs,
-    todayGM: options.todayGM,
-    claimedToday: options.claimedToday,
-    chains: options.chains,
-  });
 
 function useGMSharing(
   claimedToday: boolean,
@@ -90,24 +51,17 @@ function useGMSharing(
   const displayName = user?.displayName || username;
   const pfp = user?.pfpUrl || "";
 
-  const { currentStreak, totalGMs } = getGMStats(gmStats);
-  const todayGM = hasGMedToday(gmStats);
-
   const shareText = createShareText(claimedToday, completedAllChains);
-  const metadata = createShareMetadata({
+  const shareUrl = generateSharePageUrl({
     username,
     displayName,
     pfp,
-    currentStreak,
-    totalGMs,
-    todayGM,
-    claimedToday,
     chains: gmStats?.chains || [],
   });
 
   return {
     shareText,
-    shareUrl: metadata.url,
+    shareUrl,
     openUrl,
   };
 }
