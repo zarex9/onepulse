@@ -56,7 +56,7 @@ const computeGMState = (params: ComputeGMStateParams): GMState => {
 export const useGMState = (
   chainId: Chain["id"],
   contractAddress: `0x${string}`,
-  address: Address | undefined,
+  address: string | undefined,
   isConnected: boolean
 ) => {
   const {
@@ -68,12 +68,12 @@ export const useGMState = (
     abi: dailyGMAbi,
     address: contractAddress,
     functionName: "lastGMDay",
-    args: address ? [address] : undefined,
+    args: address ? [address as Address] : undefined,
     query: { enabled: Boolean(address && contractAddress) },
   });
 
   const { hasGmToday, gmDisabled, targetSec } = computeGMState({
-    address,
+    address: address as Address | undefined,
     contractAddress,
     isConnected,
     lastGmDayData,
