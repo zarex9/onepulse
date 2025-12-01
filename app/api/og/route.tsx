@@ -111,7 +111,7 @@ function generateProfileSection(
 
 const CHAIN_COLORS: Record<string, { bg: string; border: string }> = {
   base: { bg: "rgba(0, 82, 255, 0.1)", border: "rgba(0, 82, 255, 0.5)" },
-  celo: { bg: "rgba(53, 208, 127, 0.1)", border: "rgba(53, 208, 127, 0.5)" },
+  celo: { bg: "rgba(252, 255, 82, 0.1)", border: "rgba(252, 255, 82, 0.5)" },
   optimism: { bg: "rgba(255, 4, 32, 0.1)", border: "rgba(255, 4, 32, 0.5)" },
 };
 
