@@ -7,11 +7,27 @@ type UseModalRendererLogicProps = {
   sponsored: boolean;
 };
 
+type ModalRendererResult =
+  | {
+      shouldRender: false;
+      activeChain: null;
+      activeContractAddress: null;
+      chainBtnClasses: "";
+      isSponsored: false;
+    }
+  | {
+      shouldRender: true;
+      activeChain: { id: number; name: string };
+      activeContractAddress: `0x${string}`;
+      chainBtnClasses: string;
+      isSponsored: boolean;
+    };
+
 export function useModalRendererLogic({
   activeModalChainId,
   chains,
   sponsored,
-}: UseModalRendererLogicProps) {
+}: UseModalRendererLogicProps): ModalRendererResult {
   if (!activeModalChainId) {
     return {
       shouldRender: false,

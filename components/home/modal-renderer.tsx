@@ -26,6 +26,7 @@ export const ModalRenderer = memo(
   }: ModalRendererProps) => {
     const {
       shouldRender,
+      activeChain,
       activeContractAddress,
       chainBtnClasses,
       isSponsored,
@@ -43,7 +44,7 @@ export const ModalRenderer = memo(
       <GMModal
         address={address}
         chainBtnClasses={chainBtnClasses}
-        chainId={activeModalChainId}
+        chainId={activeChain.id}
         contractAddress={activeContractAddress}
         isContractReady={Boolean(activeContractAddress)}
         isOpen={true}
