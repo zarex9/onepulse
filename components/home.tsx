@@ -32,6 +32,7 @@ export const Home = memo(
       activeRefetchFn,
       setActiveRefetchFn,
       chains,
+      gmStatsResult,
       handleStatus,
       nextTargetSec,
       showCongrats,
@@ -77,6 +78,7 @@ export const Home = memo(
         />
 
         <CongratsDialog
+          gmStats={gmStatsResult?.stats}
           nextTargetSec={nextTargetSec}
           onOpenChange={setShowCongrats}
           onShare={onShareClick}
