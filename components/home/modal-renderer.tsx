@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { GMModal } from "@/components/gm-chain-card/gm-modal";
-import { DAILY_GM_ADDRESSES } from "@/lib/constants";
-import { getChainBtnClasses, isSponsoredOnChain } from "@/lib/utils";
+import { useModalRendererLogic } from "./use-modal-renderer-logic";
 
 type ModalRendererProps = {
   activeModalChainId: number | null;
@@ -25,29 +24,31 @@ export const ModalRenderer = memo(
     refetchLastGmDay,
     onClose,
   }: ModalRendererProps) => {
-    if (!activeModalChainId) {
-      return null;
-    }
+    const {
+      shouldRender,
+      activeChain,
+      activeContractAddress,
+      chainBtnClasses,
+      isSponsored,
+    } = useModalRendererLogic({
+      activeModalChainId,
+      chains,
+      sponsored,
+    });
 
-    const activeChain = chains.find((c) => c.id === activeModalChainId);
-    if (!activeChain) {
-      return null;
-    }
-
-    const activeContractAddress = DAILY_GM_ADDRESSES[activeChain.id];
-    if (!activeContractAddress) {
+    if (!shouldRender) {
       return null;
     }
 
     return (
       <GMModal
         address={address}
-        chainBtnClasses={getChainBtnClasses(activeModalChainId)}
-        chainId={activeModalChainId}
+        chainBtnClasses={chainBtnClasses}
+        chainId={activeChain.id}
         contractAddress={activeContractAddress}
         isContractReady={Boolean(activeContractAddress)}
         isOpen={true}
-        isSponsored={isSponsoredOnChain(sponsored, activeModalChainId)}
+        isSponsored={isSponsored}
         onClose={onClose}
         processing={processing}
         refetchLastGmDay={refetchLastGmDay}
@@ -56,3 +57,5 @@ export const ModalRenderer = memo(
     );
   }
 );
+
+ModalRenderer.displayName = "ModalRenderer";

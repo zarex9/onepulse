@@ -1,10 +1,6 @@
 "use client";
 
-import { useAppKitNetwork } from "@reown/appkit/react";
-import { memo, useCallback, useEffect, useMemo } from "react";
-import type { Address } from "viem";
-import { useReadContract } from "wagmi";
-import type { base, celo, optimism } from "wagmi/chains";
+import { memo } from "react";
 import { Icons } from "@/components/icons";
 import {
   Item,
@@ -13,111 +9,11 @@ import {
   ItemFooter,
   ItemMedia,
 } from "@/components/ui/item";
-import { Spinner } from "@/components/ui/spinner";
 import type { GmStats } from "@/hooks/use-gm-stats";
-import { dailyGMAbi } from "@/lib/abi/daily-gm";
-import { SECONDS_PER_DAY } from "@/lib/constants";
-import {
-  getChainBtnClasses,
-  getChainIconName,
-  getCurrentTimestampSeconds,
-  normalizeChainId,
-  timestampToDayNumber,
-} from "@/lib/utils";
 import { ActionButton } from "./action-button";
 import { CountdownText } from "./countdown-text";
-
-type ComputeGMStateParams = {
-  address: string | undefined;
-  contractAddress: `0x${string}`;
-  isConnected: boolean;
-  lastGmDayData: unknown;
-  isPendingLastGm: boolean;
-};
-
-type GMState = {
-  hasGmToday: boolean;
-  gmDisabled: boolean;
-  targetSec: number;
-};
-
-const computeGMState = (params: ComputeGMStateParams): GMState => {
-  const {
-    address,
-    contractAddress,
-    isConnected,
-    lastGmDayData,
-    isPendingLastGm,
-  } = params;
-
-  if (!(address && contractAddress)) {
-    return { hasGmToday: false, gmDisabled: !isConnected, targetSec: 0 };
-  }
-
-  if (lastGmDayData === undefined) {
-    return { hasGmToday: false, gmDisabled: true, targetSec: 0 };
-  }
-
-  const lastDay = Number((lastGmDayData as bigint) ?? 0n);
-  const nowSec = getCurrentTimestampSeconds();
-  const currentDay = timestampToDayNumber(nowSec);
-  const alreadyGmToday = lastDay >= currentDay;
-  const nextDayStartSec = (currentDay + 1) * SECONDS_PER_DAY;
-
-  return {
-    hasGmToday: alreadyGmToday,
-    gmDisabled: alreadyGmToday || isPendingLastGm,
-    targetSec: nextDayStartSec,
-  };
-};
-
-const StatsDisplay = memo(
-  ({
-    stats,
-    isConnected,
-    isStatsReady,
-  }: {
-    stats: GmStats;
-    isConnected: boolean;
-    isStatsReady: boolean;
-  }) => {
-    if (!(isConnected && stats)) {
-      return (
-        <div className="text-muted-foreground text-xs">
-          Connect wallet to see stats
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-3 gap-3 text-center">
-        <StatColumn
-          label="Current"
-          value={isStatsReady ? stats.currentStreak : undefined}
-        />
-        <StatColumn
-          label="Highest"
-          value={isStatsReady ? stats.highestStreak : undefined}
-        />
-        <StatColumn
-          label="All-Time"
-          value={isStatsReady ? stats.allTimeGmCount : undefined}
-        />
-      </div>
-    );
-  }
-);
-
-const StatColumn = memo(
-  ({ value, label }: { value: number | undefined; label: string }) => (
-    <div className="flex flex-col items-center gap-1">
-      <span className="font-bold text-2xl tracking-tight">
-        {value !== undefined ? value : <Spinner className="inline h-6 w-6" />}
-      </span>
-      <span className="font-medium text-muted-foreground text-xs">{label}</span>
-    </div>
-  )
-);
+import { StatsDisplay } from "./stats-display";
+import { useGMChainCardLogic } from "./use-gm-chain-card-logic";
 
 export type GMChainCardProps = {
   chainId: number;
@@ -130,7 +26,6 @@ export type GMChainCardProps = {
     hasGmToday: boolean;
     targetSec: number;
   }) => void;
-  sponsored: boolean;
   stats: GmStats;
   isStatsReady: boolean;
   onOpenModal?: (refetch: () => Promise<unknown>) => void;
@@ -148,51 +43,22 @@ export const GMChainCard = memo(
     isStatsReady,
     onOpenModal,
   }: GMChainCardProps) => {
-    const { chainId: currentChainId } = useAppKitNetwork();
-    const numericChainId = normalizeChainId(currentChainId);
-    const onCorrectChain = numericChainId === chainId;
-
     const {
-      data: lastGmDayData,
-      isPending: isPendingLastGm,
-      refetch: refetchLastGmDay,
-    } = useReadContract({
-      chainId: chainId as typeof base.id | typeof celo.id | typeof optimism.id,
-      abi: dailyGMAbi,
-      address: contractAddress,
-      functionName: "lastGMDay",
-      args: address ? [address as Address] : undefined,
-      query: { enabled: Boolean(address && contractAddress) },
+      onCorrectChain,
+      hasGmToday,
+      gmDisabled,
+      targetSec,
+      chainBtnClasses,
+      chainIconName,
+      handleOpenModal,
+    } = useGMChainCardLogic({
+      chainId,
+      contractAddress,
+      isConnected,
+      address,
+      onStatusChange,
+      onOpenModal,
     });
-
-    const { hasGmToday, gmDisabled, targetSec } = useMemo(
-      () =>
-        computeGMState({
-          address,
-          contractAddress,
-          isConnected,
-          lastGmDayData,
-          isPendingLastGm,
-        }),
-      [address, contractAddress, isConnected, lastGmDayData, isPendingLastGm]
-    );
-
-    useEffect(() => {
-      onStatusChange?.({ chainId, hasGmToday, targetSec });
-    }, [chainId, hasGmToday, targetSec, onStatusChange]);
-
-    const chainBtnClasses = useMemo(
-      () => getChainBtnClasses(chainId),
-      [chainId]
-    );
-
-    const chainIconName = useMemo(() => getChainIconName(chainId), [chainId]);
-
-    const handleOpenModal = useCallback(() => {
-      if (onOpenModal) {
-        onOpenModal(refetchLastGmDay);
-      }
-    }, [onOpenModal, refetchLastGmDay]);
 
     return (
       <Item variant="outline">
@@ -232,3 +98,5 @@ export const GMChainCard = memo(
     );
   }
 );
+
+GMChainCard.displayName = "GMChainCard";

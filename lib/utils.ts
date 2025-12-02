@@ -195,8 +195,24 @@ export function isDomainFormat(input: string): boolean {
 }
 
 /**
- * Normalize an Ethereum address to lowercase
+ * Performs shallow comparison of two objects by checking if any key's value differs or if the set of keys differs.
+ * Returns true if prev is null/undefined or if any property value has changed or if keys were added/removed.
  */
+export function hasChanged<T extends Record<string, unknown>>(
+  prev: T | null | undefined,
+  current: T
+): boolean {
+  if (!prev) {
+    return true;
+  }
+  const currentKeys = Object.keys(current);
+  const prevKeys = Object.keys(prev);
+  if (currentKeys.length !== prevKeys.length) {
+    return true;
+  }
+  return currentKeys.some((key) => prev[key] !== current[key]);
+}
+
 export function normalizeAddress(address?: string | null): string | null {
   return address?.toLowerCase() ?? null;
 }

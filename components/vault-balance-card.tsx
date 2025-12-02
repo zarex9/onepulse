@@ -1,16 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRewardVaultStatus } from "@/hooks/use-degen-claim";
 import { Icons } from "./icons";
+import { useVaultBalanceLogic } from "./vault-balance-card/use-vault-balance-logic";
 
 export function VaultBalanceCard() {
-  const { available, isPending } = useRewardVaultStatus();
-
-  const formatBalance = (value: bigint) =>
-    (Number(value) / 1e18).toLocaleString(undefined, {
-      maximumFractionDigits: 2,
-    });
+  const { available, isPending, formatBalance } = useVaultBalanceLogic();
 
   return (
     <Card className="border-border/50">

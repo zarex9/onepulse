@@ -1,7 +1,7 @@
 "use client";
 
 import { Share2 } from "lucide-react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { GmStats } from "@/hooks/use-gm-stats";
-import { shouldShowShareButton } from "@/lib/share";
+import { CountdownValue } from "./countdown-value";
+import { useCongratsDialogLogic } from "./use-congrats-dialog-logic";
 
 type CongratsDialogProps = {
   open: boolean;
@@ -35,16 +36,12 @@ export const CongratsDialog = memo(
     onShare,
     gmStats,
   }: CongratsDialogProps) => {
-    const handleClose = useCallback(() => {
-      onOpenChange(false);
-    }, [onOpenChange]);
-
-    const handleShare = useCallback(() => {
-      handleClose();
-      onShare?.();
-    }, [handleClose, onShare]);
-
-    const showShareButton = shouldShowShareButton(gmStats);
+    const { handleClose, handleShare, showShareButton } =
+      useCongratsDialogLogic({
+        onOpenChange,
+        onShare,
+        gmStats,
+      });
 
     return (
       <Dialog onOpenChange={onOpenChange} open={open}>
@@ -58,7 +55,7 @@ export const CongratsDialog = memo(
 
           <div className="py-2">
             <p>
-              You already completed GM on all chains, comeback in{" "}
+              You already completed GM on all chains, come back in{" "}
               <CountdownValue targetSec={nextTargetSec} /> to continue your
               streaks!
             </p>
@@ -85,28 +82,4 @@ export const CongratsDialog = memo(
   }
 );
 
-const CountdownValue = memo(({ targetSec }: { targetSec: number }) => {
-  const [text, setText] = useState("--:--:--");
-  useEffect(() => {
-    if (!targetSec) {
-      return;
-    }
-    const format = (ms: number) => {
-      const total = Math.max(0, Math.floor(ms / 1000));
-      const h = Math.floor(total / 3600);
-      const m = Math.floor((total % 3600) / 60);
-      const s = total % 60;
-      const pad = (n: number) => String(n).padStart(2, "0");
-      return `${pad(h)}:${pad(m)}:${pad(s)}`;
-    };
-    const update = () => {
-      const nowSec = Math.floor(Date.now() / 1000);
-      const ms = Math.max(0, (targetSec - nowSec) * 1000);
-      setText(format(ms));
-    };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, [targetSec]);
-  return <>{text}</>;
-});
+CongratsDialog.displayName = "CongratsDialog";

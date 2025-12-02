@@ -1,28 +1,13 @@
 "use client";
 
-import { useConnection } from "@/hooks/use-connection";
+import { useConnectionStatusLogic } from "./connection-status-indicator/use-connection-status-logic";
 
 /**
  * Component to display SpacetimeDB connection status and reconnection state.
  * This demonstrates the RES-004 automatic reconnection feature.
  */
 export function ConnectionStatusIndicator() {
-  const connection = useConnection();
-
-  const getStatusInfo = () => {
-    if (connection.isConnected) {
-      return { className: "bg-green-500", text: "Connected" };
-    }
-    if (connection.isReconnecting) {
-      return {
-        className: "animate-pulse bg-yellow-500",
-        text: "Reconnecting...",
-      };
-    }
-    return { className: "bg-red-500", text: "Disconnected" };
-  };
-
-  const statusInfo = getStatusInfo();
+  const { connection, statusInfo } = useConnectionStatusLogic();
 
   return (
     <div className="fixed right-4 bottom-4 rounded-lg border bg-background p-4 shadow-lg">

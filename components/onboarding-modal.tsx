@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useOnboardingModalLogic } from "./onboarding-modal/use-onboarding-modal-logic";
 
 type OnboardingModalProps = {
   open: boolean;
@@ -21,10 +22,7 @@ type OnboardingModalProps = {
 
 export const OnboardingModal = memo(
   ({ open, onClose, canSave, onSave }: OnboardingModalProps) => {
-    const handleSaveAndClose = useCallback(() => {
-      onSave?.();
-      onClose();
-    }, [onSave, onClose]);
+    const { handleSaveAndClose } = useOnboardingModalLogic(onClose, onSave);
 
     return (
       <Dialog onOpenChange={(val) => !val && onClose()} open={open}>

@@ -6,13 +6,12 @@ import {
   TransactionSponsor,
 } from "@coinbase/onchainkit/transaction";
 import { memo } from "react";
-import { type Address, isAddress } from "viem";
 import { ProcessingMirror } from "@/components/gm-chain-card/processing-mirror";
 import { SuccessReporter } from "@/components/gm-chain-card/success-reporter";
 import { TransactionToast } from "@/components/transaction-toast";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { dailyGMAbi } from "@/lib/abi/daily-gm";
+import { useGMTransactionLogic } from "./use-gm-transaction-logic";
 
 type GMTransactionProps = {
   chainId: number;
@@ -46,35 +45,13 @@ export const GMTransaction = memo(
     onClose,
     setProcessing,
   }: GMTransactionProps) => {
-    const getCalls = () => {
-      if (transactionType === "gm") {
-        return [
-          {
-            abi: dailyGMAbi,
-            address: contractAddress,
-            functionName: "gm" as const,
-          },
-        ];
-      }
+    const { calls, hasCalls } = useGMTransactionLogic({
+      contractAddress,
+      transactionType,
+      recipient,
+    });
 
-      const hasValidRecipient = recipient && isAddress(recipient);
-      if (transactionType !== "gmTo" || !hasValidRecipient) {
-        return [];
-      }
-
-      return [
-        {
-          abi: dailyGMAbi,
-          address: contractAddress,
-          functionName: "gmTo" as const,
-          args: [recipient as Address],
-        },
-      ];
-    };
-
-    const calls = getCalls();
-
-    if (!calls.length) {
+    if (!hasCalls) {
       return null;
     }
 
@@ -105,7 +82,7 @@ export const GMTransaction = memo(
                 chainId={chainId}
                 onReported={onClose}
                 refetchLastGmDay={refetchLastGmDay}
-                status={String(status)}
+                status={status}
                 txHash={context?.transactionHash}
               />
             </>

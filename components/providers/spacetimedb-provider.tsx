@@ -1,22 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
 import { SpacetimeDBProvider as Provider } from "spacetimedb/react";
-import { getConnectionBuilder } from "@/lib/spacetimedb/connection-factory";
+import { useSpacetimeDBProviderLogic } from "./use-spacetimedb-provider-logic";
 
 export const SpacetimeDBProvider = ({ children }: { children: ReactNode }) => {
-  const [connectionBuilder, setConnectionBuilder] = useState<ReturnType<
-    typeof getConnectionBuilder
-  > | null>(null);
-
-  useEffect(() => {
-    // Only create connection builder on client side
-    if (typeof window !== "undefined") {
-      const builder = getConnectionBuilder();
-      setConnectionBuilder(builder);
-    }
-  }, []);
+  const { connectionBuilder } = useSpacetimeDBProviderLogic();
 
   // Render children without provider until connection builder is ready
   if (!connectionBuilder) {

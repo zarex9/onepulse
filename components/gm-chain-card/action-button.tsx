@@ -1,17 +1,10 @@
 "use client";
 
-import { useAppKitNetwork } from "@reown/appkit/react";
-import { memo, type ReactNode, useCallback, useMemo } from "react";
+import { memo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
-import { useAsyncOperation } from "@/hooks/use-async-operation";
-import {
-  ERROR_MESSAGES,
-  LOADING_MESSAGES,
-  SUCCESS_MESSAGES,
-} from "@/lib/error-handling";
-import { networks } from "@/lib/wagmi";
+import { useActionButtonLogic } from "./use-action-button-logic";
 
 type ActionButtonProps = {
   isConnected: boolean;
@@ -39,36 +32,11 @@ export const ActionButton = memo(
     onOpenModal,
     renderCountdown,
   }: ActionButtonProps) => {
-    const { switchNetwork } = useAppKitNetwork();
-    const targetNetwork = useMemo(
-      () => networks.find((net) => net.id === chainId),
-      [chainId]
-    );
-
-    const op = useCallback(() => {
-      if (!targetNetwork) {
-        return Promise.reject(new Error(`Network ${chainId} not supported`));
-      }
-      return switchNetwork(targetNetwork);
-    }, [switchNetwork, targetNetwork, chainId]);
-
-    const options = useMemo(
-      () => ({
-        loadingMessage: LOADING_MESSAGES.NETWORK_SWITCHING,
-        successMessage: SUCCESS_MESSAGES.NETWORK_SWITCHED,
-        errorMessage: ERROR_MESSAGES.NETWORK_SWITCH,
-        context: { operation: "network-switch", chainId },
-      }),
-      [chainId]
-    );
-
-    const { execute: doSwitch, isLoading } = useAsyncOperation(op, options);
-
-    const handleOpenModal = useCallback(() => {
-      if (!gmDisabled) {
-        onOpenModal();
-      }
-    }, [gmDisabled, onOpenModal]);
+    const { doSwitch, isLoading, handleOpenModal } = useActionButtonLogic({
+      chainId,
+      gmDisabled,
+      onOpenModal,
+    });
 
     if (!isConnected) {
       return (
@@ -116,3 +84,4 @@ export const ActionButton = memo(
     );
   }
 );
+ActionButton.displayName = "ActionButton";
