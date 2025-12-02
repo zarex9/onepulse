@@ -75,6 +75,7 @@ export function WrongNetworkCard() {
       title="Switch to Base"
     >
       <Button
+        aria-busy={isSwitching}
         className="bg-blue-600 text-white hover:bg-blue-700"
         disabled={isSwitching}
         onClick={handleSwitchToBase}
