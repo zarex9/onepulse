@@ -1,80 +1,22 @@
-import { createClient, Errors } from "@farcaster/quick-auth";
 import { type NextRequest, NextResponse } from "next/server";
-
-const client = createClient();
-
-// Helper function to determine the correct domain for JWT verification
-function getUrlHost(request: NextRequest): string {
-  // First try to get the origin from the Origin header (most reliable for CORS requests)
-  const origin = request.headers.get("origin");
-  if (origin) {
-    try {
-      const url = new URL(origin);
-      return url.host;
-    } catch (error) {
-      console.warn("Invalid origin header:", origin, error);
-    }
-  }
-
-  // Fallback to Host header
-  const host = request.headers.get("host");
-  if (host) {
-    return host;
-  }
-
-  // Final fallback to environment variables (your original logic)
-  let urlValue: string;
-  if (process.env.VERCEL_ENV === "production") {
-    urlValue =
-      process.env.NEXT_PUBLIC_URL || "https://onepulse-ruby.vercel.app";
-  } else if (process.env.VERCEL_URL) {
-    urlValue = `https://${process.env.VERCEL_URL}`;
-  } else {
-    urlValue = "http://localhost:3000";
-  }
-
-  const url = new URL(urlValue);
-  return url.host;
-}
+import { verifyQuickAuth } from "@/lib/quick-auth";
 
 export async function GET(request: NextRequest) {
-  // Because we're fetching this endpoint via `sdk.quickAuth.fetch`,
-  // if we're in a mini app, the request will include the necessary `Authorization` header.
-  const authorization = request.headers.get("Authorization");
+  const result = await verifyQuickAuth(request);
 
-  // Here we ensure that we have a valid token.
-  if (!authorization?.startsWith("Bearer ")) {
-    return NextResponse.json({ message: "Missing token" }, { status: 401 });
+  if (!result.success) {
+    return NextResponse.json(
+      { message: result.error },
+      { status: result.status }
+    );
   }
 
-  try {
-    // Now we verify the token. `domain` must match the domain of the request.
-    // In our case, we're using the `getUrlHost` function to get the domain of the request
-    // based on the Vercel environment. This will vary depending on your hosting provider.
-    const payload = await client.verifyJwt({
-      token: authorization.split(" ")[1] as string,
-      domain: getUrlHost(request),
-    });
-
-    // If the token was valid, `payload.sub` will be the user's Farcaster ID.
-    const userFid = payload.sub;
-
-    // Return user information for your waitlist application
-    return NextResponse.json({
-      success: true,
-      user: {
-        fid: userFid,
-        issuedAt: payload.iat,
-        expiresAt: payload.exp,
-      },
-    });
-  } catch (e) {
-    if (e instanceof Errors.InvalidTokenError) {
-      return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-    }
-    if (e instanceof Error) {
-      return NextResponse.json({ message: e.message }, { status: 500 });
-    }
-    throw e;
-  }
+  return NextResponse.json({
+    success: true,
+    user: {
+      fid: result.fid,
+      issuedAt: result.issuedAt,
+      expiresAt: result.expiresAt,
+    },
+  });
 }
