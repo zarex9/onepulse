@@ -1,5 +1,6 @@
 "use client";
 
+import { SafeArea } from "@coinbase/onchainkit/minikit";
 import type { ReactNode } from "react";
 import type { State } from "wagmi";
 import { ColorSchemeSync } from "@/components/providers/color-scheme-sync";
@@ -9,7 +10,6 @@ import QueryClientProvider from "@/components/providers/query-client-provider";
 import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { WagmiProvider } from "@/components/providers/wagmi-provider";
-import { SafeAreaProvider } from "@/components/safe-area-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export function RootProvider({
@@ -31,12 +31,12 @@ export function RootProvider({
           <OnchainKitProvider>
             <MiniAppProvider>
               <SpacetimeDBProvider>
-                <SafeAreaProvider>
+                <SafeArea>
                   <TooltipProvider delayDuration={0}>
                     {children}
                   </TooltipProvider>
                   <ColorSchemeSync />
-                </SafeAreaProvider>
+                </SafeArea>
               </SpacetimeDBProvider>
             </MiniAppProvider>
           </OnchainKitProvider>
