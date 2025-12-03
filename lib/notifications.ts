@@ -21,11 +21,13 @@ export async function sendMiniAppNotification({
   appFid,
   title,
   body,
+  notificationId,
 }: {
   fid: number;
   appFid: number;
   title: string;
   body: string;
+  notificationId?: string;
 }): Promise<sendMiniAppNotificationResult> {
   const notificationDetails = await getUserNotificationDetails(fid, appFid);
   if (!notificationDetails) {
@@ -38,7 +40,7 @@ export async function sendMiniAppNotification({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      notificationId: crypto.randomUUID(),
+      notificationId: notificationId ?? crypto.randomUUID(),
       title,
       body,
       targetUrl: appUrl,

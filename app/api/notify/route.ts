@@ -5,13 +5,14 @@ import { sendMiniAppNotification } from "@/lib/notifications";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fid, appFid, notification } = body;
+    const { fid, appFid, notification, notificationId } = body;
 
     const result = await sendMiniAppNotification({
       fid,
       appFid,
       title: notification.title,
       body: notification.body,
+      notificationId,
     });
 
     if (result.state === "error") {
