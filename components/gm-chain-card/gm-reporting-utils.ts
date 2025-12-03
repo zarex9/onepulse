@@ -1,4 +1,3 @@
-import { sdk } from "@farcaster/miniapp-sdk";
 import type { QueryClient } from "@tanstack/react-query";
 import type { MiniAppUser } from "@/components/providers/miniapp-provider";
 import { gmStatsByAddressStore } from "@/stores/gm-store";
@@ -7,38 +6,30 @@ export async function reportToApi({
   address,
   chainId,
   txHash,
+  fid,
   displayName,
   username,
-  inMiniApp = false,
 }: {
   address: string;
   chainId: number;
   txHash?: string;
+  fid?: number;
   displayName?: string;
   username?: string;
-  inMiniApp?: boolean;
 }) {
   try {
-    const body = JSON.stringify({
-      address,
-      chainId,
-      txHash,
-      displayName,
-      username,
-    });
-
-    const fetchOptions = {
+    await fetch("/api/gm/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body,
-    };
-
-    // Use Quick Auth fetch when in mini app to securely pass verified FID
-    if (inMiniApp) {
-      await sdk.quickAuth.fetch("/api/gm/report", fetchOptions);
-    } else {
-      await fetch("/api/gm/report", fetchOptions);
-    }
+      body: JSON.stringify({
+        address,
+        chainId,
+        txHash,
+        fid,
+        displayName,
+        username,
+      }),
+    });
   } catch {
     // Report failure handled silently
   }
@@ -75,27 +66,30 @@ export async function performGmReporting({
   chainId,
   txHash,
   user,
+  verifiedFid,
   queryClient,
   refetchLastGmDay,
   onReported,
-  inMiniApp = false,
 }: {
   address: string;
   chainId: number;
   txHash?: string;
   user: MiniAppUser | undefined;
+  verifiedFid?: number;
   queryClient: QueryClient;
   refetchLastGmDay?: () => Promise<unknown>;
   onReported?: () => void;
-  inMiniApp?: boolean;
 }) {
+  // Use verified FID if available, otherwise fall back to context user FID
+  const fid = verifiedFid ?? user?.fid;
+
   await reportToApi({
     address,
     chainId,
     txHash,
+    fid,
     displayName: user?.displayName,
     username: user?.username,
-    inMiniApp,
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
