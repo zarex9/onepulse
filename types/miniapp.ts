@@ -92,4 +92,5 @@ export type MiniAppContext = {
   client: ClientContext;
   location?: LocationContext;
   features?: ClientFeatures;
+  verifiedFid?: number; // FID verified via Quick Auth
 };
