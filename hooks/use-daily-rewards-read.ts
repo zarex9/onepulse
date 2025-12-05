@@ -3,12 +3,6 @@ import { useReadContracts } from "wagmi";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { getDailyRewardsAddress } from "@/lib/utils";
 
-type VaultStatus = {
-  currentBalance: bigint;
-  minReserve: bigint;
-  availableForClaims: bigint;
-};
-
 export function useDailyRewardsRead() {
   const contractAddress = getDailyRewardsAddress(base.id) as `0x${string}`;
 
@@ -62,7 +56,16 @@ export function useDailyRewardsRead() {
     },
   });
 
-  const vaultStatus = data?.[0]?.result as VaultStatus | undefined;
+  const vaultStatusArray = data?.[0]?.result as
+    | [bigint, bigint, bigint]
+    | undefined;
+  const vaultStatus = vaultStatusArray
+    ? {
+        currentBalance: vaultStatusArray[0],
+        minReserve: vaultStatusArray[1],
+        availableForClaims: vaultStatusArray[2],
+      }
+    : undefined;
   const claimRewardAmount = data?.[1]?.result as bigint | undefined;
   const minVaultBalance = data?.[2]?.result as bigint | undefined;
   const dailyGMContract = data?.[3]?.result as `0x${string}` | undefined;
