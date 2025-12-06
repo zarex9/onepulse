@@ -213,7 +213,6 @@ function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
           position: "relative",
         }}
       >
-        {/* Header Label */}
         <div
           style={{
             display: "flex",
