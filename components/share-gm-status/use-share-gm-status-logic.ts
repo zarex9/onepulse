@@ -1,16 +1,13 @@
 import { useGMSharing } from "@/hooks/use-gm-sharing";
-import type { GmStats } from "@/hooks/use-gm-stats";
 import { useShareActions } from "@/hooks/use-share-actions";
 
 export function useShareGMStatusLogic(
   claimedToday: boolean,
-  completedAllChains: boolean,
-  gmStats?: GmStats
+  completedAllChains: boolean
 ) {
   const { shareText, shareUrl } = useGMSharing(
     claimedToday,
-    completedAllChains,
-    gmStats
+    completedAllChains
   );
   const { shareToCast, shareToClipboard } = useShareActions();
 
