@@ -1,10 +1,39 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
+import { isAddress } from "viem";
 
 export const runtime = "edge";
 
+function formatAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 function parseGMStatusParams(searchParams: URLSearchParams) {
+  const address = searchParams.get("address");
   const chainsParam = searchParams.get("chains");
+
+  // If address is provided, use formatted address as display
+  if (address && isAddress(address)) {
+    const formattedAddress = formatAddress(address);
+    const chains = chainsParam
+      ? chainsParam.split(",").map((c) => {
+          const [name, count] = c.split(":");
+          return {
+            name: name ? decodeURIComponent(name) : "Unknown",
+            count: Number.parseInt(count || "0", 10),
+          };
+        })
+      : [];
+
+    return {
+      displayName: formattedAddress,
+      username: formattedAddress,
+      pfp: null,
+      chains,
+    };
+  }
+
+  // Fallback to legacy parameter format
   const chains = chainsParam
     ? chainsParam.split(",").map((c) => {
         const [name, count] = c.split(":");
@@ -209,7 +238,7 @@ function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
           background: "#f8fafc",
           border: "1px solid #e2e8f0",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.1)",
-          padding: 48,
+          padding: "48px 96px",
           position: "relative",
         }}
       >
