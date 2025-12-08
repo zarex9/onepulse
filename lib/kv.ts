@@ -10,6 +10,16 @@ function getUserNotificationDetailsKey(fid: number, appFid: number): string {
   return `onepulse:user:${appFid}:${fid}`;
 }
 
+export type UserShareData = {
+  username: string;
+  displayName: string;
+  pfp?: string;
+};
+
+function getUserShareDataKey(address: string): string {
+  return `onepulse:share:${address.toLowerCase()}`;
+}
+
 export async function getUserNotificationDetails(
   fid: number,
   appFid: number
@@ -35,4 +45,17 @@ export async function deleteUserNotificationDetails(
   appFid: number
 ): Promise<void> {
   await redis.del(getUserNotificationDetailsKey(fid, appFid));
+}
+
+export async function setUserShareData(
+  address: string,
+  data: UserShareData
+): Promise<void> {
+  await redis.set(getUserShareDataKey(address), data, { ex: 86_400 }); // 24 hour TTL
+}
+
+export async function getUserShareData(
+  address: string
+): Promise<UserShareData | null> {
+  return await redis.get<UserShareData>(getUserShareDataKey(address));
 }
