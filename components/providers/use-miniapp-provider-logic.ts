@@ -9,9 +9,13 @@ type MiniAppProviderContextType = {
   verifiedFid: number | undefined;
 } | null;
 
-async function verifyFidWithQuickAuth(): Promise<number | undefined> {
+async function verifyFidWithQuickAuth(
+  token: string | null
+): Promise<number | undefined> {
   try {
-    const response = await sdk.quickAuth.fetch("/api/auth");
+    const response = await sdk.quickAuth.fetch("/api/auth", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!response.ok) {
       return;
     }
@@ -21,6 +25,15 @@ async function verifyFidWithQuickAuth(): Promise<number | undefined> {
     }
   } catch {
     // Quick Auth verification failed, continue without verified FID
+  }
+}
+
+async function getToken(): Promise<string | null> {
+  try {
+    const { token } = await sdk.quickAuth.getToken();
+    return token;
+  } catch {
+    return null;
   }
 }
 
@@ -34,7 +47,11 @@ export function useMiniAppProviderLogic() {
       try {
         const inMiniApp = await sdk.isInMiniApp();
 
-        const verifiedFid = await verifyFidWithQuickAuth();
+        // Get token first, then use it immediately
+        const authJWT = await getToken();
+
+        // Pass the newly fetched token, not the state value
+        const verifiedFid = await verifyFidWithQuickAuth(authJWT);
 
         setMiniAppContext({
           context: context as unknown as MiniAppContext,

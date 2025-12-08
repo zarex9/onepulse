@@ -63,12 +63,12 @@ export async function verifyQuickAuth(
     };
   }
 
-  try {
-    const token = authorization.split(" ")[1];
-    if (!token) {
-      return { success: false, error: "Missing token", status: 401 };
-    }
+  const token = authorization.split(" ")[1];
+  if (!token) {
+    return { success: false, error: "Missing token", status: 401 };
+  }
 
+  try {
     const payload = await client.verifyJwt({
       token,
       domain: getUrlHost(request),
