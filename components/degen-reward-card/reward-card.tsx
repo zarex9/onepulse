@@ -3,7 +3,6 @@
 import { DegenClaimTransaction } from "@/components/gm-chain-card/degen-claim-transaction";
 import { ShareModal } from "@/components/share-modal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useGmStats } from "@/hooks/use-gm-stats";
 import { type ClaimState, getStatusConfig } from "./utils";
 
 type RewardCardProps = {
@@ -32,11 +31,8 @@ export function RewardCard({
   isShareModalOpen,
   onClaimSuccessAction,
   onShareModalCloseAction,
-  address,
-  chainId,
 }: RewardCardProps) {
   const config = getStatusConfig(state);
-  const { stats } = useGmStats(address, chainId);
 
   return (
     <>
@@ -83,7 +79,6 @@ export function RewardCard({
       <ShareModal
         claimedToday={hasClaimedToday}
         description="You've claimed your daily DEGEN rewards! Share your achievement with the community."
-        gmStats={stats}
         onOpenChange={onShareModalCloseAction}
         open={isShareModalOpen}
         title="Rewards Claimed! 🎉"
