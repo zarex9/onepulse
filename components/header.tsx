@@ -73,7 +73,6 @@ export const Header = memo(
 
         <ShareModal
           completedAllChains={completedAllChains}
-          gmStats={gmStats}
           onOpenChange={onShareModalOpenChangeAction}
           open={isShareModalOpen}
         />
