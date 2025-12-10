@@ -35,7 +35,8 @@ export function useDegenClaimTransactionLogic({
     isPending: isEligibilityPending,
     refetch: refetchEligibility,
     scoreCheckPassed,
-    userScore,
+    currentStreak,
+    streakCheckPassed,
   } = useClaimEligibility({ fid });
 
   const getClaimContracts = useClaimContracts({
@@ -66,7 +67,8 @@ export function useDegenClaimTransactionLogic({
     hasSentGMToday,
     canClaim,
     scoreCheckPassed,
-    userScore,
+    currentStreak,
+    streakCheckPassed,
   });
 
   return {

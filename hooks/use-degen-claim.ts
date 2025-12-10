@@ -6,6 +6,7 @@ import { useReadContract } from "wagmi";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { BASE_CHAIN_ID } from "@/lib/constants";
 import { getDailyRewardsAddress } from "@/lib/utils";
+import { useGmStats } from "./use-gm-stats";
 import { useScore } from "./use-score";
 
 type UseClaimEligibilityProps = {
@@ -25,6 +26,7 @@ type ClaimEligibility = {
 };
 
 const SCORE_THRESHOLD = 0.55;
+const MIN_STREAK_FOR_LOW_SCORE = 3;
 const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
 const REFETCH_ELIGIBILITY_MS = 60_000; // 60 seconds
 const REFETCH_VAULT_MS = 120_000; // 120 seconds
@@ -32,15 +34,34 @@ const REFETCH_VAULT_MS = 120_000; // 120 seconds
 function formatClaimEligibility(
   claimStatus: ClaimEligibility | undefined,
   scoreCheckPassed: boolean,
-  userScore: number
+  userScore: number,
+  currentStreak: number
 ) {
+  // High score: can claim normally
+  if (scoreCheckPassed) {
+    return {
+      claimStatus: claimStatus as ClaimEligibility | undefined,
+      canClaim: claimStatus?.ok ?? false,
+      reward: claimStatus?.reward ?? 0n,
+      vaultBalance: claimStatus?.vaultBalance ?? 0n,
+      userScore,
+      scoreCheckPassed,
+      currentStreak,
+      streakCheckPassed: true,
+    };
+  }
+
+  // Low score: need streak >= 3 to claim
+  const streakCheckPassed = currentStreak >= MIN_STREAK_FOR_LOW_SCORE;
   return {
     claimStatus: claimStatus as ClaimEligibility | undefined,
-    canClaim: (claimStatus?.ok ?? false) && scoreCheckPassed,
+    canClaim: (claimStatus?.ok ?? false) && streakCheckPassed,
     reward: claimStatus?.reward ?? 0n,
     vaultBalance: claimStatus?.vaultBalance ?? 0n,
     userScore,
     scoreCheckPassed,
+    currentStreak,
+    streakCheckPassed,
   };
 }
 
@@ -85,6 +106,10 @@ export function useClaimEligibility({
   const userScore = score?.[0]?.score ?? 0;
   const scoreCheckPassed = userScore > SCORE_THRESHOLD;
 
+  // Fetch user's GM stats to get current streak
+  const { stats: gmStats } = useGmStats(address, BASE_CHAIN_ID);
+  const currentStreak = gmStats?.currentStreak ?? 0;
+
   const {
     data: claimStatus,
     isPending,
@@ -102,7 +127,12 @@ export function useClaimEligibility({
   });
 
   return {
-    ...formatClaimEligibility(claimStatus, scoreCheckPassed, userScore),
+    ...formatClaimEligibility(
+      claimStatus,
+      scoreCheckPassed,
+      userScore,
+      currentStreak
+    ),
     hasSentGMToday: claimStatus?.hasSentGMToday ?? false,
     isPending: isPending || isScoreLoading,
     isError,
