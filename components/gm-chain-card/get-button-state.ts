@@ -10,7 +10,8 @@ type GetButtonStateParams = {
   hasSentGMToday: boolean;
   canClaim: boolean;
   scoreCheckPassed?: boolean;
-  userScore?: number;
+  currentStreak?: number;
+  streakCheckPassed?: boolean;
 };
 
 /**
@@ -23,7 +24,8 @@ export function getButtonState({
   hasSentGMToday,
   canClaim,
   scoreCheckPassed,
-  userScore,
+  currentStreak,
+  streakCheckPassed,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
@@ -49,11 +51,21 @@ export function getButtonState({
     };
   }
 
-  if (scoreCheckPassed === false) {
+  // Low score but has streak: show streak status
+  if (scoreCheckPassed === false && streakCheckPassed === false) {
     return {
-      label: `Low Score (${userScore?.toFixed(2) ?? "N/A"})`,
+      label: `Build Streak (${currentStreak ?? 0}/3)`,
       disabled: true,
       showFallback: "low-score",
+    };
+  }
+
+  // Low score but meets streak requirement: can claim
+  if (scoreCheckPassed === false && streakCheckPassed === true) {
+    return {
+      label: "Claim Rewards",
+      disabled: false,
+      showFallback: null,
     };
   }
 
