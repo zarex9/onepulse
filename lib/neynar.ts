@@ -18,7 +18,7 @@ const client = new NeynarAPIClient(
 );
 
 export async function getScore(fids: number[]): Promise<ScoreResponse> {
-    try {
+  try {
     const response = await client.fetchBulkUsers({ fids });
     return {
       users: response.users.map((user) => ({
