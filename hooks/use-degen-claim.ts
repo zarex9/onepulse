@@ -6,6 +6,7 @@ import { useReadContract } from "wagmi";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { BASE_CHAIN_ID } from "@/lib/constants";
 import { getDailyRewardsAddress } from "@/lib/utils";
+import { useScore } from "./use-score";
 
 type UseClaimEligibilityProps = {
   fid: bigint | undefined;
@@ -23,16 +24,23 @@ type ClaimEligibility = {
   minReserve: bigint;
 };
 
+const SCORE_THRESHOLD = 0.55;
 const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
 const REFETCH_ELIGIBILITY_MS = 60_000; // 60 seconds
 const REFETCH_VAULT_MS = 120_000; // 120 seconds
 
-function formatClaimEligibility(claimStatus: ClaimEligibility | undefined) {
+function formatClaimEligibility(
+  claimStatus: ClaimEligibility | undefined,
+  scoreCheckPassed: boolean,
+  userScore: number
+) {
   return {
     claimStatus: claimStatus as ClaimEligibility | undefined,
-    canClaim: claimStatus?.ok ?? false,
+    canClaim: (claimStatus?.ok ?? false) && scoreCheckPassed,
     reward: claimStatus?.reward ?? 0n,
     vaultBalance: claimStatus?.vaultBalance ?? 0n,
+    userScore,
+    scoreCheckPassed,
   };
 }
 
@@ -70,6 +78,13 @@ export function useClaimEligibility({
     contractAddress
   );
 
+  // Fetch user's Neynar score
+  const { score, isLoading: isScoreLoading } = useScore(
+    fid ? Number(fid) : undefined
+  );
+  const userScore = score?.[0]?.score ?? 0;
+  const scoreCheckPassed = userScore > SCORE_THRESHOLD;
+
   const {
     data: claimStatus,
     isPending,
@@ -87,9 +102,9 @@ export function useClaimEligibility({
   });
 
   return {
-    ...formatClaimEligibility(claimStatus),
+    ...formatClaimEligibility(claimStatus, scoreCheckPassed, userScore),
     hasSentGMToday: claimStatus?.hasSentGMToday ?? false,
-    isPending,
+    isPending: isPending || isScoreLoading,
     isError,
     refetch,
   };
