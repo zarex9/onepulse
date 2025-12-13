@@ -38,7 +38,11 @@ export function useDegenRewardCard({
   };
 
   const isSponsored = isSponsoredOnChain(sponsored, numericChainId);
-  const claimState = extractClaimState(claimStatus, hasSentGMToday);
+  const claimState = extractClaimState(
+    claimStatus,
+    hasSentGMToday,
+    dailyClaimsCount
+  );
 
   const isWrongNetwork = numericChainId !== base.id;
   const isDisconnected = !(isConnected && address);
