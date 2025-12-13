@@ -1,7 +1,7 @@
 export type ButtonState = {
   label: string;
   disabled: boolean;
-  showFallback: "wallet" | "gm-first" | null;
+  showFallback: "wallet" | "gm-first" | "limit-reached" | null;
 };
 
 type GetButtonStateParams = {
@@ -9,6 +9,7 @@ type GetButtonStateParams = {
   isEligibilityPending: boolean;
   hasSentGMToday: boolean;
   canClaim: boolean;
+  isDailyLimitReached: boolean;
 };
 
 /**
@@ -20,12 +21,21 @@ export function getButtonState({
   isEligibilityPending,
   hasSentGMToday,
   canClaim,
+  isDailyLimitReached,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
       label: "Connect wallet",
       disabled: true,
       showFallback: "wallet",
+    };
+  }
+
+  if (isDailyLimitReached) {
+    return {
+      label: "Daily Limit Reached",
+      disabled: true,
+      showFallback: "limit-reached",
     };
   }
 
