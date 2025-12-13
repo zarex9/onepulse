@@ -2,6 +2,7 @@ import {
   Bell,
   Bookmark,
   BookOpenText,
+  EllipsisVertical,
   Info,
   Settings,
   Share2,
@@ -106,7 +107,7 @@ export const HeaderRight = memo(
               size="icon"
               variant="ghost"
             >
-              <Settings className="size-4.5" />
+              <EllipsisVertical className="size-4.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
