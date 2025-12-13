@@ -2,12 +2,11 @@
 
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useMemo } from "react";
+import useSWR from "swr";
 import { useReadContract } from "wagmi";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
-import { BASE_CHAIN_ID, SCORE_THRESHOLD } from "@/lib/constants";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { getDailyRewardsAddress } from "@/lib/utils";
-import { useGmStats } from "./use-gm-stats";
-import { useScore } from "./use-score";
 
 type UseClaimEligibilityProps = {
   fid: bigint | undefined;
@@ -25,42 +24,16 @@ type ClaimEligibility = {
   minReserve: bigint;
 };
 
-const MIN_STREAK_FOR_LOW_SCORE = 3;
 const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
 const REFETCH_ELIGIBILITY_MS = 10_000; // 10 seconds (more responsive)
 const REFETCH_VAULT_MS = 120_000; // 120 seconds
 
-function formatClaimEligibility(
-  claimStatus: ClaimEligibility | undefined,
-  scoreCheckPassed: boolean,
-  userScore: number,
-  currentStreak: number
-) {
-  // High score: can claim normally
-  if (scoreCheckPassed) {
-    return {
-      claimStatus: claimStatus as ClaimEligibility | undefined,
-      canClaim: claimStatus?.ok ?? false,
-      reward: claimStatus?.reward ?? 0n,
-      vaultBalance: claimStatus?.vaultBalance ?? 0n,
-      userScore,
-      scoreCheckPassed,
-      currentStreak,
-      streakCheckPassed: true,
-    };
-  }
-
-  // Low score: need streak >= 3 to claim
-  const streakCheckPassed = currentStreak >= MIN_STREAK_FOR_LOW_SCORE;
+function formatClaimEligibility(claimStatus: ClaimEligibility | undefined) {
   return {
     claimStatus: claimStatus as ClaimEligibility | undefined,
-    canClaim: (claimStatus?.ok ?? false) && streakCheckPassed,
+    canClaim: claimStatus?.ok ?? false,
     reward: claimStatus?.reward ?? 0n,
     vaultBalance: claimStatus?.vaultBalance ?? 0n,
-    userScore,
-    scoreCheckPassed,
-    currentStreak,
-    streakCheckPassed,
   };
 }
 
@@ -98,19 +71,6 @@ export function useClaimEligibility({
     contractAddress
   );
 
-  // Fetch user's Neynar score
-  const {
-    score,
-    isLoading: isScoreLoading,
-    mutate: mutateScore,
-  } = useScore(fid ? Number(fid) : undefined);
-  const userScore = score?.[0]?.score ?? 0;
-  const scoreCheckPassed = userScore > SCORE_THRESHOLD;
-
-  // Fetch user's GM stats to get current streak
-  const { stats: gmStats } = useGmStats(address, BASE_CHAIN_ID);
-  const currentStreak = gmStats?.currentStreak ?? 0;
-
   const {
     data: claimStatus,
     isPending,
@@ -129,21 +89,13 @@ export function useClaimEligibility({
 
   // Comprehensive refetch that includes all data sources
   const refetch = async () => {
-    await Promise.all([
-      refetchContract(),
-      mutateScore(), // Refetch score from SWR
-    ]);
+    await Promise.all([refetchContract()]);
   };
 
   return {
-    ...formatClaimEligibility(
-      claimStatus,
-      scoreCheckPassed,
-      userScore,
-      currentStreak
-    ),
+    ...formatClaimEligibility(claimStatus),
     hasSentGMToday: claimStatus?.hasSentGMToday ?? false,
-    isPending: isPending || isScoreLoading,
+    isPending,
     isError,
     refetch,
   };
@@ -182,5 +134,27 @@ export function useRewardVaultStatus() {
     available: vaultStatus?.[2] ?? 0n,
     isPending,
     hasRewards: (vaultStatus?.[2] ?? 0n) > 0n,
+  };
+}
+
+export function useClaimStats() {
+  const { data, error, isLoading } = useSWR<{ count: number }>(
+    "/api/claims/stats",
+    async (url: string) => {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error("Failed to fetch stats");
+      }
+      return res.json();
+    },
+    {
+      refreshInterval: 30_000, // Refresh every 30 seconds
+    }
+  );
+
+  return {
+    count: data?.count ?? 0,
+    isLoading,
+    isError: error,
   };
 }
