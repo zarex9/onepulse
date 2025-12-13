@@ -1,7 +1,7 @@
 export type ButtonState = {
   label: string;
   disabled: boolean;
-  showFallback: "wallet" | "gm-first" | "low-score" | null;
+  showFallback: "wallet" | "gm-first" | null;
 };
 
 type GetButtonStateParams = {
@@ -9,9 +9,6 @@ type GetButtonStateParams = {
   isEligibilityPending: boolean;
   hasSentGMToday: boolean;
   canClaim: boolean;
-  scoreCheckPassed?: boolean;
-  currentStreak?: number;
-  streakCheckPassed?: boolean;
 };
 
 /**
@@ -23,9 +20,6 @@ export function getButtonState({
   isEligibilityPending,
   hasSentGMToday,
   canClaim,
-  scoreCheckPassed,
-  currentStreak,
-  streakCheckPassed,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
@@ -47,24 +41,6 @@ export function getButtonState({
     return {
       label: "Checking eligibility...",
       disabled: true,
-      showFallback: null,
-    };
-  }
-
-  // Low score but has streak: show streak status
-  if (scoreCheckPassed === false && streakCheckPassed === false) {
-    return {
-      label: `Build Streak (${currentStreak ?? 0}/3)`,
-      disabled: true,
-      showFallback: "low-score",
-    };
-  }
-
-  // Low score but meets streak requirement: can claim
-  if (scoreCheckPassed === false && streakCheckPassed === true) {
-    return {
-      label: "Claim Rewards",
-      disabled: false,
       showFallback: null,
     };
   }
