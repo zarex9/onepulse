@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { isAddress } from "viem";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
-import { getUserShareData } from "@/lib/kv";
-import { generateGMStatusOGUrl } from "@/lib/og-utils";
+import { fetchFarcasterUser } from "@/lib/farcaster";
+import { generateSimplifiedGMStatusOGUrl } from "@/lib/og-utils";
 import { getGmRows } from "@/lib/spacetimedb/server-connection";
 import { minikitConfig } from "@/minikit.config";
 
@@ -31,11 +31,15 @@ async function fetchGmStats(address: string) {
         name: getChainName(r.chainId),
         count: r.allTimeGmCount ?? 0,
       }))
-      .filter((c) => c.count > 0);
+      .filter((c) => c.count > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
 
-    return { chains, allTimeGmCount };
+    // Find FID from rows
+    const fid = rows.find((r) => r.fid)?.fid;
+
+    return { chains, allTimeGmCount, fid };
   } catch {
-    return { chains: [], allTimeGmCount: 0 };
+    return { chains: [], allTimeGmCount: 0, fid: undefined };
   }
 }
 
@@ -53,18 +57,18 @@ export async function generateMetadata({
   }
 
   const gmStats = await fetchGmStats(address);
-  const userData = await getUserShareData(address);
 
-  const shortAddress = formatAddress(address);
-  const displayName = userData?.displayName || shortAddress;
-  const username = userData?.username || shortAddress;
-  const pfp = userData?.pfp || undefined;
+  let displayName = formatAddress(address);
 
-  const ogImageUrl = generateGMStatusOGUrl({
-    username,
-    displayName,
-    pfp,
-    chains: gmStats.chains,
+  if (gmStats.fid) {
+    const fcUser = await fetchFarcasterUser(Number(gmStats.fid));
+    if (fcUser) {
+      displayName = fcUser.displayName || fcUser.username || displayName;
+    }
+  }
+
+  const ogImageUrl = generateSimplifiedGMStatusOGUrl({
+    address,
   });
 
   const frame = {
@@ -83,8 +87,8 @@ export async function generateMetadata({
   };
 
   return {
-    title: minikitConfig.miniapp.name,
-    description: minikitConfig.miniapp.description,
+    title: `${displayName} on OnePulse`,
+    description: `Check out ${displayName}'s GM stats on OnePulse`,
     openGraph: {
       images: [ogImageUrl],
     },
@@ -98,10 +102,18 @@ export async function generateMetadata({
 export default async function SharePage({ searchParams }: Props) {
   const sp = await searchParams;
   const address = (sp.address as string) || "";
-  const userData = await getUserShareData(address);
 
-  const shortAddress = formatAddress(address);
-  const displayName = userData?.displayName || shortAddress;
+  let displayName = formatAddress(address);
+
+  if (isAddress(address)) {
+    const gmStats = await fetchGmStats(address);
+    if (gmStats.fid) {
+      const fcUser = await fetchFarcasterUser(Number(gmStats.fid));
+      if (fcUser) {
+        displayName = fcUser.displayName || fcUser.username || displayName;
+      }
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">

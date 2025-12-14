@@ -1,36 +1,65 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { isAddress } from "viem";
+import { SUPPORTED_CHAINS } from "@/lib/constants";
+import { fetchFarcasterUser } from "@/lib/farcaster";
+import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
-export const runtime = "edge";
+function getChainName(chainId: number): string {
+  return SUPPORTED_CHAINS.find((c) => c.id === chainId)?.name || "Unknown";
+}
 
 function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function parseGMStatusParams(searchParams: URLSearchParams) {
+async function getDataFromAddress(address: string) {
+  let displayName = formatAddress(address);
+  let username = formatAddress(address);
+  let pfp: string | null = null;
+  let chains: { name: string; count: number }[] = [];
+
+  try {
+    const rows = await getGmRows(address);
+
+    // Process chains
+    chains = rows
+      .map((r) => ({
+        name: getChainName(r.chainId),
+        count: r.allTimeGmCount ?? 0,
+      }))
+      .filter((c) => c.count > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Find FID and fetch Farcaster profile
+    const fid = rows.find((r) => r.fid)?.fid;
+    if (fid) {
+      const fcUser = await fetchFarcasterUser(Number(fid));
+      if (fcUser) {
+        displayName = fcUser.displayName || fcUser.username || displayName;
+        username = fcUser.username || username;
+        pfp = fcUser.pfp.url || null;
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching GM stats for OG:", error);
+  }
+
+  return {
+    displayName,
+    username,
+    pfp,
+    chains,
+  };
+}
+
+async function fetchGMStatusParams(searchParams: URLSearchParams) {
   const address = searchParams.get("address");
   const chainsParam = searchParams.get("chains");
 
-  // If address is provided, use formatted address as display
+  // If address is provided, fetch data from SpacetimeDB and Farcaster
   if (address && isAddress(address)) {
-    const formattedAddress = formatAddress(address);
-    const chains = chainsParam
-      ? chainsParam.split(",").map((c) => {
-          const [name, count] = c.split(":");
-          return {
-            name: name ? decodeURIComponent(name) : "Unknown",
-            count: Number.parseInt(count || "0", 10),
-          };
-        })
-      : [];
-
-    return {
-      displayName: formattedAddress,
-      username: formattedAddress,
-      pfp: null,
-      chains,
-    };
+    return await getDataFromAddress(address);
   }
 
   // Fallback to legacy parameter format
@@ -209,7 +238,9 @@ function generateGmStats(chains: { name: string; count: number }[]) {
   );
 }
 
-function generateMainOGImage(params: ReturnType<typeof parseGMStatusParams>) {
+function generateMainOGImage(
+  params: Awaited<ReturnType<typeof fetchGMStatusParams>>
+) {
   const { displayName, username, pfp, chains } = params;
 
   return (
@@ -289,20 +320,20 @@ function generateFallbackImage() {
   );
 }
 
-export function GET(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const params = parseGMStatusParams(searchParams);
+    const params = await fetchGMStatusParams(searchParams);
 
     return new ImageResponse(generateMainOGImage(params), {
       width: 1200,
-      height: 630,
+      height: 800,
     });
   } catch {
     // OG image generation failed - returning fallback image
     return new ImageResponse(generateFallbackImage(), {
       width: 1200,
-      height: 630,
+      height: 800,
     });
   }
 }
