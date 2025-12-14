@@ -8,7 +8,7 @@ type ShareParams = {
 };
 
 type ShareParamsSimplified = {
-  address: string;
+  address: string | null | undefined;
 };
 
 function buildSearchParams(params: ShareParams): URLSearchParams {
@@ -38,7 +38,9 @@ function buildSimplifiedSearchParams(
   params: ShareParamsSimplified
 ): URLSearchParams {
   const searchParams = new URLSearchParams();
-  searchParams.set("address", params.address);
+  if (params.address) {
+    searchParams.set("address", params.address);
+  }
   return searchParams;
 }
 
@@ -58,6 +60,9 @@ export function generateSharePageUrl(params: ShareParams): string {
 
 export function generateSimplifiedSharePageUrl(
   params: ShareParamsSimplified
-): string {
+): string | null {
+  if (!params.address) {
+    return null;
+  }
   return `${minikitConfig.miniapp.homeUrl}/share/view?${buildSimplifiedSearchParams(params)}`;
 }

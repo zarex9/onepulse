@@ -22,7 +22,7 @@ export function useGMSharing(
 
   const shareText = createShareText(claimedToday, completedAllChains);
   const shareUrl = generateSimplifiedSharePageUrl({
-    address: address || "0x",
+    address: address || null,
   });
 
   // Store user data in KV cache for display on share page
