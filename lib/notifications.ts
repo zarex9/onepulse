@@ -3,6 +3,7 @@ import {
   sendNotificationResponseSchema,
 } from "@farcaster/miniapp-sdk";
 
+import { handleError } from "@/lib/error-handling";
 import { getUserNotificationDetails } from "@/lib/kv";
 
 const appUrl = process.env.NEXT_PUBLIC_URL || "";
@@ -29,26 +30,51 @@ export async function sendMiniAppNotification({
   body: string;
   notificationId?: string;
 }): Promise<sendMiniAppNotificationResult> {
-  const notificationDetails = await getUserNotificationDetails(fid, appFid);
+  let notificationDetails: Awaited<
+    ReturnType<typeof getUserNotificationDetails>
+  >;
+  try {
+    notificationDetails = await getUserNotificationDetails(fid, appFid);
+  } catch (error) {
+    handleError(
+      error,
+      "Failed to read notification details",
+      { operation: "notifications/getUserNotificationDetails", fid, appFid },
+      { silent: true }
+    );
+    return { state: "error", error };
+  }
   if (!notificationDetails) {
     return { state: "no_token" };
   }
 
-  const response = await fetch(notificationDetails.url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      notificationId: notificationId ?? crypto.randomUUID(),
-      title,
-      body,
-      targetUrl: appUrl,
-      tokens: [notificationDetails.token],
-    } satisfies SendNotificationRequest),
-  });
+  let response: Response;
+  let responseJson: unknown;
+  try {
+    response = await fetch(notificationDetails.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        notificationId: notificationId ?? crypto.randomUUID(),
+        title,
+        body,
+        targetUrl: appUrl,
+        tokens: [notificationDetails.token],
+      } satisfies SendNotificationRequest),
+    });
 
-  const responseJson = await response.json();
+    responseJson = await response.json();
+  } catch (error) {
+    handleError(
+      error,
+      "Failed to send notification",
+      { operation: "notifications/fetch", fid, appFid },
+      { silent: true }
+    );
+    return { state: "error", error };
+  }
 
   if (response.status === 200) {
     const responseBody = sendNotificationResponseSchema.safeParse(responseJson);
