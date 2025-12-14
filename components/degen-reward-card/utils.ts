@@ -53,7 +53,7 @@ export function getStatusConfig(state: ClaimState) {
   if (state.isDailyLimitReached) {
     return {
       title: "Daily Limit Reached",
-      description: "The daily claim limit of 250 users has been reached",
+      description: `The daily claim limit of ${DAILY_CLAIM_LIMIT} users has been reached`,
       accentColor: "text-orange-600 dark:text-orange-400",
     };
   }
