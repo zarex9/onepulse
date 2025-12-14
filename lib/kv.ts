@@ -104,6 +104,7 @@ export type CachedFarcasterUser = {
   username: string;
   displayName: string;
   pfpUrl: string | null;
+  pfpVerified: boolean;
 };
 
 export async function getCachedFarcasterUser(

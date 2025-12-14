@@ -32,14 +32,15 @@ export async function fetchFarcasterUser(
       displayName: cached.displayName,
       pfp: {
         url: cached.pfpUrl || "",
-        verified: false,
+        verified: cached.pfpVerified ?? false,
       },
     };
   }
 
   try {
     const response = await fetch(
-      `https://api.farcaster.xyz/v2/user?fid=${fid}`
+      `https://api.farcaster.xyz/v2/user?fid=${fid}`,
+      { cache: "no-store" }
     );
     if (!response.ok) {
       return null;
@@ -53,6 +54,7 @@ export async function fetchFarcasterUser(
       username: user.username,
       displayName: user.displayName,
       pfpUrl: user.pfp?.url || null,
+      pfpVerified: user.pfp?.verified ?? false,
     };
     await setCachedFarcasterUser(fid, cacheData);
 
