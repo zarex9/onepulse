@@ -337,11 +337,14 @@ function generateFallbackImage() {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const params = await fetchGMStatusParams(searchParams);
 
-    const geistMedium = await loadGoogleFont("Geist", 500);
-    const geistSemiBold = await loadGoogleFont("Geist", 600);
-    const geistBold = await loadGoogleFont("Geist", 800);
+    // Load fonts and fetch params in parallel to reduce I/O wait time
+    const [params, geistMedium, geistSemiBold, geistBold] = await Promise.all([
+      fetchGMStatusParams(searchParams),
+      loadGoogleFont("Geist", 500),
+      loadGoogleFont("Geist", 600),
+      loadGoogleFont("Geist", 800),
+    ]);
 
     return new ImageResponse(generateMainOGImage(params), {
       width: 1200,
