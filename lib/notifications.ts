@@ -9,9 +9,12 @@ import { getUserNotificationDetails } from "@/lib/kv";
 const appUrl = process.env.NEXT_PUBLIC_URL || "";
 
 // Allowlist of permitted notification service hostnames
-const NOTIFICATION_ENDPOINT_ALLOWLIST = ["api.farcaster.xyz", "api.neynar.com"];
+const NOTIFICATION_ENDPOINT_ALLOWLIST = new Set<string>([
+  "api.farcaster.xyz",
+  "api.neynar.com",
+]);
 
-type sendMiniAppNotificationResult =
+type SendMiniAppNotificationResult =
   | {
       state: "error";
       error: unknown;
@@ -28,39 +31,28 @@ type sendMiniAppNotificationResult =
  * - Hostname must be in the allowlist
  * - Must not be a private IP address or localhost
  */
-function validateNotificationUrl(urlString: string): boolean {
+function validateNotificationUrl(urlString: string): URL | null {
   try {
     const url = new URL(urlString);
 
     // Require HTTPS
     if (url.protocol !== "https:") {
-      return false;
+      return null;
     }
 
     // Check against allowlist
     const hostname = url.hostname.toLowerCase();
-    if (!NOTIFICATION_ENDPOINT_ALLOWLIST.includes(hostname)) {
-      return false;
+    if (!NOTIFICATION_ENDPOINT_ALLOWLIST.has(hostname)) {
+      return null;
     }
 
-    // Block private IP ranges and localhost
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "[::1]" ||
-      hostname.startsWith("10.") ||
-      hostname.startsWith("172.16.") ||
-      hostname.startsWith("192.168.") ||
-      hostname.startsWith("fc00::") // IPv6 unique local
-    ) {
-      return false;
-    }
-
-    return true;
+    return url;
   } catch {
-    return false;
+    return null;
   }
 }
+
+const NOTIFICATION_FETCH_TIMEOUT_MS = 10_000;
 
 export async function sendMiniAppNotification({
   fid,
@@ -74,7 +66,7 @@ export async function sendMiniAppNotification({
   title: string;
   body: string;
   notificationId?: string;
-}): Promise<sendMiniAppNotificationResult> {
+}): Promise<SendMiniAppNotificationResult> {
   let notificationDetails: Awaited<
     ReturnType<typeof getUserNotificationDetails>
   >;
@@ -94,7 +86,8 @@ export async function sendMiniAppNotification({
   }
 
   // Validate the notification URL before attempting to fetch
-  if (!validateNotificationUrl(notificationDetails.url)) {
+  const notifyUrl = validateNotificationUrl(notificationDetails.url);
+  if (!notifyUrl) {
     handleError(
       new Error("Invalid notification endpoint URL"),
       "Notification URL validation failed",
@@ -106,14 +99,18 @@ export async function sendMiniAppNotification({
       },
       { silent: true }
     );
-    return { state: "error", error: "Invalid notification endpoint URL" };
+    return {
+      state: "error",
+      error: new Error("Invalid notification endpoint URL"),
+    };
   }
 
   let response: Response;
   let responseJson: unknown;
   try {
-    response = await fetch(notificationDetails.url, {
+    response = await fetch(notifyUrl.toString(), {
       method: "POST",
+      signal: AbortSignal.timeout(NOTIFICATION_FETCH_TIMEOUT_MS),
       headers: {
         "Content-Type": "application/json",
       },
