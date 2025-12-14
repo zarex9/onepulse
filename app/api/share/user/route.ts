@@ -30,13 +30,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await setUserShareData(parsed.data.address, parsed.data.data);
+    const normalizedAddress = parsed.data.address.toLowerCase();
+    await setUserShareData(normalizedAddress, parsed.data.data);
     return NextResponse.json({ success: true });
   } catch (error) {
     handleError(
       error,
       "Failed to store share user data",
-      { operation: "share/user" },
+      { operation: "share/user", address: parsed.data.address },
       { silent: true }
     );
     return NextResponse.json(
