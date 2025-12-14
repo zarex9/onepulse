@@ -1,10 +1,23 @@
 import { sdk } from "@farcaster/miniapp-sdk";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const authResponseSchema = z.object({
+  success: z.boolean().optional(),
+  user: z
+    .object({
+      fid: z.number().optional(),
+    })
+    .optional(),
+});
 
 async function verifyFidWithQuickAuth(
   token: string | null
 ): Promise<number | undefined> {
   try {
+    if (!token) {
+      return;
+    }
     const response = await sdk.quickAuth.fetch("/api/auth", {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -12,16 +25,19 @@ async function verifyFidWithQuickAuth(
       return;
     }
 
-    let data: { success?: boolean; user?: { fid?: number } };
+    let json: unknown;
     try {
-      data = (await response.json()) as {
-        success?: boolean;
-        user?: { fid?: number };
-      };
+      json = await response.json();
     } catch {
       return;
     }
 
+    const validationResult = authResponseSchema.safeParse(json);
+    if (!validationResult.success) {
+      return;
+    }
+
+    const data = validationResult.data;
     if (data.success && data.user?.fid) {
       return data.user.fid;
     }
