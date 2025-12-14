@@ -4,6 +4,7 @@ import { useAppKitAccount } from "@reown/appkit/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { useReadContract } from "wagmi";
+import { z } from "zod";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { BASE_CHAIN_ID } from "@/lib/constants";
 import { getDailyRewardsAddress } from "@/lib/utils";
@@ -144,15 +145,20 @@ export function useRewardVaultStatus() {
   };
 }
 
+const claimStatsSchema = z.object({
+  count: z.number().int().nonnegative(),
+});
+
 export function useClaimStats() {
-  const { data, error, isLoading } = useSWR<{ count: number }>(
+  const { data, error, isLoading } = useSWR(
     "/api/claims/stats",
     async (url: string) => {
       const res = await fetch(url);
       if (!res.ok) {
         throw new Error("Failed to fetch stats");
       }
-      return res.json();
+      const json = await res.json();
+      return claimStatsSchema.parse(json);
     },
     {
       refreshInterval: 30_000, // Refresh every 30 seconds
@@ -162,6 +168,6 @@ export function useClaimStats() {
   return {
     count: data?.count ?? 0,
     isLoading,
-    isError: error,
+    isError: Boolean(error),
   };
 }
