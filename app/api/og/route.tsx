@@ -5,6 +5,23 @@ import { SUPPORTED_CHAINS } from "@/lib/constants";
 import { fetchFarcasterUser } from "@/lib/farcaster";
 import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
+const RES_REGEXP = /src: url\((.+)\) format\('(opentype|truetype)'\)/;
+
+async function loadGoogleFont(font: string, weight: number) {
+  const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}`;
+  const css = await fetch(url).then((res) => res.text());
+  const resource = css.match(RES_REGEXP);
+
+  if (resource) {
+    if (!resource[1]) {
+      throw new Error("Font URL not found in CSS");
+    }
+    return fetch(resource[1]).then((res) => res.arrayBuffer());
+  }
+
+  throw new Error("Failed to load font");
+}
+
 function getChainName(chainId: number): string {
   return SUPPORTED_CHAINS.find((c) => c.id === chainId)?.name || "Unknown";
 }
@@ -92,37 +109,34 @@ function generateProfileSection(
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 24,
-        top: 40,
+        gap: 32,
       }}
     >
       {pfp ? (
         // biome-ignore lint: OG image generation requires img for next/og
         <img
           alt="Profile"
-          height={160}
+          height={200}
           src={pfp}
           style={{
             borderRadius: "50%",
             objectFit: "cover",
-            boxShadow:
-              "0 0 0 4px rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.4)",
+            boxShadow: "0 0 0 8px rgba(255,255,255,0.1)",
           }}
-          width={160}
+          width={200}
         />
       ) : (
         <div
           style={{
-            width: 160,
-            height: 160,
+            width: 200,
+            height: 200,
             borderRadius: "50%",
             background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 72,
-            boxShadow:
-              "0 0 0 4px rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.4)",
+            fontSize: 80,
+            boxShadow: "0 0 0 8px rgba(255,255,255,0.1)",
             color: "white",
           }}
         >
@@ -135,18 +149,18 @@ function generateProfileSection(
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 4,
+          gap: 8,
         }}
       >
         <div
           style={{
             display: "flex",
-            fontSize: 56,
+            fontSize: 72,
             fontWeight: 800,
-            letterSpacing: -1,
-            color: "#0f172a",
+            letterSpacing: -2,
+            color: "#ffffff",
             textAlign: "center",
-            lineHeight: 1.1,
+            lineHeight: 1,
           }}
         >
           {displayName}
@@ -154,9 +168,9 @@ function generateProfileSection(
         <div
           style={{
             display: "flex",
-            fontSize: 28,
+            fontSize: 32,
             fontWeight: 500,
-            color: "#64748b",
+            color: "#94a3b8",
             textAlign: "center",
           }}
         >
@@ -167,17 +181,33 @@ function generateProfileSection(
   );
 }
 
-const CHAIN_COLORS: Record<string, { bg: string; border: string }> = {
-  base: { bg: "rgba(0, 82, 255, 0.1)", border: "rgba(0, 82, 255, 0.5)" },
-  celo: { bg: "rgba(252, 255, 82, 0.1)", border: "rgba(252, 255, 82, 0.5)" },
-  optimism: { bg: "rgba(255, 4, 32, 0.1)", border: "rgba(255, 4, 32, 0.5)" },
+const CHAIN_COLORS: Record<
+  string,
+  { bg: string; border: string; text: string }
+> = {
+  base: {
+    bg: "rgba(0, 0, 255, 1)",
+    border: "rgba(0, 0, 255, 0.3)",
+    text: "#0a0a0a",
+  },
+  celo: {
+    bg: "rgba(252, 255, 82, 1)",
+    border: "rgba(252, 255, 82, 0.3)",
+    text: "#0a0a0a",
+  },
+  optimism: {
+    bg: "rgba(255, 4, 32, 1)",
+    border: "rgba(255, 4, 32, 0.3)",
+    text: "#0a0a0a",
+  },
 };
 
 function generateGmStats(chains: { name: string; count: number }[]) {
   const stats = chains.map((chain) => {
     const colors = CHAIN_COLORS[chain.name.toLowerCase()] || {
-      bg: "rgba(0, 0, 0, 0.1)",
-      border: "rgba(0, 0, 0, 0.5)",
+      bg: "rgba(255, 255, 255, 0.05)",
+      border: "rgba(255, 255, 255, 0.1)",
+      text: "#0a0a0a",
     };
     return {
       ...chain,
@@ -189,8 +219,8 @@ function generateGmStats(chains: { name: string; count: number }[]) {
     <div
       style={{
         display: "flex",
-        gap: 24,
-        marginTop: 56,
+        gap: 32,
+        marginTop: 64,
         width: "100%",
         justifyContent: "center",
       }}
@@ -203,20 +233,21 @@ function generateGmStats(chains: { name: string; count: number }[]) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            padding: "24px 32px",
-            borderRadius: 24,
+            padding: "32px 48px",
+            borderRadius: 32,
             background: chain.bg,
             border: `1px solid ${chain.border}`,
-            minWidth: 200,
+            minWidth: 240,
           }}
         >
           <div
             style={{
               display: "flex",
-              fontSize: 48,
+              fontSize: 64,
               fontWeight: 800,
               lineHeight: 1,
-              marginBottom: 8,
+              marginBottom: 12,
+              color: "#0a0a0a",
             }}
           >
             {chain.count}
@@ -224,10 +255,11 @@ function generateGmStats(chains: { name: string; count: number }[]) {
           <div
             style={{
               display: "flex",
-              fontSize: 20,
-              fontWeight: 600,
+              fontSize: 24,
+              fontWeight: 800,
               textTransform: "uppercase",
-              letterSpacing: 1,
+              letterSpacing: 2,
+              color: chain.text,
             }}
           >
             {chain.name}
@@ -252,48 +284,30 @@ function generateMainOGImage(
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "#ffffff",
-        fontFamily:
-          "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+        background: "#0a0a0a",
+        backgroundImage:
+          "radial-gradient(circle at 50% 0%, #171717 0%, #0a0a0a 100%)",
+        fontFamily: "Geist, sans-serif",
+        color: "white",
       }}
     >
+      {/* Watermark */}
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 1080,
-          height: 540,
-          borderRadius: 40,
-          background: "#f8fafc",
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.1)",
-          padding: "48px 96px",
-          position: "relative",
+          position: "absolute",
+          bottom: 40,
+          fontSize: 24,
+          fontWeight: 600,
+          color: "#a1a1a1",
+          letterSpacing: 4,
+          textTransform: "uppercase",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            top: 24,
-            fontSize: 16,
-            fontWeight: 600,
-            color: "#64748b",
-            textTransform: "uppercase",
-            letterSpacing: 2,
-            background: "#e2e8f0",
-            padding: "6px 16px",
-            borderRadius: 100,
-          }}
-        >
-          Daily GM Status
-        </div>
-
-        {generateProfileSection(displayName, username, pfp)}
-        {generateGmStats(chains)}
+        OnePulse
       </div>
+
+      {generateProfileSection(displayName, username, pfp)}
+      {generateGmStats(chains)}
     </div>
   );
 }
@@ -325,9 +339,26 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const params = await fetchGMStatusParams(searchParams);
 
+    const geistMedium = await loadGoogleFont("Geist", 500);
+    const geistBold = await loadGoogleFont("Geist", 800);
+
     return new ImageResponse(generateMainOGImage(params), {
       width: 1200,
       height: 800,
+      fonts: [
+        {
+          name: "Geist",
+          data: geistMedium,
+          style: "normal",
+          weight: 500,
+        },
+        {
+          name: "Geist",
+          data: geistBold,
+          style: "normal",
+          weight: 800,
+        },
+      ],
     });
   } catch {
     // OG image generation failed - returning fallback image
