@@ -20,14 +20,15 @@ const client = new NeynarAPIClient(
 );
 
 export async function getScore(fids: number[]): Promise<ScoreResponse> {
+  const normalizedFids = [...new Set(fids)].sort((a, b) => a - b);
   // Check cache first
-  const cached = await getCachedNeynarScore(fids);
+  const cached = await getCachedNeynarScore(normalizedFids);
   if (cached) {
     return cached;
   }
 
   try {
-    const response = await client.fetchBulkUsers({ fids });
+    const response = await client.fetchBulkUsers({ fids: normalizedFids });
     const result = {
       users: response.users.map((user) => ({
         fid: user.fid || 0,
@@ -36,7 +37,7 @@ export async function getScore(fids: number[]): Promise<ScoreResponse> {
     };
 
     // Cache the result
-    await setCachedNeynarScore(fids, result);
+    await setCachedNeynarScore(normalizedFids, result);
 
     return result;
   } catch (error) {
