@@ -10,6 +10,9 @@ import { getGmRows } from "@/lib/spacetimedb/server-connection";
 const RES_REGEXP =
   /src: url\((.+)\) format\('(opentype|truetype|woff|woff2)'\)/;
 
+const FONT_CSS_TIMEOUT_MS = 3000;
+const FONT_FILE_TIMEOUT_MS = 5000;
+
 // In-memory cache for fonts (survives across requests in the same serverless instance)
 const fontMemoryCache = new Map<string, ArrayBuffer>();
 
@@ -67,7 +70,10 @@ async function loadGoogleFont(
 
   let css: string;
   const cssController = new AbortController();
-  const cssTimeout = setTimeout(() => cssController.abort(), 3000);
+  const cssTimeout = setTimeout(
+    () => cssController.abort(),
+    FONT_CSS_TIMEOUT_MS
+  );
   try {
     const res = await fetch(url, { signal: cssController.signal });
     if (!res.ok) {
@@ -87,7 +93,10 @@ async function loadGoogleFont(
 
     let fontBuffer: ArrayBuffer;
     const fontController = new AbortController();
-    const fontTimeout = setTimeout(() => fontController.abort(), 5000);
+    const fontTimeout = setTimeout(
+      () => fontController.abort(),
+      FONT_FILE_TIMEOUT_MS
+    );
     try {
       const res = await fetch(resource[1], { signal: fontController.signal });
       if (!res.ok) {
@@ -163,7 +172,16 @@ async function getDataFromAddress(address: string) {
   };
 }
 
-async function fetchGMStatusParams(searchParams: URLSearchParams) {
+type GMStatusParams = {
+  displayName: string;
+  username: string;
+  pfp: string | null;
+  chains: { name: string; count: number }[];
+};
+
+async function fetchGMStatusParams(
+  searchParams: URLSearchParams
+): Promise<GMStatusParams> {
   const address = searchParams.get("address");
   const chainsParam = searchParams.get("chains");
 
