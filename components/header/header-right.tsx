@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   BASE_APP_PROFILE_URL,
   FARCASTER_PROFILE_URL,
@@ -69,6 +69,7 @@ export const HeaderRight = memo(
     const [aboutOpen, setAboutOpen] = useState(false);
     const [howItWorksOpen, setHowItWorksOpen] = useState(false);
     const [isMenuBusy, setIsMenuBusy] = useState(false);
+    const isMenuBusyRef = useRef(false);
     const { handleOpenUrl, handleViewProfile } = useAboutLogic();
 
     const selectedTheme = useMemo(
@@ -86,17 +87,19 @@ export const HeaderRight = memo(
 
     const runMenuAction = useCallback(
       async (action: () => Promise<void> | void) => {
-        if (isMenuBusy) {
+        if (isMenuBusyRef.current) {
           return;
         }
+        isMenuBusyRef.current = true;
         setIsMenuBusy(true);
         try {
           await action();
         } finally {
           setIsMenuBusy(false);
+          isMenuBusyRef.current = false;
         }
       },
-      [isMenuBusy]
+      []
     );
 
     const saveDisabled = !canConfigureMiniApp || isMiniAppSaved;
