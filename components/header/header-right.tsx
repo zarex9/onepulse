@@ -75,8 +75,8 @@ export const HeaderRight = memo(
     );
 
     const handleReload = useCallback(() => {
-      window.location.reload();
-    }, []);
+      router.refresh();
+    }, [router]);
 
     const handleAdminClick = useCallback(() => {
       router.push("/admin");
