@@ -2,11 +2,11 @@ import { useCallback } from "react";
 import type { ContractFunctionParameters } from "viem";
 
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { signIn } from "@/lib/client-auth";
 
 type UseClaimContractsProps = {
   address?: string;
   fid?: bigint;
-  verifiedFid?: number;
   contractAddress?: string;
 };
 
@@ -18,7 +18,6 @@ type UseClaimContractsProps = {
 export function useClaimContracts({
   address,
   fid,
-  verifiedFid,
   contractAddress,
 }: UseClaimContractsProps) {
   return useCallback(async (): Promise<ContractFunctionParameters[]> => {
@@ -28,7 +27,12 @@ export function useClaimContracts({
     }
 
     // Use verified FID if available, otherwise fall back to context FID
-    const fidToUse = verifiedFid ?? Number(fid);
+    let fidToUse = Number(fid);
+
+    const verifiedFid = await signIn();
+    if (verifiedFid) {
+      fidToUse = verifiedFid;
+    }
 
     const deadline = BigInt(Math.floor(Date.now() / 1000) + 300);
 
@@ -63,5 +67,5 @@ export function useClaimContracts({
         ],
       },
     ];
-  }, [address, fid, verifiedFid, contractAddress]);
+  }, [address, fid, contractAddress]);
 }

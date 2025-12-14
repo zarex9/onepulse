@@ -1,5 +1,4 @@
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { useClaimEligibility, useClaimStats } from "@/hooks/use-degen-claim";
 import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
 import { getDailyRewardsAddress, normalizeChainId } from "@/lib/utils";
@@ -23,9 +22,6 @@ export function useDegenClaimTransactionLogic({
 }: UseDegenClaimTransactionLogicProps) {
   const { address } = useAppKitAccount({ namespace: "eip155" });
   const { chainId } = useAppKitNetwork();
-  const miniAppContext = useMiniAppContext();
-  const verifiedFid = miniAppContext?.verifiedFid;
-  const signIn = miniAppContext?.signIn;
 
   const numericChainId = normalizeChainId(chainId);
   const contractAddress = numericChainId
@@ -44,7 +40,6 @@ export function useDegenClaimTransactionLogic({
   const getClaimContracts = useClaimContracts({
     address,
     fid,
-    verifiedFid,
     contractAddress,
   });
 
@@ -70,7 +65,6 @@ export function useDegenClaimTransactionLogic({
     hasSentGMToday,
     canClaim,
     isDailyLimitReached,
-    isVerified: !!verifiedFid,
   });
 
   return {
@@ -79,6 +73,5 @@ export function useDegenClaimTransactionLogic({
     onStatus,
     isDisabled,
     buttonState,
-    signIn,
   };
 }

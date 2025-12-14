@@ -9,8 +9,6 @@ export type * from "@/types/miniapp";
 type MiniAppProviderContextType = {
   context: MiniAppContext | null;
   isInMiniApp: boolean;
-  verifiedFid: number | undefined;
-  signIn: () => Promise<void>;
 } | null;
 
 const MiniAppProviderContext = createContext<MiniAppProviderContextType>(null);
