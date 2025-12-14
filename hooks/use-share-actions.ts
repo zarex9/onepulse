@@ -1,5 +1,6 @@
 import { sdk } from "@farcaster/miniapp-sdk";
 import { toast } from "sonner";
+import { handleError } from "@/lib/error-handling";
 
 export function useShareActions() {
   const shareToCast = async (shareText: string, shareUrl: string) => {
@@ -10,7 +11,14 @@ export function useShareActions() {
       });
     } catch (error) {
       // Cast composition failure handled by copying to clipboard
-      console.error("Failed to compose cast:", error);
+      handleError(
+        error,
+        "Failed to compose cast",
+        {
+          operation: "share/compose-cast",
+        },
+        { silent: true }
+      );
       navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
       toast.success("Copied to clipboard");
     }
