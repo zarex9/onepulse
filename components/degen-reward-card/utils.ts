@@ -1,3 +1,5 @@
+import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
+
 export type ClaimState = {
   isEligible: boolean;
   hasAlreadyClaimed: boolean;
@@ -22,7 +24,7 @@ export function extractClaimState(
   hasSentGMToday: boolean,
   dailyClaimsCount: number
 ): ClaimState {
-  const isDailyLimitReached = dailyClaimsCount >= 250;
+  const isDailyLimitReached = dailyClaimsCount >= DAILY_CLAIM_LIMIT;
   return {
     isEligible: (claimStatus?.ok ?? false) && !isDailyLimitReached,
     hasAlreadyClaimed: claimStatus?.claimerClaimedToday ?? false,
