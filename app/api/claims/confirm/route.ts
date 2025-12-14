@@ -17,6 +17,10 @@ import {
 } from "@/lib/kv";
 import { getDailyRewardsAddress } from "@/lib/utils";
 
+const CLAIM_ABI = parseAbi([
+  "function claim(address recipient, uint256 amount, uint256 nonce, uint256 expiry, bytes signature)",
+]);
+
 /**
  * Verifies the transaction was to the correct contract and called the claim function.
  * Fetches receipt and transaction in parallel to minimize active CPU wait time.
@@ -66,14 +70,14 @@ async function verifyTransaction(
 
   // Verify the recipient in the transaction input matches the claimer
   // This supports smart wallets where transaction.from might be the bundler
-  const abi = parseAbi([
-    "function claim(address recipient, uint256 amount, uint256 nonce, uint256 expiry, bytes signature)",
-  ]);
-
   const { args } = decodeFunctionData({
-    abi,
+    abi: CLAIM_ABI,
     data: transaction.input,
   });
+
+  if (!args || typeof args[0] !== "string") {
+    throw new Error("Invalid transaction arguments");
+  }
 
   const recipient = args[0];
   if (recipient.toLowerCase() !== claimer.toLowerCase()) {
