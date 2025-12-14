@@ -43,6 +43,24 @@ async function fetchGmStats(address: string) {
   }
 }
 
+async function resolveDisplayName(address: string): Promise<string> {
+  if (!isAddress(address)) {
+    return "Unknown User";
+  }
+
+  let displayName = formatAddress(address);
+  const gmStats = await fetchGmStats(address);
+
+  if (gmStats.fid) {
+    const fcUser = await fetchFarcasterUser(Number(gmStats.fid));
+    if (fcUser) {
+      displayName = fcUser.displayName || fcUser.username || displayName;
+    }
+  }
+
+  return displayName;
+}
+
 export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
@@ -56,16 +74,7 @@ export async function generateMetadata({
     };
   }
 
-  const gmStats = await fetchGmStats(address);
-
-  let displayName = formatAddress(address);
-
-  if (gmStats.fid) {
-    const fcUser = await fetchFarcasterUser(Number(gmStats.fid));
-    if (fcUser) {
-      displayName = fcUser.displayName || fcUser.username || displayName;
-    }
-  }
+  const displayName = await resolveDisplayName(address);
 
   const ogImageUrl = generateSimplifiedGMStatusOGUrl({
     address,
@@ -103,17 +112,7 @@ export default async function SharePage({ searchParams }: Props) {
   const sp = await searchParams;
   const address = (sp.address as string) || "";
 
-  let displayName = formatAddress(address);
-
-  if (isAddress(address)) {
-    const gmStats = await fetchGmStats(address);
-    if (gmStats.fid) {
-      const fcUser = await fetchFarcasterUser(Number(gmStats.fid));
-      if (fcUser) {
-        displayName = fcUser.displayName || fcUser.username || displayName;
-      }
-    }
-  }
+  const displayName = await resolveDisplayName(address);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
