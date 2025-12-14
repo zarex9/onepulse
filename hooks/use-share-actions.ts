@@ -19,15 +19,35 @@ export function useShareActions() {
         },
         { silent: true }
       );
-      navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-      toast.success("Copied to clipboard");
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+        toast.success("Copied to clipboard");
+      } catch (clipboardError) {
+        handleError(
+          clipboardError,
+          "Failed to copy to clipboard",
+          { operation: "share/copy-to-clipboard" },
+          { silent: true }
+        );
+        toast.error("Copy failed");
+      }
     }
   };
 
-  const shareToClipboard = (shareText: string, shareUrl: string) => {
+  const shareToClipboard = async (shareText: string, shareUrl: string) => {
     const fullText = `${shareText}\n${shareUrl}`;
-    navigator.clipboard.writeText(fullText);
-    toast.success("Copied to clipboard");
+    try {
+      await navigator.clipboard.writeText(fullText);
+      toast.success("Copied to clipboard");
+    } catch (clipboardError) {
+      handleError(
+        clipboardError,
+        "Failed to copy to clipboard",
+        { operation: "share/copy-to-clipboard" },
+        { silent: true }
+      );
+      toast.error("Copy failed");
+    }
   };
 
   return {
