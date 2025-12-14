@@ -6,7 +6,8 @@ import { fetchFarcasterUser } from "@/lib/farcaster";
 import { getCachedGoogleFont, setCachedGoogleFont } from "@/lib/kv";
 import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
-const RES_REGEXP = /src: url\((.+)\) format\('(opentype|truetype)'\)/;
+const RES_REGEXP =
+  /src: url\((.+)\) format\('(opentype|truetype|woff|woff2)'\)/;
 
 // In-memory cache for fonts (survives across requests in the same serverless instance)
 const fontMemoryCache = new Map<string, ArrayBuffer>();
