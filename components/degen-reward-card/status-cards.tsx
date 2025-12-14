@@ -66,7 +66,7 @@ export function WrongNetworkCard() {
     } catch (error) {
       handleError(error, ERROR_MESSAGES.NETWORK_SWITCH, {
         operation: "wallet/switch-network",
-        targetChain: "base",
+        targetChain: base.name ?? "base",
       });
     } finally {
       setIsSwitching(false);
