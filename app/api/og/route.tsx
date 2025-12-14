@@ -471,8 +471,13 @@ export async function GET(request: NextRequest) {
     );
 
     return imageResponse;
-  } catch {
-    // OG image generation failed - returning fallback image
+  } catch (error) {
+    handleError(
+      error,
+      "OG image generation failed",
+      { operation: "og/generate-image" },
+      { silent: true }
+    );
     return new ImageResponse(generateFallbackImage(), {
       width: 1200,
       height: 800,
