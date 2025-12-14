@@ -1,6 +1,6 @@
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import {
   type MiniAppContext,
   type UserContext,
@@ -48,32 +48,20 @@ export const useHeaderLogic = ({
   const { address } = useAppKitAccount({ namespace: "eip155" });
   const miniAppContext = useMiniAppContext();
   const { owner } = useContractOwner();
-  const [miniAppAddedLocally, setMiniAppAddedLocally] = useState(false);
   const clientAdded = miniAppContext?.context?.client?.added;
-  const clientNotificationDetails =
+  const notificationsEnabled =
     miniAppContext?.context?.client?.notificationDetails;
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    Boolean(clientNotificationDetails)
-  );
-
-  useEffect(() => {
-    setNotificationsEnabled(Boolean(clientNotificationDetails));
-  }, [clientNotificationDetails]);
 
   const handleAddMiniApp = useCallback(async () => {
     try {
       const response = await sdk.actions.addMiniApp();
-      const hasNotifications = Boolean(
-        response.notificationDetails ?? clientNotificationDetails
-      );
-      setNotificationsEnabled(hasNotifications);
+      const hasNotifications = Boolean(response.notificationDetails);
       if (hasNotifications) {
         handleSuccess(SUCCESS_MESSAGES.MINI_APP_ADDED);
       } else {
         handleSuccess(SUCCESS_MESSAGES.MINI_APP_ADDED_NO_NOTIF);
       }
 
-      setMiniAppAddedLocally(true);
       onMiniAppAddedAction();
     } catch (error) {
       handleError(error, ERROR_MESSAGES.MINI_APP_ADD, {
@@ -81,7 +69,7 @@ export const useHeaderLogic = ({
         errorMessage: extractErrorMessage(error),
       });
     }
-  }, [clientNotificationDetails, onMiniAppAddedAction]);
+  }, [onMiniAppAddedAction]);
 
   const handleShareClick = useCallback(
     () => onShareModalOpenChangeAction(true),
@@ -93,7 +81,8 @@ export const useHeaderLogic = ({
   const showAdminButton = Boolean(
     address && owner && address.toLowerCase() === owner.toLowerCase()
   );
-  const isMiniAppSaved = Boolean(clientAdded || miniAppAddedLocally);
+  const isMiniAppSaved = Boolean(clientAdded);
+  const isNotificationsEnabled = Boolean(notificationsEnabled);
   const canConfigureMiniApp = canSaveMiniApp({
     isMiniAppReady,
     inMiniApp,
@@ -108,7 +97,7 @@ export const useHeaderLogic = ({
     shouldShowUserInfo,
     canConfigureMiniApp,
     isMiniAppSaved,
-    notificationsEnabled,
+    isNotificationsEnabled,
     showAdminButton,
     showShareButton,
     handleAddMiniApp,
