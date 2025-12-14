@@ -1,13 +1,13 @@
 "use client";
 
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { useReadContract } from "wagmi";
 import { z } from "zod";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { BASE_CHAIN_ID } from "@/lib/constants";
-import { getDailyRewardsAddress } from "@/lib/utils";
+import { getDailyRewardsAddress, normalizeChainId } from "@/lib/utils";
 
 type UseClaimEligibilityProps = {
   fid: bigint | undefined;
@@ -52,19 +52,26 @@ function buildClaimEligibilityArgs(
   fid: bigint | undefined,
   contractAddress: string
 ): readonly [`0x${string}`, bigint] | undefined {
-  if (!(address && fid && contractAddress)) {
+  if (!address || fid === undefined || !contractAddress) {
     return;
   }
   return [address as `0x${string}`, fid as bigint];
 }
 
-function shouldQueryEligibility(
-  enabled: boolean,
-  address: string | undefined,
-  fid: bigint | undefined,
-  contractAddress: string
-): boolean {
-  return enabled && !!address && !!fid && !!contractAddress;
+function shouldQueryEligibility(params: {
+  enabled: boolean;
+  address: string | undefined;
+  fid: bigint | undefined;
+  contractAddress: string;
+  isBaseChain: boolean;
+}): boolean {
+  return (
+    params.enabled &&
+    Boolean(params.address) &&
+    params.fid !== undefined &&
+    Boolean(params.contractAddress) &&
+    params.isBaseChain
+  );
 }
 
 export function useClaimEligibility({
@@ -72,14 +79,21 @@ export function useClaimEligibility({
   enabled = true,
 }: UseClaimEligibilityProps) {
   const { address } = useAppKitAccount({ namespace: "eip155" });
+  const { chainId } = useAppKitNetwork();
   const contractAddress = getDailyRewardsAddress(BASE_CHAIN_ID);
+
+  // Claims are only supported on Base.
+  // We explicitly check if the user is on Base to ensure consistency.
+  const isBaseChain = normalizeChainId(chainId) === BASE_CHAIN_ID;
+
   const args = buildClaimEligibilityArgs(address, fid, contractAddress);
-  const shouldQuery = shouldQueryEligibility(
+  const shouldQuery = shouldQueryEligibility({
     enabled,
     address,
     fid,
-    contractAddress
-  );
+    contractAddress,
+    isBaseChain,
+  });
 
   const {
     data: claimStatus,
