@@ -34,9 +34,16 @@ export function useClaimContracts({
     if (cachedFid) {
       fidToUse = cachedFid;
     } else {
-      const verifiedFid = await signIn();
-      if (verifiedFid) {
-        fidToUse = verifiedFid;
+      try {
+        const verifiedFid = await signIn();
+        if (verifiedFid) {
+          fidToUse = verifiedFid;
+        }
+      } catch (error) {
+        console.error(
+          "Failed to sign in during claim contract generation:",
+          error
+        );
       }
     }
 
