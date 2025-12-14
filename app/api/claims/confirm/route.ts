@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createPublicClient, http } from "viem";
+import {
+  createPublicClient,
+  http,
+  type PublicClient,
+  type Transport,
+} from "viem";
 import { base } from "viem/chains";
 import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
 import { checkAndIncrementDailyClaims } from "@/lib/kv";
@@ -12,54 +17,42 @@ import { getDailyRewardsAddress } from "@/lib/utils";
 async function verifyTransaction(
   transactionHash: string,
   contractAddress: string,
-  publicClient: unknown
+  publicClient: PublicClient<Transport, typeof base>
 ) {
-  if (!publicClient || typeof publicClient !== "object") {
-    throw new Error("Invalid public client");
-  }
-  const client = publicClient as {
-    getTransactionReceipt: (opts: { hash: `0x${string}` }) => Promise<unknown>;
-    getTransaction: (opts: { hash: `0x${string}` }) => Promise<unknown>;
-  };
-
   const txHash = transactionHash as `0x${string}`;
 
   // Fetch both in parallel to reduce I/O wait time
   const [receipt, transaction] = await Promise.all([
-    client.getTransactionReceipt({ hash: txHash }),
-    client.getTransaction({ hash: txHash }),
+    publicClient.getTransactionReceipt({ hash: txHash }),
+    publicClient.getTransaction({ hash: txHash }),
   ]);
 
-  if (!receipt || typeof receipt !== "object") {
+  if (!receipt) {
     throw new Error("Transaction not found on-chain");
   }
 
-  const typedReceipt = receipt as { status?: string; to?: string };
-
-  if (typedReceipt.status !== "success") {
-    throw new Error(`Transaction failed on-chain: ${typedReceipt.status}`);
+  if (receipt.status !== "success") {
+    throw new Error(`Transaction failed on-chain: ${receipt.status}`);
   }
 
   if (
-    !typedReceipt.to ||
-    typedReceipt.to.toLowerCase() !== contractAddress.toLowerCase()
+    !receipt.to ||
+    receipt.to.toLowerCase() !== contractAddress.toLowerCase()
   ) {
     throw new Error("Transaction is not to the DailyRewards contract");
   }
 
-  if (!transaction || typeof transaction !== "object") {
+  if (!transaction) {
     throw new Error("Transaction input not found");
   }
 
-  const typedTx = transaction as { input?: string };
-
-  if (!typedTx.input) {
+  if (!transaction.input) {
     throw new Error("Transaction input not found");
   }
 
   // The function selector for claim(address,uint256,uint256,uint256,bytes)
   const CLAIM_FUNCTION_SELECTOR = "0x6e8aa08a";
-  if (!typedTx.input.startsWith(CLAIM_FUNCTION_SELECTOR)) {
+  if (!transaction.input.startsWith(CLAIM_FUNCTION_SELECTOR)) {
     throw new Error("Transaction did not call the claim function");
   }
 }
