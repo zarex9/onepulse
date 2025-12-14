@@ -5,6 +5,7 @@ import {
   isApiErrorResponse,
   NeynarAPIClient,
 } from "@neynar/nodejs-sdk";
+import { getCachedNeynarScore, setCachedNeynarScore } from "./kv";
 
 type ScoreResponse = {
   users: {
@@ -18,14 +19,25 @@ const client = new NeynarAPIClient(
 );
 
 export async function getScore(fids: number[]): Promise<ScoreResponse> {
+  // Check cache first
+  const cached = await getCachedNeynarScore(fids);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const response = await client.fetchBulkUsers({ fids });
-    return {
+    const result = {
       users: response.users.map((user) => ({
         fid: user.fid || 0,
         score: user.score || 0,
       })),
     };
+
+    // Cache the result
+    await setCachedNeynarScore(fids, result);
+
+    return result;
   } catch (error) {
     if (isApiErrorResponse(error)) {
       console.error("API Error:", error.response.data);
