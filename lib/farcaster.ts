@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { handleError } from "@/lib/error-handling";
 import {
   type CachedFarcasterUser,
   getCachedFarcasterUser,
@@ -83,7 +84,15 @@ export async function fetchFarcasterUser(
       pfp: user.pfp ?? { url: "", verified: false },
     };
   } catch (error) {
-    console.error("Error fetching Farcaster user:", error);
+    handleError(
+      error,
+      "Failed to fetch Farcaster user",
+      {
+        operation: "farcaster/fetch-user",
+        fid,
+      },
+      { silent: true }
+    );
     return null;
   }
 }
