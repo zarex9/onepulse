@@ -191,7 +191,8 @@ export const HeaderRight = memo(
                     </Toggle>
                   </DropdownMenuItem>
                 )}
-                {isMiniAppSaved && (
+                {/* biome-ignore lint: hide */}
+                {isMiniAppSaved && false && (
                   <DropdownMenuItem
                     className="flex items-center justify-between"
                     disabled={notificationDisabled || isMenuBusy}
