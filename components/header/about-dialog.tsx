@@ -1,5 +1,6 @@
 "use client";
 
+import { AboutContent } from "@/components/about/about-content";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AboutContent } from "../about/about-content";
 
 type AboutDialogProps = {
   open: boolean;

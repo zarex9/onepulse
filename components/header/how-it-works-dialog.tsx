@@ -1,5 +1,6 @@
 "use client";
 
+import { HowItWorksContent } from "@/components/how-it-works-card";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { HowItWorksContent } from "../how-it-works-card";
 
 type HowItWorksDialogProps = {
   open: boolean;
