@@ -3,11 +3,53 @@ import type { NextRequest } from "next/server";
 import { isAddress } from "viem";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
 import { fetchFarcasterUser } from "@/lib/farcaster";
+import { getCachedGoogleFont, setCachedGoogleFont } from "@/lib/kv";
 import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
 const RES_REGEXP = /src: url\((.+)\) format\('(opentype|truetype)'\)/;
 
-async function loadGoogleFont(font: string, weight: number) {
+// In-memory cache for fonts (survives across requests in the same serverless instance)
+const fontMemoryCache = new Map<string, ArrayBuffer>();
+
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i] as number);
+  }
+  return btoa(binary);
+}
+
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer as ArrayBuffer;
+}
+
+async function loadGoogleFont(
+  font: string,
+  weight: number
+): Promise<ArrayBuffer> {
+  const cacheKey = `${font}:${weight}`;
+
+  // Check in-memory cache first (fastest, no I/O)
+  const memCached = fontMemoryCache.get(cacheKey);
+  if (memCached) {
+    return memCached;
+  }
+
+  // Check Redis cache second
+  const cached = await getCachedGoogleFont(font, weight);
+  if (cached) {
+    const buffer = base64ToArrayBuffer(cached);
+    fontMemoryCache.set(cacheKey, buffer);
+    return buffer;
+  }
+
+  // Fetch from Google Fonts
   const url = `https://fonts.googleapis.com/css2?family=${font}:wght@${weight}`;
   const css = await fetch(url).then((res) => res.text());
   const resource = css.match(RES_REGEXP);
@@ -16,7 +58,15 @@ async function loadGoogleFont(font: string, weight: number) {
     if (!resource[1]) {
       throw new Error("Font URL not found in CSS");
     }
-    return fetch(resource[1]).then((res) => res.arrayBuffer());
+    const fontBuffer = await fetch(resource[1]).then((res) =>
+      res.arrayBuffer()
+    );
+
+    // Cache in memory and Redis
+    fontMemoryCache.set(cacheKey, fontBuffer);
+    await setCachedGoogleFont(font, weight, arrayBufferToBase64(fontBuffer));
+
+    return fontBuffer;
   }
 
   throw new Error("Failed to load font");
@@ -346,7 +396,7 @@ export async function GET(request: NextRequest) {
       loadGoogleFont("Geist", 800),
     ]);
 
-    return new ImageResponse(generateMainOGImage(params), {
+    const imageResponse = new ImageResponse(generateMainOGImage(params), {
       width: 1200,
       height: 800,
       fonts: [
@@ -370,6 +420,14 @@ export async function GET(request: NextRequest) {
         },
       ],
     });
+
+    // Add cache headers - cache for 5 minutes, stale-while-revalidate for 1 hour
+    imageResponse.headers.set(
+      "Cache-Control",
+      "public, max-age=300, stale-while-revalidate=3600"
+    );
+
+    return imageResponse;
   } catch {
     // OG image generation failed - returning fallback image
     return new ImageResponse(generateFallbackImage(), {
