@@ -47,10 +47,26 @@ export function useTransactionStatus({
           }),
         });
         if (!response.ok) {
-          console.error("Backend confirmation failed:", response.status);
+          handleError(
+            new Error(`Backend confirmation failed: ${response.status}`),
+            ERROR_MESSAGES.CLAIM_FAILED,
+            {
+              operation: "claims/confirm",
+              status: response.status,
+            },
+            { silent: true }
+          );
         }
       } catch (error) {
-        console.error("Failed to confirm claim on backend:", error);
+        handleError(
+          error,
+          ERROR_MESSAGES.CLAIM_FAILED,
+          {
+            operation: "claims/confirm",
+            txHash,
+          },
+          { silent: true }
+        );
       }
     },
     [claimer]
