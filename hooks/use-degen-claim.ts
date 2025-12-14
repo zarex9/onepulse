@@ -28,9 +28,18 @@ const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
 const REFETCH_ELIGIBILITY_MS = 3000; // 3 seconds (more responsive)
 const REFETCH_VAULT_MS = 120_000; // 120 seconds
 
-function formatClaimEligibility(claimStatus: ClaimEligibility | undefined) {
+type FormattedClaimEligibility = {
+  claimStatus: ClaimEligibility | undefined;
+  canClaim: boolean;
+  reward: bigint;
+  vaultBalance: bigint;
+};
+
+function formatClaimEligibility(
+  claimStatus: ClaimEligibility | undefined
+): FormattedClaimEligibility {
   return {
-    claimStatus: claimStatus as ClaimEligibility | undefined,
+    claimStatus,
     canClaim: claimStatus?.ok ?? false,
     reward: claimStatus?.reward ?? 0n,
     vaultBalance: claimStatus?.vaultBalance ?? 0n,
