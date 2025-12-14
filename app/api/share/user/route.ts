@@ -37,6 +37,45 @@ function authorizeAddressUpdate(authenticatedFid: number): boolean {
   return true;
 }
 
+/**
+ * Checks rate limit for a given identifier and returns a NextResponse if rate limited or on error.
+ * Returns null on success, allowing the request to proceed.
+ */
+async function checkAndHandleRateLimit(options: {
+  identifier: string;
+  limit: number;
+  windowSeconds: number;
+  errorMessage: string;
+  operation: string;
+  context?: Record<string, unknown>;
+}): Promise<NextResponse | null> {
+  try {
+    const { allowed } = await checkRateLimit(
+      options.identifier,
+      options.limit,
+      options.windowSeconds
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: options.errorMessage },
+        { status: 429 }
+      );
+    }
+    return null;
+  } catch (error) {
+    handleError(
+      error,
+      "Rate limit check failed",
+      { operation: options.operation, ...options.context },
+      { silent: true }
+    );
+    return NextResponse.json(
+      { error: "Rate limit check failed" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   // Extract IP for rate limiting
   const ip =
@@ -54,29 +93,16 @@ export async function POST(req: NextRequest) {
   }
 
   // Step 2: Rate limit by IP (global limit)
-  try {
-    const { allowed: ipAllowed } = await checkRateLimit(
-      `ip:${ip}`,
-      100, // 100 requests
-      60 // per 60 seconds
-    );
-    if (!ipAllowed) {
-      return NextResponse.json(
-        { error: "Too many requests from this IP" },
-        { status: 429 }
-      );
-    }
-  } catch (error) {
-    handleError(
-      error,
-      "Rate limit check failed",
-      { operation: "share/user/rateLimit", ip },
-      { silent: true }
-    );
-    return NextResponse.json(
-      { error: "Rate limit check failed" },
-      { status: 500 }
-    );
+  const ipRateLimitResponse = await checkAndHandleRateLimit({
+    identifier: `ip:${ip}`,
+    limit: 100,
+    windowSeconds: 60,
+    errorMessage: "Too many requests from this IP",
+    operation: "share/user/rateLimit",
+    context: { ip },
+  });
+  if (ipRateLimitResponse) {
+    return ipRateLimitResponse;
   }
 
   // Step 3: Parse and validate request body
@@ -98,29 +124,16 @@ export async function POST(req: NextRequest) {
   const normalizedAddress = parsed.data.address.toLowerCase();
 
   // Step 4: Rate limit by address (per-address limit)
-  try {
-    const { allowed: addressAllowed } = await checkRateLimit(
-      `address:${normalizedAddress}`,
-      10, // 10 requests
-      60 // per 60 seconds
-    );
-    if (!addressAllowed) {
-      return NextResponse.json(
-        { error: "Too many updates for this address" },
-        { status: 429 }
-      );
-    }
-  } catch (error) {
-    handleError(
-      error,
-      "Rate limit check failed",
-      { operation: "share/user/addressRateLimit", address: normalizedAddress },
-      { silent: true }
-    );
-    return NextResponse.json(
-      { error: "Rate limit check failed" },
-      { status: 500 }
-    );
+  const addressRateLimitResponse = await checkAndHandleRateLimit({
+    identifier: `address:${normalizedAddress}`,
+    limit: 10,
+    windowSeconds: 60,
+    errorMessage: "Too many updates for this address",
+    operation: "share/user/addressRateLimit",
+    context: { address: normalizedAddress },
+  });
+  if (addressRateLimitResponse) {
+    return addressRateLimitResponse;
   }
 
   // Step 5: Authorize address update (verify user has permission)
