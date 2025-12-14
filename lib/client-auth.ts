@@ -11,11 +11,23 @@ async function verifyFidWithQuickAuth(
     if (!response.ok) {
       return;
     }
-    const data = await response.json();
+
+    let data: { success?: boolean; user?: { fid?: number } };
+    try {
+      data = (await response.json()) as {
+        success?: boolean;
+        user?: { fid?: number };
+      };
+    } catch (parseError) {
+      console.error("Failed to parse auth response", parseError);
+      return;
+    }
+
     if (data.success && data.user?.fid) {
       return data.user.fid;
     }
-  } catch {
+  } catch (e) {
+    console.error("Failed to verify FID", e);
     toast.error("Failed to verify FID");
   }
 }
