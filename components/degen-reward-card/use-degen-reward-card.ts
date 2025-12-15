@@ -1,6 +1,6 @@
 import { base } from "@reown/appkit/networks";
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   useClaimEligibility,
   useClaimStats,
@@ -33,11 +33,14 @@ export function useDegenRewardCard({
 
   const hasClaimedToday = claimStatus?.claimerClaimedToday ?? false;
 
-  const handleClaimSuccess = () => {
+  const handleClaimSuccess = useCallback(async () => {
     setIsShareModalOpen(true);
-    // Immediately refetch claim stats to update the counter
-    mutateClaimStats();
-  };
+    // Wait a brief moment for the backend to process the claim and update the count
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Force immediate refetch of claim stats (bypass cache) to update the counter
+    // revalidate: true forces SWR to fetch fresh data from the server
+    mutateClaimStats(undefined, { revalidate: true });
+  }, [mutateClaimStats]);
 
   const isSponsored = isSponsoredOnChain(sponsored, numericChainId);
   const claimState = extractClaimState(
