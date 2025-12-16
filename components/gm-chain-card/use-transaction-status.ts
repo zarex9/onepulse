@@ -39,7 +39,8 @@ export function useTransactionStatus({
       if (!claimer) {
         return;
       }
-      try {
+
+      const attemptConfirm = async () => {
         const response = await fetch("/api/claims/confirm", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -48,29 +49,33 @@ export function useTransactionStatus({
             claimer,
           }),
         });
+
         if (!response.ok) {
           const errorBody = await response.text();
+          throw new Error(
+            `Backend confirmation failed: ${response.status} - ${errorBody}`
+          );
+        }
+      };
+
+      try {
+        await attemptConfirm();
+      } catch (_error) {
+        try {
+          // Single retry after 1 second delay
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await attemptConfirm();
+        } catch (retryError) {
           handleError(
-            new Error(`Backend confirmation failed: ${response.status}`),
+            retryError,
             ERROR_MESSAGES.CLAIM_FAILED,
             {
               operation: "claims/confirm",
-              status: response.status,
-              errorBody,
+              txHash,
             },
             { silent: true }
           );
         }
-      } catch (error) {
-        handleError(
-          error,
-          ERROR_MESSAGES.CLAIM_FAILED,
-          {
-            operation: "claims/confirm",
-            txHash,
-          },
-          { silent: true }
-        );
       }
     },
     [claimer]
