@@ -67,7 +67,7 @@ export function getStatusConfig(state: ClaimState) {
   if (state.isEligible) {
     return {
       title: "Ready to Claim",
-      description: "Your daily DEGEN rewards are available",
+      description: "Your daily rewards are available",
       accentColor: "text-yellow-600 dark:text-yellow-400",
     };
   }

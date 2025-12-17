@@ -39,7 +39,7 @@ export function StatusCard({
 export function DisconnectedCard() {
   return (
     <StatusCard
-      description="Connect your wallet to access daily DEGEN rewards"
+      description="Connect your wallet to access daily rewards"
       title="Connect Wallet"
     />
   );
@@ -75,7 +75,7 @@ export function WrongNetworkCard() {
 
   return (
     <StatusCard
-      description="DEGEN rewards are only available on Base network"
+      description="Daily rewards are only available on Base network"
       title="Switch to Base"
     >
       <Button

@@ -1,15 +1,14 @@
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
-import { useClaimEligibility, useClaimStats } from "@/hooks/use-degen-claim";
+import { useClaimEligibility } from "@/hooks/use-reward-claim";
 import { signIn } from "@/lib/client-auth";
-import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
 import { handleError } from "@/lib/error-handling";
 import { getDailyRewardsAddress, normalizeChainId } from "@/lib/utils";
 import { getButtonState } from "./get-button-state";
 import { useClaimContracts } from "./use-claim-contracts";
 import { useTransactionStatus } from "./use-transaction-status";
 
-type UseDegenClaimTransactionLogicProps = {
+type UseRewardClaimTransactionLogicProps = {
   fid: bigint | undefined;
   sponsored: boolean;
   onSuccess?: (txHash: string) => void;
@@ -17,12 +16,12 @@ type UseDegenClaimTransactionLogicProps = {
   disabled?: boolean;
 };
 
-export function useDegenClaimTransactionLogic({
+export function useRewardClaimTransactionLogic({
   fid,
   onSuccess,
   onError,
   disabled = false,
-}: UseDegenClaimTransactionLogicProps) {
+}: UseRewardClaimTransactionLogicProps) {
   const { address } = useAppKitAccount({ namespace: "eip155" });
   const { chainId } = useAppKitNetwork();
 
@@ -37,8 +36,9 @@ export function useDegenClaimTransactionLogic({
     refetch: refetchEligibility,
   } = useClaimEligibility({ fid });
 
-  const { count: dailyClaimsCount } = useClaimStats();
-  const isDailyLimitReached = dailyClaimsCount >= DAILY_CLAIM_LIMIT;
+  // Daily limit is checked in canClaimToday() contract function via useClaimEligibility
+  // If canClaim is false, it means the daily limit was reached (among other checks)
+  const isDailyLimitReached = !canClaim;
 
   const [cachedFid, setCachedFid] = useState<number | undefined>(undefined);
 
@@ -54,7 +54,7 @@ export function useDegenClaimTransactionLogic({
       } catch (error) {
         if (!controller.signal.aborted) {
           handleError(error, "Failed to sign in", {
-            operation: "DegenClaimTransaction",
+            operation: "RewardClaimTransaction",
           });
         }
       }
@@ -72,6 +72,7 @@ export function useDegenClaimTransactionLogic({
     fid,
     contractAddress,
     cachedFid,
+    chainId: numericChainId,
   });
 
   const { onStatus } = useTransactionStatus({

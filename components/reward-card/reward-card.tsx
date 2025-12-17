@@ -1,10 +1,10 @@
 "use client";
 
-import { DegenClaimTransaction } from "@/components/gm-chain-card/degen-claim-transaction";
 import { ShareModal } from "@/components/share-modal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
+import { RewardClaimTransaction } from "../gm-chain-card/reward-claim-transaction";
 import { type ClaimState, getStatusConfig } from "./utils";
 
 type RewardCardProps = {
@@ -19,6 +19,12 @@ type RewardCardProps = {
   address: string | undefined;
   chainId: number | undefined;
   dailyClaimsCount: number;
+  multichainCounts?: {
+    base: number;
+    celo: number;
+    optimism: number;
+    total: number;
+  };
 };
 
 const DEGEN_DECIMALS = 18n;
@@ -35,12 +41,16 @@ export function RewardCard({
   onClaimSuccessAction,
   onShareModalCloseAction,
   dailyClaimsCount,
+  multichainCounts,
 }: RewardCardProps) {
   const config = getStatusConfig(state);
   const progressPercentage = Math.min(
     (dailyClaimsCount / DAILY_CLAIM_LIMIT) * 100,
     100
   );
+  const totalPercentage = multichainCounts
+    ? Math.min((multichainCounts.total / (DAILY_CLAIM_LIMIT * 3)) * 100, 100)
+    : progressPercentage;
 
   return (
     <>
@@ -70,7 +80,9 @@ export function RewardCard({
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Daily Claims Limit</span>
+              <span className="text-muted-foreground">
+                This Chain Daily Limit
+              </span>
               <span className="font-medium">
                 {dailyClaimsCount} / {DAILY_CLAIM_LIMIT}
               </span>
@@ -78,7 +90,39 @@ export function RewardCard({
             <Progress className="h-2" value={progressPercentage} />
           </div>
 
-          <DegenClaimTransaction
+          {multichainCounts && (
+            <div className="space-y-2 border-border/50 border-t pt-3">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Multichain Total</span>
+                <span className="font-medium">
+                  {multichainCounts.total} / {DAILY_CLAIM_LIMIT * 3}
+                </span>
+              </div>
+              <Progress className="h-2" value={totalPercentage} />
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-medium text-foreground">
+                    {multichainCounts.base}
+                  </div>
+                  <div className="text-muted-foreground">Base</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-foreground">
+                    {multichainCounts.celo}
+                  </div>
+                  <div className="text-muted-foreground">Celo</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-foreground">
+                    {multichainCounts.optimism}
+                  </div>
+                  <div className="text-muted-foreground">Optimism</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <RewardClaimTransaction
             disabled={!state.isEligible}
             fid={fid}
             onSuccess={onClaimSuccessAction}

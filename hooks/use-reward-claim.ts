@@ -2,11 +2,14 @@
 
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useMemo } from "react";
-import useSWR from "swr";
 import { useReadContract } from "wagmi";
-import { z } from "zod";
 import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
-import { BASE_CHAIN_ID } from "@/lib/constants";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
+import {
+  BASE_CHAIN_ID,
+  CELO_CHAIN_ID,
+  OPTIMISM_CHAIN_ID,
+} from "@/lib/constants";
 import { getDailyRewardsAddress, normalizeChainId } from "@/lib/utils";
 
 type UseClaimEligibilityProps = {
@@ -159,62 +162,48 @@ export function useRewardVaultStatus() {
   };
 }
 
-const claimStatsSchema = z.object({
-  count: z.number().int().nonnegative(),
-});
+/**
+ * Hook to get today's daily claim count from a specific chain.
+ * This shows how many claims have been made today on that chain.
+ * If no chainId is provided, defaults to the current connected chain.
+ */
+export function useDailyClaimCount(chainId?: number) {
+  const { chainId: connectedChainId } = useAppKitNetwork();
+  const normalizedConnectedChainId = normalizeChainId(connectedChainId);
+  const activeChainId = chainId ?? normalizedConnectedChainId ?? BASE_CHAIN_ID;
+  const contractAddress = getDailyRewardsAddress(activeChainId);
 
-type FetchError = Error & {
-  status?: number;
-  body?: string;
-};
+  const secondsPerDay = 86_400;
+  const today = BigInt(Math.floor(Date.now() / 1000 / secondsPerDay));
 
-export function useClaimStats() {
-  const { data, error, isLoading, mutate } = useSWR(
-    "/api/claims/stats",
-    async (url: string) => {
-      try {
-        // Add cache-busting timestamp to bypass CDN cache when fetching fresh data
-        const cacheBustUrl = `${url}?_t=${Date.now()}`;
-        const res = await fetch(cacheBustUrl, {
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          let errorBody: string;
-          try {
-            errorBody = await res.text();
-          } catch {
-            errorBody = "(unable to read response body)";
-          }
-
-          const message = `Failed to fetch stats: ${res.status} ${res.statusText}`;
-          const fetchError: FetchError = new Error(message);
-          fetchError.status = res.status;
-          fetchError.body = errorBody;
-          throw fetchError;
-        }
-
-        const json = await res.json();
-        return claimStatsSchema.parse(json);
-      } catch (err) {
-        // Re-throw AbortError as-is to signal cancellation
-        if (err instanceof Error && err.name === "AbortError") {
-          throw err;
-        }
-        throw err;
-      }
+  const { data: dailyCount } = useReadContract({
+    address: (contractAddress as `0x${string}`) || undefined,
+    abi: dailyRewardsV2Abi,
+    functionName: "dailyClaimCount",
+    args: [today],
+    chainId: activeChainId as number,
+    query: {
+      enabled: contractAddress !== "",
+      refetchInterval: 60_000, // Refresh every minute
     },
-    {
-      refreshInterval: 30_000, // Refresh every 30 seconds
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-    }
-  );
+  });
+
+  return Number(dailyCount ?? 0n);
+}
+
+/**
+ * Hook to get total daily claim counts across all supported chains.
+ * Returns an object with counts per chain and total.
+ */
+export function useMultichainDailyClaimCounts() {
+  const baseCount = useDailyClaimCount(BASE_CHAIN_ID);
+  const celoCount = useDailyClaimCount(CELO_CHAIN_ID);
+  const optimismCount = useDailyClaimCount(OPTIMISM_CHAIN_ID);
 
   return {
-    count: data?.count ?? 0,
-    isLoading,
-    isError: Boolean(error),
-    mutate,
+    base: baseCount,
+    celo: celoCount,
+    optimism: optimismCount,
+    total: baseCount + celoCount + optimismCount,
   };
 }

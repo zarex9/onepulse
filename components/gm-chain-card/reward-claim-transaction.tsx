@@ -3,10 +3,10 @@ import {
   TransactionButton,
 } from "@coinbase/onchainkit/transaction";
 import { ClaimFallbackUI } from "./claim-fallback-ui";
-import { DegenActionButton } from "./degen-action-button";
-import { useDegenClaimTransactionLogic } from "./use-degen-claim-transaction-logic";
+import { RewardActionButton } from "./reward-action-button";
+import { useRewardClaimTransactionLogic } from "./use-reward-claim-transaction-logic";
 
-type DegenClaimTransactionProps = {
+type RewardClaimTransactionProps = {
   fid: bigint | undefined;
   sponsored: boolean;
   onSuccess?: (txHash: string) => void;
@@ -14,20 +14,20 @@ type DegenClaimTransactionProps = {
   disabled?: boolean;
 };
 
-export function DegenClaimTransaction({
+export function RewardClaimTransaction({
   fid,
   sponsored,
   onSuccess,
   onError,
   disabled = false,
-}: DegenClaimTransactionProps) {
+}: RewardClaimTransactionProps) {
   const {
     numericChainId,
     getClaimContracts,
     onStatus,
     isDisabled,
     buttonState,
-  } = useDegenClaimTransactionLogic({
+  } = useRewardClaimTransactionLogic({
     fid,
     sponsored,
     onSuccess,
@@ -51,7 +51,7 @@ export function DegenClaimTransaction({
         disabled={isDisabled}
         text={buttonState.label}
       />
-      <DegenActionButton state={buttonState} />
+      <RewardActionButton state={buttonState} />
     </Transaction>
   );
 }

@@ -4,11 +4,11 @@ import { memo } from "react";
 import { ClaimFallbackUI } from "./claim-fallback-ui";
 import type { ButtonState } from "./get-button-state";
 
-type DegenActionButtonProps = {
+type RewardActionButtonProps = {
   state: ButtonState;
 };
 
-export const DegenActionButton = memo(({ state }: DegenActionButtonProps) => {
+export const RewardActionButton = memo(({ state }: RewardActionButtonProps) => {
   if (state.showFallback) {
     return <ClaimFallbackUI type={state.showFallback} />;
   }
