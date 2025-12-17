@@ -6,6 +6,7 @@ export type ButtonState = {
 type GetButtonStateParams = {
   isConnected: boolean;
   isEligibilityPending: boolean;
+  fidBlacklisted: boolean;
   hasSentGMToday: boolean;
   canClaim: boolean;
   isDailyLimitReached: boolean;
@@ -20,11 +21,12 @@ type GetButtonStateParams = {
 export function getButtonState({
   isConnected,
   isEligibilityPending,
+  fidBlacklisted,
   hasSentGMToday,
   canClaim,
   isDailyLimitReached,
-  isVaultDepleted = false,
-  hasAlreadyClaimed = false,
+  isVaultDepleted,
+  hasAlreadyClaimed,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
@@ -40,16 +42,9 @@ export function getButtonState({
     };
   }
 
-  if (isVaultDepleted) {
+  if (fidBlacklisted) {
     return {
-      label: "Vault is depleted",
-      disabled: true,
-    };
-  }
-
-  if (!hasSentGMToday) {
-    return {
-      label: "Send GM first",
+      label: "Fid is blacklisted",
       disabled: true,
     };
   }
@@ -61,9 +56,23 @@ export function getButtonState({
     };
   }
 
+  if (isVaultDepleted) {
+    return {
+      label: "Vault is depleted",
+      disabled: true,
+    };
+  }
+
   if (isDailyLimitReached) {
     return {
       label: "Daily limit reached",
+      disabled: true,
+    };
+  }
+
+  if (!hasSentGMToday) {
+    return {
+      label: "Send GM first",
       disabled: true,
     };
   }

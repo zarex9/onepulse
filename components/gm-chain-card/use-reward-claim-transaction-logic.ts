@@ -42,6 +42,7 @@ export function useRewardClaimTransactionLogic({
     claimStatus &&
     claimStatus.vaultBalance > 0n &&
     claimStatus.vaultBalance <= claimStatus.minReserve;
+  const fidBlacklisted = claimStatus?.fidIsBlacklisted ?? false;
   const hasAlreadyClaimed =
     (claimStatus?.fidClaimedToday || claimStatus?.claimerClaimedToday) ?? false;
   const isDailyLimitReached =
@@ -92,6 +93,7 @@ export function useRewardClaimTransactionLogic({
   const buttonState = getButtonState({
     isConnected: Boolean(address),
     isEligibilityPending,
+    fidBlacklisted,
     hasSentGMToday,
     canClaim,
     isDailyLimitReached,
