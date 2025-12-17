@@ -1,6 +1,7 @@
 import { base, celo, optimism } from "@reown/appkit/networks";
 import { useAppKitNetwork } from "@reown/appkit/react";
 import { useMemo, useState } from "react";
+import { getButtonState } from "@/components/gm-chain-card/get-button-state";
 import { extractClaimState } from "@/components/reward-card/utils";
 import {
   useClaimEligibility,
@@ -42,6 +43,19 @@ export function useRewardChainCardLogic({
   const dailyClaimCount = useDailyClaimCount(chainId);
 
   const claimState = extractClaimState(claimStatus);
+  const hasAlreadyClaimed = claimStatus?.fidClaimedToday ?? false;
+
+  const buttonState = getButtonState({
+    isConnected,
+    isEligibilityPending: isCheckingEligibility,
+    fidBlacklisted: claimStatus?.fidIsBlacklisted ?? false,
+    hasSentGMToday: claimStatus?.hasSentGMToday ?? false,
+    canClaim: claimState?.isEligible ?? false,
+    isDailyLimitReached: claimStatus?.globalLimitReached ?? false,
+    isVaultDepleted:
+      claimStatus && claimStatus.vaultBalance <= claimStatus.minReserve,
+    hasAlreadyClaimed,
+  });
 
   const getNetworkObject = (targetChainId: number) => {
     switch (targetChainId) {
@@ -76,5 +90,7 @@ export function useRewardChainCardLogic({
     chainBtnClasses,
     handleSwitchChain,
     isSwitching,
+    buttonState,
+    hasAlreadyClaimed,
   };
 }

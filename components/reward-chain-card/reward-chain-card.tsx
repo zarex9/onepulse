@@ -12,12 +12,19 @@ import {
   ItemFooter,
   ItemMedia,
 } from "@/components/ui/item";
+import { useDailyRewardsV2Read } from "@/hooks/use-daily-rewards-v2-read";
 import {
   BASE_CHAIN_ID,
   CELO_CHAIN_ID,
   OPTIMISM_CHAIN_ID,
 } from "@/lib/constants";
-import { REWARD_TOKEN_SYMBOLS } from "@/lib/constants/daily-rewards-v2";
+import {
+  REWARD_TOKEN_DECIMALS,
+  REWARD_TOKEN_SYMBOLS,
+} from "@/lib/constants/daily-rewards-v2";
+import { getDailyRewardsV2Address } from "@/lib/utils";
+
+const TRAILING_ZEROS_REGEX = /\.?0+$/;
 
 export type RewardChainCardProps = {
   chainId: number;
@@ -28,8 +35,6 @@ export type RewardChainCardProps = {
   sponsored: boolean;
   onClaimSuccess?: () => void;
 };
-
-const DISPLAY_REWARD_AMOUNT = "0.01";
 
 function getChainIconName(chainId: number): string {
   switch (chainId) {
@@ -66,6 +71,8 @@ export const RewardChainCard = memo(
       chainBtnClasses,
       handleSwitchChain,
       isSwitching,
+      buttonState,
+      hasAlreadyClaimed,
     } = useRewardChainCardLogic({
       chainId,
       fid,
@@ -73,9 +80,21 @@ export const RewardChainCard = memo(
       address,
     });
 
+    const contractAddress = getDailyRewardsV2Address(chainId);
+    const { claimRewardAmount, dailyClaimLimit } =
+      useDailyRewardsV2Read(contractAddress);
+
     const chainIconName = getChainIconName(chainId);
     const tokenSymbol = getTokenSymbol(chainId);
     const isEligible = claimState?.isEligible ?? false;
+    const decimals = REWARD_TOKEN_DECIMALS[chainId] ?? 6;
+    const displayRewardAmount =
+      claimRewardAmount && claimRewardAmount > 0n
+        ? (Number(claimRewardAmount) / 10 ** decimals)
+            .toFixed(3)
+            .replace(TRAILING_ZEROS_REGEX, "")
+        : "0.01";
+    const claimLimitDisplay = dailyClaimLimit ? Number(dailyClaimLimit) : 250;
 
     return (
       <Item variant="outline">
@@ -89,26 +108,31 @@ export const RewardChainCard = memo(
             })}
           </ItemMedia>
           <ItemDescription>
-            Claim {DISPLAY_REWARD_AMOUNT} {tokenSymbol} on {name}
+            Claim {displayRewardAmount} {tokenSymbol} on {name}
           </ItemDescription>
         </ItemContent>
         <ItemFooter className="flex-col gap-3">
           <div className="w-full space-y-1">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Daily Claims</span>
-              <span className="font-medium">{dailyClaimCount} / 250</span>
+              <span className="font-medium">
+                {dailyClaimCount} / {claimLimitDisplay}
+              </span>
             </div>
             <div className="overflow-hidden rounded-full bg-secondary">
               <div
                 className="h-2 bg-primary transition-all"
                 style={{
-                  width: `${Math.min((dailyClaimCount / 250) * 100, 100)}%`,
+                  width: `${Math.min(
+                    (dailyClaimCount / claimLimitDisplay) * 100,
+                    100
+                  )}%`,
                 }}
               />
             </div>
           </div>
 
-          {!isCorrectChain && isConnected && (
+          {!isCorrectChain && isConnected && !hasAlreadyClaimed && (
             <Button
               aria-busy={isSwitching}
               className={`w-full ${chainBtnClasses}`}
@@ -117,6 +141,16 @@ export const RewardChainCard = memo(
               size="lg"
             >
               {isSwitching ? "Switching..." : `Switch to ${name}`}
+            </Button>
+          )}
+
+          {!isCorrectChain && isConnected && hasAlreadyClaimed && (
+            <Button
+              className={`w-full ${chainBtnClasses}`}
+              disabled={true}
+              size="lg"
+            >
+              {buttonState?.label || "Already claimed"}
             </Button>
           )}
 
