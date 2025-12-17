@@ -97,6 +97,17 @@ export function useRewardClaimTransactionLogic({
     hasAlreadyClaimed,
   });
 
+  // If already claimed, disable regardless of network
+  if (hasAlreadyClaimed) {
+    return {
+      numericChainId,
+      getClaimContracts,
+      onStatus,
+      isDisabled: true,
+      buttonState,
+    };
+  }
+
   const isDisabled =
     disabled ||
     !address ||
