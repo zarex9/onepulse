@@ -12,7 +12,6 @@ type GetButtonStateParams = {
   isDailyLimitReached: boolean;
   isVaultDepleted?: boolean;
   hasAlreadyClaimed?: boolean;
-  isBaseChainDisabled?: boolean;
 };
 
 /**
@@ -28,7 +27,6 @@ export function getButtonState({
   isDailyLimitReached,
   isVaultDepleted,
   hasAlreadyClaimed,
-  isBaseChainDisabled = false,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
@@ -47,13 +45,6 @@ export function getButtonState({
   if (fidBlacklisted) {
     return {
       label: "Fid is blacklisted",
-      disabled: true,
-    };
-  }
-
-  if (isBaseChainDisabled) {
-    return {
-      label: "Temporarily unavailable",
       disabled: true,
     };
   }
