@@ -31,14 +31,20 @@ export function useRewardClaimTransactionLogic({
     : undefined;
   const {
     canClaim,
+    claimStatus,
     hasSentGMToday,
     isPending: isEligibilityPending,
     refetch: refetchEligibility,
   } = useClaimEligibility({ fid });
 
-  // Daily limit is checked in canClaimToday() contract function via useClaimEligibility
-  // If canClaim is false, it means the daily limit was reached (among other checks)
-  const isDailyLimitReached = !canClaim;
+  // Determine specific reason why claim is not possible
+  const isVaultDepleted =
+    claimStatus &&
+    claimStatus.vaultBalance > 0n &&
+    claimStatus.vaultBalance <= claimStatus.minReserve;
+  const hasAlreadyClaimed = claimStatus?.claimerClaimedToday ?? false;
+  const isDailyLimitReached =
+    claimStatus?.ok === false && !hasAlreadyClaimed && !isVaultDepleted;
 
   const [cachedFid, setCachedFid] = useState<number | undefined>(undefined);
 
@@ -82,6 +88,16 @@ export function useRewardClaimTransactionLogic({
     claimer: address,
   });
 
+  const buttonState = getButtonState({
+    isConnected: Boolean(address),
+    isEligibilityPending,
+    hasSentGMToday,
+    canClaim,
+    isDailyLimitReached,
+    isVaultDepleted,
+    hasAlreadyClaimed,
+  });
+
   const isDisabled =
     disabled ||
     !address ||
@@ -90,15 +106,8 @@ export function useRewardClaimTransactionLogic({
     !canClaim ||
     !hasSentGMToday ||
     isEligibilityPending ||
-    isDailyLimitReached;
-
-  const buttonState = getButtonState({
-    isConnected: Boolean(address),
-    isEligibilityPending,
-    hasSentGMToday,
-    canClaim,
-    isDailyLimitReached,
-  });
+    isDailyLimitReached ||
+    buttonState.disabled;
 
   return {
     numericChainId,

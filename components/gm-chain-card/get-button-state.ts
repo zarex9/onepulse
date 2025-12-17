@@ -1,7 +1,6 @@
 export type ButtonState = {
   label: string;
   disabled: boolean;
-  showFallback: "wallet" | "gm-first" | "limit-reached" | null;
 };
 
 type GetButtonStateParams = {
@@ -10,6 +9,8 @@ type GetButtonStateParams = {
   hasSentGMToday: boolean;
   canClaim: boolean;
   isDailyLimitReached: boolean;
+  isVaultDepleted?: boolean;
+  hasAlreadyClaimed?: boolean;
 };
 
 /**
@@ -22,28 +23,13 @@ export function getButtonState({
   hasSentGMToday,
   canClaim,
   isDailyLimitReached,
+  isVaultDepleted = false,
+  hasAlreadyClaimed = false,
 }: GetButtonStateParams): ButtonState {
   if (!isConnected) {
     return {
       label: "Connect wallet",
       disabled: true,
-      showFallback: "wallet",
-    };
-  }
-
-  if (isDailyLimitReached) {
-    return {
-      label: "Daily Limit Reached",
-      disabled: true,
-      showFallback: "limit-reached",
-    };
-  }
-
-  if (!hasSentGMToday) {
-    return {
-      label: "Send GM First",
-      disabled: true,
-      showFallback: "gm-first",
     };
   }
 
@@ -51,21 +37,46 @@ export function getButtonState({
     return {
       label: "Checking eligibility...",
       disabled: true,
-      showFallback: null,
+    };
+  }
+
+  if (isVaultDepleted) {
+    return {
+      label: "Vault is depleted",
+      disabled: true,
+    };
+  }
+
+  if (!hasSentGMToday) {
+    return {
+      label: "Send GM first",
+      disabled: true,
+    };
+  }
+
+  if (hasAlreadyClaimed) {
+    return {
+      label: "Already claimed",
+      disabled: true,
+    };
+  }
+
+  if (isDailyLimitReached) {
+    return {
+      label: "Daily limit reached",
+      disabled: true,
     };
   }
 
   if (!canClaim) {
     return {
-      label: "Already Claimed",
+      label: "Not eligible",
       disabled: true,
-      showFallback: null,
     };
   }
 
   return {
-    label: "Claim Rewards",
+    label: "Claim rewards",
     disabled: false,
-    showFallback: null,
   };
 }

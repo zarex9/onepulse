@@ -3,7 +3,6 @@ import {
   TransactionButton,
 } from "@coinbase/onchainkit/transaction";
 import { ClaimFallbackUI } from "./claim-fallback-ui";
-import { RewardActionButton } from "./reward-action-button";
 import { useRewardClaimTransactionLogic } from "./use-reward-claim-transaction-logic";
 
 type RewardClaimTransactionProps = {
@@ -47,11 +46,10 @@ export function RewardClaimTransaction({
       onStatus={onStatus}
     >
       <TransactionButton
-        className="w-full"
+        className="h-10 w-full rounded-md px-6 has-[>svg]:px-4"
         disabled={isDisabled}
         text={buttonState.label}
       />
-      <RewardActionButton state={buttonState} />
     </Transaction>
   );
 }

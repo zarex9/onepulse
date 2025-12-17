@@ -114,7 +114,7 @@ export const RewardChainCard = memo(
               className={`w-full ${chainBtnClasses}`}
               disabled={isSwitching}
               onClick={handleSwitchChain}
-              size="sm"
+              size="lg"
             >
               {isSwitching ? "Switching..." : `Switch to ${name}`}
             </Button>
