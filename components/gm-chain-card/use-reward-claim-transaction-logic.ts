@@ -2,6 +2,7 @@ import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 import { useClaimEligibility } from "@/hooks/use-reward-claim";
 import { signIn } from "@/lib/client-auth";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { handleError } from "@/lib/error-handling";
 import { getDailyRewardsV2Address, normalizeChainId } from "@/lib/utils";
 import { getButtonState } from "./get-button-state";
@@ -29,6 +30,10 @@ export function useRewardClaimTransactionLogic({
   const contractAddress = numericChainId
     ? getDailyRewardsV2Address(numericChainId)
     : undefined;
+
+  // Temporarily disable claims on Base
+  const isBaseChainDisabled = numericChainId === BASE_CHAIN_ID;
+
   const {
     canClaim,
     claimStatus,
@@ -97,6 +102,7 @@ export function useRewardClaimTransactionLogic({
     isDailyLimitReached,
     isVaultDepleted,
     hasAlreadyClaimed,
+    isBaseChainDisabled,
   });
 
   const isDisabled =
