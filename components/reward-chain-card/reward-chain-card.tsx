@@ -7,8 +7,8 @@ import { useRewardChainCardLogic } from "@/components/reward-chain-card/use-rewa
 import { Button } from "@/components/ui/button";
 import {
   Item,
+  ItemActions,
   ItemContent,
-  ItemDescription,
   ItemFooter,
   ItemMedia,
 } from "@/components/ui/item";
@@ -109,10 +109,12 @@ export const RewardChainCard = memo(
               focusable: false,
             })}
           </ItemMedia>
-          <ItemDescription>
-            Claim {displayRewardAmount} {tokenSymbol} on {name}
-          </ItemDescription>
         </ItemContent>
+        <ItemActions>
+          <span className="font-bold text-xl tracking-tight">
+            {displayRewardAmount} {tokenSymbol}
+          </span>
+        </ItemActions>
         <ItemFooter className="flex-col gap-3">
           <div className="w-full space-y-1">
             <div className="flex justify-between text-xs">
