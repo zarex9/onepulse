@@ -100,7 +100,7 @@ export const RewardChainCard = memo(
 
     return (
       <Item variant="outline">
-        <ItemContent>
+        <ItemContent className="items-start">
           <ItemMedia>
             {Icons[chainIconName as keyof typeof Icons]?.({
               className: "h-8 w-24 text-current",
