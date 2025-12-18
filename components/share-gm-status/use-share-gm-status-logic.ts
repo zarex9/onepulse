@@ -9,7 +9,7 @@ export function useShareGMStatusLogic(
     claimedToday,
     completedAllChains
   );
-  const { shareToCast, shareToClipboard } = useShareActions();
+  const { shareToCast } = useShareActions();
 
   const handleShare = async (platform: "cast" | "copy") => {
     if (!shareUrl) {
@@ -18,12 +18,12 @@ export function useShareGMStatusLogic(
 
     if (platform === "cast") {
       await shareToCast(shareText, shareUrl);
-    } else {
-      shareToClipboard(shareText, shareUrl);
     }
   };
 
   return {
     handleShare,
+    shareText,
+    shareUrl,
   };
 }

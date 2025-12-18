@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, MessageCircle } from "lucide-react";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { useShareGMStatusLogic } from "./share-gm-status/use-share-gm-status-logic";
 import { Button } from "./ui/button";
@@ -26,10 +27,16 @@ export function ShareGMStatus({
   claimedToday = false,
   completedAllChains = false,
 }: ShareGMStatusProps) {
-  const { handleShare } = useShareGMStatusLogic(
+  const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const { handleShare, shareText, shareUrl } = useShareGMStatusLogic(
     claimedToday,
     completedAllChains
   );
+
+  const handleCopy = () => {
+    const fullText = `${shareText}\n${shareUrl}`;
+    copyToClipboard(fullText);
+  };
 
   return (
     <div className={cn("flex gap-2", className)}>
@@ -45,11 +52,11 @@ export function ShareGMStatus({
       <Button
         aria-label="Copy GM status"
         className="gap-2"
-        onClick={() => handleShare("copy")}
+        onClick={handleCopy}
         size={size}
         variant={variant}
       >
-        <Copy className="h-4 w-4" />
+        <Copy className={`h-4 w-4 ${isCopied ? "text-green-600" : ""}`} />
       </Button>
     </div>
   );
