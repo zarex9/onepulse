@@ -111,7 +111,7 @@ export const RewardChainCard = memo(
           </ItemMedia>
         </ItemContent>
         <ItemActions>
-          <span className="font-bold text-xl tracking-tight">
+          <span className="font-medium text-lg tracking-tight">
             {displayRewardAmount} {tokenSymbol}
           </span>
         </ItemActions>
