@@ -7,7 +7,7 @@ import {
   http,
   keccak256,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { type Address, privateKeyToAccount } from "viem/accounts";
 import { base, celo, optimism } from "viem/chains";
 import { z } from "zod";
 
@@ -42,9 +42,7 @@ async function generateClaimAuthorization(params: {
   deadline: number | bigint;
   chainId: number;
 }) {
-  const account = privateKeyToAccount(
-    BACKEND_SIGNER_PRIVATE_KEY as `0x${string}`
-  );
+  const account = privateKeyToAccount(BACKEND_SIGNER_PRIVATE_KEY as Address);
 
   // Select the correct chain based on chainId
   const chainMap: Record<number, Chain> = {
@@ -73,10 +71,10 @@ async function generateClaimAuthorization(params: {
   }
 
   const nonce = await publicClient.readContract({
-    address: contractAddress as `0x${string}`,
+    address: contractAddress as Address,
     abi: dailyRewardsV2Abi,
     functionName: "nonces",
-    args: [params.claimer as `0x${string}`],
+    args: [params.claimer as Address],
   });
 
   // Create message hash matching the contract's format with nonce:
@@ -85,11 +83,11 @@ async function generateClaimAuthorization(params: {
     encodePacked(
       ["address", "uint256", "uint256", "uint256", "address"],
       [
-        params.claimer as `0x${string}`,
+        params.claimer as Address,
         BigInt(params.fid),
         BigInt(nonce.toString()),
         BigInt(params.deadline),
-        contractAddress as `0x${string}`,
+        contractAddress as Address,
       ]
     )
   );
