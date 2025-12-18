@@ -1,13 +1,14 @@
 "use client";
 
 import { memo } from "react";
+import type { Address } from "viem";
 import { GMChainCard } from "@/components/gm-chain-card/gm-chain-card";
 import { useChainSlideLogic } from "./use-chain-slide-logic";
 
 type ChainSlideProps = {
   chainId: number;
   chainName: string;
-  contractAddress: `0x${string}`;
+  contractAddress: Address;
   isConnected: boolean;
   address?: string;
   onStatusChange: (status: {

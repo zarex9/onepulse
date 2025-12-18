@@ -1,3 +1,4 @@
+import type { Address } from "viem";
 import { DAILY_GM_ADDRESSES } from "@/lib/constants";
 import { getChainBtnClasses, isSponsoredOnChain } from "@/lib/utils";
 
@@ -18,7 +19,7 @@ type ModalRendererResult =
   | {
       shouldRender: true;
       activeChain: { id: number; name: string };
-      activeContractAddress: `0x${string}`;
+      activeContractAddress: Address;
       chainBtnClasses: string;
       isSponsored: boolean;
     };
