@@ -1,10 +1,9 @@
 "use client";
 
 import { ArrowDownCircle, ArrowUpCircle, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { formatEther, parseEther } from "viem";
-import { base } from "viem/chains";
+import { formatUnits, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
+import { ERC20_ABI } from "@/lib/abi/erc20";
 
 type VaultStatus = {
   currentBalance: bigint;
@@ -27,27 +27,50 @@ type VaultStatus = {
 type VaultStatusCardProps = {
   vaultStatus?: VaultStatus;
   contractAddress: `0x${string}`;
+  chainId: number;
+  tokenAddress: `0x${string}`;
+  tokenSymbol: string;
+  tokenDecimals: number;
   onRefetchAction: () => void;
 };
 
 export function VaultStatusCard({
   vaultStatus,
   contractAddress,
+  chainId,
+  tokenAddress,
+  tokenSymbol,
+  tokenDecimals,
   onRefetchAction,
 }: VaultStatusCardProps) {
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [approvalStep, setApprovalStep] = useState(false);
+  const [pendingDepositAmount, setPendingDepositAmount] = useState<
+    bigint | null
+  >(null);
+
+  const {
+    writeContract: approve,
+    data: approvalHash,
+    isPending: isApprovePending,
+  } = useWriteContract();
 
   const {
     writeContract: deposit,
     data: depositHash,
     isPending: isDepositPending,
   } = useWriteContract();
+
   const {
     writeContract: withdraw,
     data: withdrawHash,
     isPending: isWithdrawPending,
   } = useWriteContract();
+
+  const { isLoading: isApprovalConfirming } = useWaitForTransactionReceipt({
+    hash: approvalHash,
+  });
 
   const { isLoading: isDepositConfirming } = useWaitForTransactionReceipt({
     hash: depositHash,
@@ -57,8 +80,57 @@ export function VaultStatusCard({
     hash: withdrawHash,
   });
 
+  useEffect(() => {
+    if (isApprovalConfirming === false && approvalHash && !isApprovePending) {
+      if (!pendingDepositAmount) {
+        return;
+      }
+
+      toast.success("Approval confirmed! Now depositing...");
+      deposit(
+        {
+          address: contractAddress,
+          abi: dailyRewardsV2Abi,
+          functionName: "deposit",
+          args: [pendingDepositAmount],
+          chainId,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Deposit transaction submitted");
+            setDepositAmount("");
+            setApprovalStep(false);
+            setPendingDepositAmount(null);
+            onRefetchAction();
+          },
+          onError: (error) => {
+            toast.error(error.message || "Deposit failed");
+            setApprovalStep(false);
+            setPendingDepositAmount(null);
+          },
+        }
+      );
+    }
+  }, [
+    isApprovalConfirming,
+    approvalHash,
+    isApprovePending,
+    pendingDepositAmount,
+    deposit,
+    contractAddress,
+    chainId,
+    onRefetchAction,
+  ]);
+
   const isDepositing = isDepositPending || isDepositConfirming;
   const isWithdrawing = isWithdrawPending || isWithdrawConfirming;
+
+  const getDepositButtonText = () => {
+    if (!isDepositing) {
+      return "Deposit";
+    }
+    return approvalStep ? "Approving..." : "Depositing...";
+  };
 
   const handleDeposit = () => {
     if (!depositAmount || Number.parseFloat(depositAmount) <= 0) {
@@ -66,22 +138,26 @@ export function VaultStatusCard({
       return;
     }
 
-    deposit(
+    const parsed = parseUnits(depositAmount, tokenDecimals);
+    setPendingDepositAmount(parsed);
+    setApprovalStep(true);
+
+    approve(
       {
-        address: contractAddress,
-        abi: dailyRewardsAbi,
-        functionName: "deposit",
-        args: [parseEther(depositAmount)],
-        chainId: base.id,
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "approve",
+        args: [contractAddress, parsed],
+        chainId,
       },
       {
         onSuccess: () => {
-          toast.success("Deposit transaction submitted");
-          setDepositAmount("");
-          onRefetchAction();
+          toast.info("Approval transaction submitted...");
         },
         onError: (error) => {
-          toast.error(error.message || "Deposit failed");
+          toast.error(error.message || "Approval failed");
+          setApprovalStep(false);
+          setPendingDepositAmount(null);
         },
       }
     );
@@ -93,13 +169,14 @@ export function VaultStatusCard({
       return;
     }
 
+    const parsed = parseUnits(withdrawAmount, tokenDecimals);
     withdraw(
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "emergencyWithdraw",
-        args: [parseEther(withdrawAmount)],
-        chainId: base.id,
+        args: [parsed],
+        chainId,
       },
       {
         onSuccess: () => {
@@ -114,11 +191,11 @@ export function VaultStatusCard({
     );
   };
 
-  const formatDegen = (value?: bigint) => {
+  const formatToken = (value?: bigint) => {
     if (value === undefined) {
       return "—";
     }
-    return `${Number(formatEther(value)).toLocaleString()} DEGEN`;
+    return `${Number(formatUnits(value, tokenDecimals)).toLocaleString(undefined, { maximumFractionDigits: 3 })} ${tokenSymbol}`;
   };
 
   return (
@@ -129,7 +206,7 @@ export function VaultStatusCard({
           Vault Status
         </CardTitle>
         <CardDescription>
-          Monitor and manage the DEGEN token vault
+          Monitor and manage the {tokenSymbol} token vault
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -139,7 +216,7 @@ export function VaultStatusCard({
               Current Balance
             </div>
             <div className="font-bold text-lg">
-              {formatDegen(vaultStatus?.currentBalance)}
+              {formatToken(vaultStatus?.currentBalance)}
             </div>
           </div>
           <div className="rounded-lg bg-muted p-4">
@@ -147,7 +224,7 @@ export function VaultStatusCard({
               Minimum Reserve
             </div>
             <div className="font-bold text-lg">
-              {formatDegen(vaultStatus?.minReserve)}
+              {formatToken(vaultStatus?.minReserve)}
             </div>
           </div>
           <div className="rounded-lg bg-muted p-4">
@@ -155,14 +232,14 @@ export function VaultStatusCard({
               Available for Claims
             </div>
             <div className="font-bold text-green-600 text-lg dark:text-green-400">
-              {formatDegen(vaultStatus?.availableForClaims)}
+              {formatToken(vaultStatus?.availableForClaims)}
             </div>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="deposit">Deposit DEGEN</Label>
+            <Label htmlFor="deposit">Deposit {tokenSymbol}</Label>
             <div className="flex gap-2">
               <Input
                 id="deposit"
@@ -176,7 +253,7 @@ export function VaultStatusCard({
                 onClick={handleDeposit}
               >
                 <ArrowUpCircle className="size-4" />
-                {isDepositing ? "..." : "Deposit"}
+                {getDepositButtonText()}
               </Button>
             </div>
           </div>

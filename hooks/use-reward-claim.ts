@@ -3,7 +3,6 @@
 import { useAppKitAccount, useAppKitNetwork } from "@reown/appkit/react";
 import { useMemo } from "react";
 import { useReadContract } from "wagmi";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
 import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 import {
   BASE_CHAIN_ID,
@@ -154,7 +153,7 @@ export function useRewardVaultStatus() {
 
   const { data: vaultStatus, isPending } = useReadContract({
     address: (contractAddress as `0x${string}`) || undefined,
-    abi: dailyRewardsAbi,
+    abi: dailyRewardsV2Abi,
     functionName: "getVaultStatus",
     chainId: BASE_CHAIN_ID,
     query: {
@@ -183,7 +182,7 @@ export function useMultichainVaultStatus() {
 
   const { data: baseVault, isPending: baseLoading } = useReadContract({
     address: (baseContractAddress as `0x${string}`) || undefined,
-    abi: dailyRewardsAbi,
+    abi: dailyRewardsV2Abi,
     functionName: "getVaultStatus",
     chainId: BASE_CHAIN_ID,
     query: {
@@ -194,7 +193,7 @@ export function useMultichainVaultStatus() {
 
   const { data: celoVault, isPending: celoLoading } = useReadContract({
     address: (celoContractAddress as `0x${string}`) || undefined,
-    abi: dailyRewardsAbi,
+    abi: dailyRewardsV2Abi,
     functionName: "getVaultStatus",
     chainId: CELO_CHAIN_ID,
     query: {
@@ -205,7 +204,7 @@ export function useMultichainVaultStatus() {
 
   const { data: optimismVault, isPending: optimismLoading } = useReadContract({
     address: (optimismContractAddress as `0x${string}`) || undefined,
-    abi: dailyRewardsAbi,
+    abi: dailyRewardsV2Abi,
     functionName: "getVaultStatus",
     chainId: OPTIMISM_CHAIN_ID,
     query: {

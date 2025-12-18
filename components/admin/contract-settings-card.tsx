@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertCircle, AlertTriangle, Info, Loader2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { isAddress, parseEther } from "viem";
+import { formatUnits, isAddress, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import {
   AlertDialog,
@@ -25,10 +25,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 
 type ContractSettingsCardProps = {
   contractAddress: `0x${string}`;
+  chainId: number;
+  tokenSymbol: string;
+  tokenDecimals: number;
   minVaultBalance: bigint | undefined;
   claimRewardAmount: bigint | undefined;
   dailyGMContract: string | undefined;
@@ -38,6 +41,9 @@ type ContractSettingsCardProps = {
 
 export function ContractSettingsCard({
   contractAddress,
+  chainId,
+  tokenSymbol,
+  tokenDecimals,
   minVaultBalance,
   claimRewardAmount,
   dailyGMContract,
@@ -47,6 +53,7 @@ export function ContractSettingsCard({
   const [newMinVaultBalance, setNewMinVaultBalance] = useState("");
   const [newClaimRewardAmount, setNewClaimRewardAmount] = useState("");
   const [newDailyGMContract, setNewDailyGMContract] = useState("");
+  const [newBackendSigner, setNewBackendSigner] = useState("");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
@@ -59,12 +66,22 @@ export function ContractSettingsCard({
   });
 
   useEffect(() => {
+    if (minVaultBalance) {
+      setNewMinVaultBalance(formatUnits(minVaultBalance, tokenDecimals));
+    }
+    if (claimRewardAmount) {
+      setNewClaimRewardAmount(formatUnits(claimRewardAmount, tokenDecimals));
+    }
+  }, [minVaultBalance, claimRewardAmount, tokenDecimals]);
+
+  useEffect(() => {
     if (isSuccess) {
       toast.success("Transaction confirmed!");
       onRefetchAction();
       setNewMinVaultBalance("");
       setNewClaimRewardAmount("");
       setNewDailyGMContract("");
+      setNewBackendSigner("");
       setPendingAction(null);
       setValidationErrors({});
     }
@@ -145,15 +162,27 @@ export function ContractSettingsCard({
     setValidationErrors({});
   };
 
+  const handleBackendSignerClick = () => {
+    const error = validateDailyGMContract(newBackendSigner);
+    if (error) {
+      setValidationErrors({ backendSigner: error });
+      return;
+    }
+    setPendingAction("backendSigner");
+    setValidationErrors({});
+  };
+
   const confirmAndExecute = (action: string) => {
     if (action === "minVaultBalance") {
       try {
+        const parsed = parseUnits(newMinVaultBalance, tokenDecimals);
         writeContract(
           {
             address: contractAddress,
-            abi: dailyRewardsAbi,
+            abi: dailyRewardsV2Abi,
             functionName: "setMinVaultBalance",
-            args: [parseEther(newMinVaultBalance)],
+            args: [parsed],
+            chainId,
           },
           {
             onSuccess: () => {
@@ -171,12 +200,14 @@ export function ContractSettingsCard({
       }
     } else if (action === "claimRewardAmount") {
       try {
+        const parsed = parseUnits(newClaimRewardAmount, tokenDecimals);
         writeContract(
           {
             address: contractAddress,
-            abi: dailyRewardsAbi,
+            abi: dailyRewardsV2Abi,
             functionName: "setClaimRewardAmount",
-            args: [parseEther(newClaimRewardAmount)],
+            args: [parsed],
+            chainId,
           },
           {
             onSuccess: () => {
@@ -196,9 +227,29 @@ export function ContractSettingsCard({
       writeContract(
         {
           address: contractAddress,
-          abi: dailyRewardsAbi,
+          abi: dailyRewardsV2Abi,
           functionName: "setDailyGMContract",
           args: [newDailyGMContract as `0x${string}`],
+          chainId,
+        },
+        {
+          onSuccess: () => {
+            toast.info("Transaction submitted...");
+          },
+          onError: (error) => {
+            toast.error(`Error: ${error.message}`);
+            setPendingAction(null);
+          },
+        }
+      );
+    } else if (action === "backendSigner") {
+      writeContract(
+        {
+          address: contractAddress,
+          abi: dailyRewardsV2Abi,
+          functionName: "setBackendSigner",
+          args: [newBackendSigner as `0x${string}`],
+          chainId,
         },
         {
           onSuccess: () => {
@@ -218,7 +269,9 @@ export function ContractSettingsCard({
     if (value === undefined) {
       return "—";
     }
-    return (Number(value) / 1e18).toString();
+    return Number(formatUnits(value, tokenDecimals)).toLocaleString(undefined, {
+      maximumFractionDigits: 3,
+    });
   };
 
   return (
@@ -230,7 +283,7 @@ export function ContractSettingsCard({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Minimum Vault Balance (DEGEN)</Label>
+            <Label>Minimum Vault Balance ({tokenSymbol})</Label>
             <div className="flex gap-2">
               <Input
                 disabled={isLoading}
@@ -264,12 +317,12 @@ export function ContractSettingsCard({
               </p>
             )}
             <p className="text-muted-foreground text-xs">
-              Current: {formatBalance(minVaultBalance)} DEGEN
+              Current: {formatBalance(minVaultBalance)} {tokenSymbol}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Claim Reward Amount (DEGEN)</Label>
+            <Label>Claim Reward Amount ({tokenSymbol})</Label>
             <div className="flex gap-2">
               <Input
                 disabled={isLoading}
@@ -303,7 +356,7 @@ export function ContractSettingsCard({
               </p>
             )}
             <p className="text-muted-foreground text-xs">
-              Current: {formatBalance(claimRewardAmount)} DEGEN
+              Current: {formatBalance(claimRewardAmount)} {tokenSymbol}
             </p>
           </div>
 
@@ -347,11 +400,41 @@ export function ContractSettingsCard({
           </div>
 
           <div className="space-y-2">
-            <Label>Backend Signer (Immutable)</Label>
-            <Input className="bg-muted" disabled value={backendSigner || ""} />
-            <p className="flex items-center gap-1 text-muted-foreground text-xs">
-              <Info className="h-3 w-3" /> This address is immutable and was set
-              at contract deployment
+            <Label>Backend Signer</Label>
+            <div className="flex gap-2">
+              <Input
+                disabled={isLoading}
+                onChange={(e) => {
+                  setNewBackendSigner(e.target.value);
+                  if (validationErrors.backendSigner) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      backendSigner: "",
+                    });
+                  }
+                }}
+                placeholder={backendSigner}
+                value={newBackendSigner}
+              />
+              <Button
+                disabled={isLoading || !newBackendSigner}
+                onClick={handleBackendSignerClick}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+            {validationErrors.backendSigner && (
+              <p className="flex items-center gap-2 text-destructive text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {validationErrors.backendSigner}
+              </p>
+            )}
+            <p className="text-muted-foreground text-xs">
+              Current: {backendSigner}
             </p>
           </div>
         </CardContent>
@@ -368,10 +451,16 @@ export function ContractSettingsCard({
               Update Minimum Vault Balance
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will change the minimum DEGEN balance required in the vault
-              from <strong>{formatBalance(minVaultBalance)} DEGEN</strong> to{" "}
-              <strong>{newMinVaultBalance} DEGEN</strong>. This is a critical
-              contract parameter.
+              This will change the minimum {tokenSymbol} balance required in the
+              vault from{" "}
+              <strong>
+                {formatBalance(minVaultBalance)} {tokenSymbol}
+              </strong>{" "}
+              to{" "}
+              <strong>
+                {newMinVaultBalance} {tokenSymbol}
+              </strong>
+              . This is a critical contract parameter.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -400,9 +489,14 @@ export function ContractSettingsCard({
             </AlertDialogTitle>
             <AlertDialogDescription>
               This will change the reward per claim from{" "}
-              <strong>{formatBalance(claimRewardAmount)} DEGEN</strong> to{" "}
-              <strong>{newClaimRewardAmount} DEGEN</strong>. This affects all
-              future claims.
+              <strong>
+                {formatBalance(claimRewardAmount)} {tokenSymbol}
+              </strong>{" "}
+              to{" "}
+              <strong>
+                {newClaimRewardAmount} {tokenSymbol}
+              </strong>
+              . This affects all future claims.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -442,6 +536,34 @@ export function ContractSettingsCard({
               className="bg-amber-600 hover:bg-amber-700"
               onClick={() => {
                 confirmAndExecute("dailyGMContract");
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        onOpenChange={() => setPendingAction(null)}
+        open={pendingAction === "backendSigner"}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update Backend Signer</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will change the backend signer address from{" "}
+              <strong className="break-all">{backendSigner}</strong> to{" "}
+              <strong className="break-all">{newBackendSigner}</strong>. The new
+              address will be used to verify reward claims.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => {
+                confirmAndExecute("backendSigner");
               }}
             >
               Continue

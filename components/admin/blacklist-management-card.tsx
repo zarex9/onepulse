@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 
 type BlacklistManagementCardProps = {
   contractAddress: `0x${string}`;
@@ -60,7 +60,7 @@ export function BlacklistManagementCard({
       writeContract(
         {
           address: contractAddress,
-          abi: dailyRewardsAbi,
+          abi: dailyRewardsV2Abi,
           functionName: "updateBlacklist",
           args: [fidArray, blacklist],
         },

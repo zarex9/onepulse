@@ -1,6 +1,6 @@
 import { base } from "viem/chains";
 import { useReadContracts } from "wagmi";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 import { getDailyRewardsV2Address } from "@/lib/utils";
 
 export function useDailyRewardsRead() {
@@ -10,43 +10,43 @@ export function useDailyRewardsRead() {
     contracts: [
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "getVaultStatus",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "claimRewardAmount",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "minVaultBalance",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "dailyGMContract",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "backendSigner",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "owner",
         chainId: base.id,
       },
       {
         address: contractAddress,
-        abi: dailyRewardsAbi,
+        abi: dailyRewardsV2Abi,
         functionName: "pendingOwner",
         chainId: base.id,
       },

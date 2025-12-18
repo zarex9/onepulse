@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsAbi } from "@/lib/abi/daily-rewards";
+import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 
 type OwnershipCardProps = {
   contractAddress: `0x${string}`;
@@ -108,7 +108,7 @@ export function OwnershipCard({
       writeContract(
         {
           address: contractAddress,
-          abi: dailyRewardsAbi,
+          abi: dailyRewardsV2Abi,
           functionName: "transferOwnership",
           args: [newOwnerAddress as `0x${string}`],
         },
@@ -127,7 +127,7 @@ export function OwnershipCard({
       writeContract(
         {
           address: contractAddress,
-          abi: dailyRewardsAbi,
+          abi: dailyRewardsV2Abi,
           functionName: "acceptOwnership",
         },
         {
@@ -163,7 +163,7 @@ export function OwnershipCard({
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>Current Owner</Label>
-            <div className="rounded-lg bg-muted p-3 font-mono text-sm">
+            <div className="break-all rounded-lg bg-muted p-3 font-mono text-sm">
               {owner || "Loading..."}
             </div>
           </div>
@@ -172,7 +172,7 @@ export function OwnershipCard({
             pendingOwner !== "0x0000000000000000000000000000000000000000" && (
               <div className="space-y-2">
                 <Label>Pending Owner</Label>
-                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 font-mono text-sm dark:border-yellow-800 dark:bg-yellow-950/20">
+                <div className="break-all rounded-lg border border-yellow-200 bg-yellow-50 p-3 font-mono text-sm dark:border-yellow-800 dark:bg-yellow-950/20">
                   {pendingOwner}
                   {isPendingOwner && (
                     <div className="mt-2">

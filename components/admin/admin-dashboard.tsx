@@ -2,36 +2,124 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatEther } from "viem";
+import { formatUnits } from "viem";
 import { Button } from "@/components/ui/button";
-import { useDailyRewardsRead } from "@/hooks/use-daily-rewards-read";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDailyRewardsV2Config } from "@/hooks/use-daily-rewards-v2-config";
+import { useDailyRewardsV2Read } from "@/hooks/use-daily-rewards-v2-read";
 import { BlacklistManagementCard } from "./blacklist-management-card";
 import { ContractSettingsCard } from "./contract-settings-card";
-import { MultiChainRewardsManagement } from "./multi-chain-rewards-management";
 import { OwnershipCard } from "./ownership-card";
 import { VaultStatusCard } from "./vault-status-card";
 
-function formatDegen(value: bigint | undefined): string {
-  if (value === undefined) {
-    return "—";
-  }
-  return `${Number(formatEther(value)).toLocaleString()} DEGEN`;
+function isValidAddress(address: string | undefined): address is `0x${string}` {
+  return (
+    typeof address === "string" &&
+    address.startsWith("0x") &&
+    address.length === 42
+  );
+}
+
+type ContractOverviewProps = {
+  chainName: string;
+  currentTokenDecimals: number;
+  currentTokenSymbol: string;
+  currentBalance: bigint | undefined;
+  claimRewardAmount: bigint | undefined;
+  minVaultBalance: bigint | undefined;
+  dailyClaimLimit: bigint | undefined;
+};
+
+function ContractOverview({
+  chainName,
+  currentTokenDecimals,
+  currentTokenSymbol,
+  currentBalance,
+  claimRewardAmount,
+  minVaultBalance,
+  dailyClaimLimit,
+}: ContractOverviewProps) {
+  return (
+    <div className="rounded-lg border bg-card p-6">
+      <h2 className="mb-4 font-semibold text-lg">
+        {chainName} Contract Overview
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-1">
+          <div className="text-muted-foreground text-sm">Vault Balance</div>
+          <div className="font-bold text-lg">
+            {currentBalance
+              ? `${Number(
+                  formatUnits(currentBalance, currentTokenDecimals)
+                ).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 6,
+                })} ${currentTokenSymbol}`
+              : "—"}
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-muted-foreground text-sm">Min Reserve</div>
+          <div className="font-bold text-lg">
+            {minVaultBalance
+              ? `${Number(
+                  formatUnits(minVaultBalance, currentTokenDecimals)
+                ).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 6,
+                })} ${currentTokenSymbol}`
+              : "—"}
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-muted-foreground text-sm">Daily Reward</div>
+          <div className="font-bold text-lg">
+            {claimRewardAmount
+              ? `${Number(
+                  formatUnits(claimRewardAmount, currentTokenDecimals)
+                ).toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 6,
+                })} ${currentTokenSymbol}`
+              : "—"}
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-muted-foreground text-sm">Daily Claim Limit</div>
+          <div className="font-bold text-lg">
+            {dailyClaimLimit ? Number(dailyClaimLimit) : 250}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function AdminDashboard() {
   const router = useRouter();
   const {
+    selectedChainId,
+    setSelectedChainId,
+    getChainName,
+    supportedChains,
+    currentTokenAddress,
+    currentContractAddress,
+    currentTokenSymbol,
+    currentTokenDecimals,
+  } = useDailyRewardsV2Config();
+
+  const {
     vaultStatus,
     claimRewardAmount,
     minVaultBalance,
+    dailyClaimLimit,
     dailyGMContract,
     backendSigner,
     owner,
     pendingOwner,
     isLoading,
     refetch,
-    contractAddress,
-  } = useDailyRewardsRead();
+  } = useDailyRewardsV2Read(currentContractAddress, selectedChainId);
 
   if (isLoading) {
     return (
@@ -41,88 +129,99 @@ export function AdminDashboard() {
     );
   }
 
-  const handleRefetch = () => {
-    refetch();
-  };
-
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <div className="flex items-center justify-between gap-4">
         <Button
-          className="flex items-center gap-2"
+          className="flex items-center gap-1"
           onClick={() => router.back()}
+          size="sm"
           variant="outline"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-center font-bold text-2xl">Admin Dashboard</h1>
-        <div />
+        <div className="w-fit" />
       </div>
-      <div className="rounded-lg border bg-card p-6">
-        <h2 className="mb-4 font-semibold text-lg">Contract Overview</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">Vault Balance</div>
-            <div className="font-bold text-2xl">
-              {formatDegen(vaultStatus?.currentBalance)}
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">Min Reserve</div>
-            <div className="font-bold text-2xl">
-              {formatDegen(minVaultBalance)}
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">Daily Reward</div>
-            <div className="font-bold text-2xl">
-              {formatDegen(claimRewardAmount)}
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-muted-foreground text-sm">
-              Available Claims
-            </div>
-            <div className="font-bold text-2xl text-green-600 dark:text-green-400">
-              {formatDegen(vaultStatus?.availableForClaims)}
-            </div>
-          </div>
-        </div>
-      </div>
-      <VaultStatusCard
-        contractAddress={contractAddress}
-        onRefetchAction={handleRefetch}
-        vaultStatus={vaultStatus}
-      />
 
-      <ContractSettingsCard
-        backendSigner={backendSigner}
-        claimRewardAmount={claimRewardAmount}
-        contractAddress={contractAddress}
-        dailyGMContract={dailyGMContract}
-        minVaultBalance={minVaultBalance}
-        onRefetchAction={handleRefetch}
-      />
+      <Tabs
+        onValueChange={(value) => setSelectedChainId(Number(value))}
+        value={String(selectedChainId)}
+      >
+        <TabsList className="grid w-full grid-cols-3">
+          {supportedChains.map((chainId) => (
+            <TabsTrigger key={chainId} value={String(chainId)}>
+              {getChainName(chainId)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      <BlacklistManagementCard
-        contractAddress={contractAddress}
-        onRefetchAction={handleRefetch}
-      />
+        {supportedChains.map((chainId) => (
+          <TabsContent
+            className="space-y-6"
+            key={chainId}
+            value={String(chainId)}
+          >
+            {isValidAddress(currentContractAddress) &&
+            isValidAddress(currentTokenAddress) ? (
+              <>
+                <ContractOverview
+                  chainName={getChainName(chainId)}
+                  claimRewardAmount={claimRewardAmount}
+                  currentBalance={vaultStatus?.currentBalance}
+                  currentTokenDecimals={currentTokenDecimals}
+                  currentTokenSymbol={currentTokenSymbol}
+                  dailyClaimLimit={dailyClaimLimit}
+                  minVaultBalance={minVaultBalance}
+                />
 
-      <OwnershipCard
-        contractAddress={contractAddress}
-        onRefetchAction={handleRefetch}
-        owner={owner}
-        pendingOwner={pendingOwner}
-      />
+                <VaultStatusCard
+                  chainId={selectedChainId}
+                  contractAddress={currentContractAddress}
+                  onRefetchAction={refetch}
+                  tokenAddress={currentTokenAddress}
+                  tokenDecimals={currentTokenDecimals}
+                  tokenSymbol={currentTokenSymbol}
+                  vaultStatus={vaultStatus}
+                />
 
-      <div className="border-t pt-8">
-        <h2 className="mb-6 font-semibold text-lg">
-          Multi-Chain Rewards Management (V2)
-        </h2>
-        <MultiChainRewardsManagement />
-      </div>
+                <ContractSettingsCard
+                  backendSigner={backendSigner}
+                  chainId={selectedChainId}
+                  claimRewardAmount={claimRewardAmount}
+                  contractAddress={currentContractAddress}
+                  dailyGMContract={dailyGMContract}
+                  minVaultBalance={minVaultBalance}
+                  onRefetchAction={refetch}
+                  tokenDecimals={currentTokenDecimals}
+                  tokenSymbol={currentTokenSymbol}
+                />
+
+                <BlacklistManagementCard
+                  contractAddress={currentContractAddress}
+                  onRefetchAction={refetch}
+                />
+
+                <OwnershipCard
+                  contractAddress={currentContractAddress}
+                  onRefetchAction={refetch}
+                  owner={isValidAddress(owner) ? owner : undefined}
+                  pendingOwner={
+                    isValidAddress(pendingOwner) ? pendingOwner : undefined
+                  }
+                />
+              </>
+            ) : (
+              <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/50 py-12">
+                <div className="text-center text-muted-foreground">
+                  No contract address found for {getChainName(chainId)}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }
