@@ -1,4 +1,4 @@
-import { erc20Abi } from "viem";
+import { type Address, erc20Abi, isAddress } from "viem";
 import { useReadContract } from "wagmi";
 
 type Erc20MetadataResult = {
@@ -8,12 +8,11 @@ type Erc20MetadataResult = {
 };
 
 export function useErc20Metadata(
-  tokenAddress: `0x${string}` | "" | undefined,
+  tokenAddress: Address | undefined,
   chainId?: number
 ): Erc20MetadataResult {
-  const enabled =
-    typeof tokenAddress === "string" && tokenAddress.startsWith("0x");
-  const validAddress = enabled ? (tokenAddress as `0x${string}`) : undefined;
+  const enabled = isAddress(tokenAddress || "");
+  const validAddress = enabled ? (tokenAddress as Address) : undefined;
 
   const { data: decimalsData, isLoading: loadingDecimals } = useReadContract({
     address: validAddress,
