@@ -74,9 +74,22 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
         </ItemMedia>
       </ItemContent>
       <ItemActions>
-        <span className="font-medium text-lg tracking-tight">
-          {displayRewardAmount} {tokenSymbol}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-lg tracking-tight">
+            {displayRewardAmount} {tokenSymbol}
+          </span>
+          {tokenAddress && (
+            <Button
+              aria-label="Copy CA"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => copyToClipboard(tokenAddress)}
+              size="icon-sm"
+              variant="ghost"
+            >
+              <Copy className={`h-4 w-4 ${isCopied ? "text-green-600" : ""}`} />
+            </Button>
+          )}
+        </div>
       </ItemActions>
       <ItemFooter className="flex-col gap-3">
         <div className="w-full space-y-1">
@@ -135,24 +148,6 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
           <div className="flex items-center justify-center gap-2 py-2 text-muted-foreground text-xs">
             <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
             Checking eligibility
-          </div>
-        )}
-
-        {tokenAddress && (
-          <div className="flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-2">
-            <span className="text-muted-foreground text-xs">
-              {tokenAddress.slice(0, 6)}...{tokenAddress.slice(-4)}
-            </span>
-            <button
-              className="ml-auto text-muted-foreground transition-colors hover:text-foreground"
-              onClick={() => copyToClipboard(tokenAddress)}
-              title="Copy token address"
-              type="button"
-            >
-              <Copy
-                className={`h-3.5 w-3.5 ${isCopied ? "text-green-600" : ""}`}
-              />
-            </button>
           </div>
         )}
       </ItemFooter>
