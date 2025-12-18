@@ -1,3 +1,5 @@
+import type { Address } from "viem";
+
 export type SupportedChain = {
   id: number;
   name: string;
@@ -13,16 +15,13 @@ export const SUPPORTED_CHAINS: readonly SupportedChain[] = [
   { id: OPTIMISM_CHAIN_ID, name: "Optimism" },
 ] as const;
 
-export const DAILY_GM_ADDRESSES: Record<
-  SupportedChain["id"],
-  `0x${string}` | ""
-> = {
+export const DAILY_GM_ADDRESSES: Record<SupportedChain["id"], Address | ""> = {
   [BASE_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_BASE as `0x${string}`) || "",
+    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_BASE as Address) || "",
   [CELO_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_CELO as `0x${string}`) || "",
+    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_CELO as Address) || "",
   [OPTIMISM_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_OPTIMISM as `0x${string}`) || "",
+    (process.env.NEXT_PUBLIC_DAILY_GM_ADDRESS_OPTIMISM as Address) || "",
 };
 
 export const DAILY_GM_ADDRESS =
@@ -32,15 +31,14 @@ export const DAILY_GM_ADDRESS =
 
 export const DAILY_REWARDS_ADDRESSES: Record<
   SupportedChain["id"],
-  `0x${string}` | ""
+  Address | ""
 > = {
   [BASE_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_BASE as `0x${string}`) || "",
+    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_BASE as Address) || "",
   [CELO_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_CELO as `0x${string}`) || "",
+    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_CELO as Address) || "",
   [OPTIMISM_CHAIN_ID]:
-    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_OPTIMISM as `0x${string}`) ||
-    "",
+    (process.env.NEXT_PUBLIC_DAILY_REWARDS_ADDRESS_OPTIMISM as Address) || "",
 };
 
 export const DAILY_REWARDS_ADDRESS =

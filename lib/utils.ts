@@ -2,6 +2,7 @@ import { isWalletACoinbaseSmartWallet } from "@coinbase/onchainkit/wallet";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
+  type Address,
   createPublicClient,
   http,
   type PublicClient,
@@ -32,9 +33,9 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Get the Daily GM contract address for a given chain ID
  */
-export function getDailyGmAddress(chainId?: number): `0x${string}` | "" {
+export function getDailyGmAddress(chainId?: number): Address | "" {
   if (!chainId) {
-    return DAILY_GM_ADDRESS as `0x${string}` | "";
+    return DAILY_GM_ADDRESS as Address | "";
   }
   return DAILY_GM_ADDRESSES[chainId] || ("" as const);
 }
@@ -42,16 +43,16 @@ export function getDailyGmAddress(chainId?: number): `0x${string}` | "" {
 /**
  * Get the Daily Rewards contract address for a given chain ID
  */
-export function getDailyRewardsAddress(chainId?: number): `0x${string}` | "" {
+export function getDailyRewardsAddress(chainId?: number): Address | "" {
   if (!chainId) {
-    return DAILY_REWARDS_ADDRESS as `0x${string}` | "";
+    return DAILY_REWARDS_ADDRESS as Address | "";
   }
   return DAILY_REWARDS_ADDRESSES[chainId] || ("" as const);
 }
 
-export function getDailyRewardsV2Address(chainId?: number): `0x${string}` | "" {
+export function getDailyRewardsV2Address(chainId?: number): Address | "" {
   if (!chainId) {
-    return DAILY_REWARDS_V2_ADDRESSES[BASE_CHAIN_ID] as `0x${string}` | "";
+    return DAILY_REWARDS_V2_ADDRESSES[BASE_CHAIN_ID] as Address | "";
   }
   return DAILY_REWARDS_V2_ADDRESSES[chainId] || ("" as const);
 }
@@ -62,7 +63,7 @@ const publicClient = createPublicClient({
 });
 
 export async function detectCoinbaseSmartWallet(
-  address: `0x${string}`
+  address: Address
 ): Promise<boolean> {
   const userOperation: RpcUserOperation<"0.6"> = {
     sender: address,
