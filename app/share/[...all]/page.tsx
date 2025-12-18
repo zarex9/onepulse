@@ -15,7 +15,11 @@ type Props = {
 const sharePageQuerySchema = z.object({
   address: z
     .string()
-    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" }),
+    .nullish()
+    .refine((addr) => !addr || isAddress(addr), {
+      message: "Invalid Ethereum address",
+    })
+    .transform((addr) => addr || null),
 });
 
 function getChainName(chainId: number): string {
@@ -84,15 +88,22 @@ export async function generateMetadata({
     address: sp.address,
   });
 
+  const defaultMetadata = {
+    title: minikitConfig.miniapp.name,
+    description: minikitConfig.miniapp.description,
+  };
+
   if (!parseResult.success) {
-    return {
-      title: minikitConfig.miniapp.name,
-      description: minikitConfig.miniapp.description,
-    };
+    return defaultMetadata;
   }
 
   const address = parseResult.data.address;
-  const displayName = await resolveDisplayName(address);
+
+  if (!address) {
+    return defaultMetadata;
+  }
+
+  const displayName = await resolveDisplayName(address as string);
 
   const ogImageUrl = generateSimplifiedGMStatusOGUrl({
     address,
@@ -133,19 +144,26 @@ export default async function SharePage({ searchParams }: Props) {
     address: sp.address,
   });
 
+  const errorUI = (
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
+      <h1 className="mb-4 font-bold text-2xl">Invalid Address</h1>
+      <p className="text-muted-foreground">
+        Please provide a valid Ethereum address.
+      </p>
+    </div>
+  );
+
   if (!parseResult.success) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
-        <h1 className="mb-4 font-bold text-2xl">Invalid Address</h1>
-        <p className="text-muted-foreground">
-          Please provide a valid Ethereum address.
-        </p>
-      </div>
-    );
+    return errorUI;
   }
 
   const address = parseResult.data.address;
-  const displayName = await resolveDisplayName(address);
+
+  if (!address) {
+    return errorUI;
+  }
+
+  const displayName = await resolveDisplayName(address as string);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">

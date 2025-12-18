@@ -4,9 +4,16 @@ import { getScore } from "@/lib/neynar";
 
 export const dynamic = "force-dynamic";
 
-const getScoreQuerySchema = z.object({
-  fid: z.string().transform(Number).pipe(z.number().int().positive()),
-});
+const getScoreQuerySchema = z
+  .object({
+    fid: z.string().nullish(),
+  })
+  .transform((val) => ({
+    fid: val.fid ? Number(val.fid) : null,
+  }))
+  .refine((val) => val.fid !== null && val.fid > 0, {
+    message: "fid must be a positive integer",
+  });
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +25,13 @@ export async function GET(request: NextRequest) {
     if (!parseResult.success) {
       return NextResponse.json(
         { error: parseResult.error.issues[0]?.message ?? "Invalid parameters" },
+        { status: 400 }
+      );
+    }
+
+    if (parseResult.data.fid === null) {
+      return NextResponse.json(
+        { error: "Missing required parameter: fid" },
         { status: 400 }
       );
     }

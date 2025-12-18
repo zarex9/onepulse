@@ -14,12 +14,17 @@ export const runtime = "nodejs";
 const gmStatsQuerySchema = z.object({
   address: z
     .string()
-    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" }),
+    .nullish()
+    .refine((addr) => !addr || isAddress(addr), {
+      message: "Invalid Ethereum address",
+    }),
   chainId: z
     .string()
-    .transform(Number)
-    .pipe(z.number().int().positive())
-    .optional(),
+    .nullish()
+    .transform((val) => (val ? Number(val) : undefined))
+    .refine((val) => val === undefined || (Number.isInteger(val) && val > 0), {
+      message: "chainId must be a positive integer",
+    }),
 });
 
 function getChainName(chainId: number): string {
@@ -88,6 +93,14 @@ export async function GET(req: NextRequest) {
   }
 
   const { address, chainId } = parseResult.data;
+
+  if (!address) {
+    return NextResponse.json(
+      { error: "Missing required parameter: address" },
+      { status: 400 }
+    );
+  }
+
   const rows = await getGmRows(address, chainId);
   if (typeof chainId === "number" && !Number.isNaN(chainId)) {
     return NextResponse.json(formatChainStatsResponse(address, rows[0]));

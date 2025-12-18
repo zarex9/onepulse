@@ -15,11 +15,11 @@ const ogQuerySchema = z.object({
   address: z
     .string()
     .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" })
-    .optional(),
-  chains: z.string().optional(),
-  displayName: z.string().optional(),
-  username: z.string().optional(),
-  pfp: z.url().optional(),
+    .nullish(),
+  chains: z.string().nullish(),
+  displayName: z.string().nullish(),
+  username: z.string().nullish(),
+  pfp: z.url().nullish(),
 });
 
 // Formats supported by Satori/next/og, in order of preference
