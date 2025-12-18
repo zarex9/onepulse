@@ -27,6 +27,50 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 
+type SettingFieldProps = {
+  label: string;
+  value: string;
+  currentValue: string | undefined;
+  isLoading: boolean;
+  error?: string;
+  onValueChange: (value: string) => void;
+  onUpdate: () => void;
+};
+
+function SettingField({
+  label,
+  value,
+  currentValue,
+  isLoading,
+  error,
+  onValueChange,
+  onUpdate,
+}: SettingFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          disabled={isLoading}
+          onChange={(e) => onValueChange(e.target.value)}
+          placeholder={currentValue || "0x..."}
+          value={value}
+        />
+        <Button disabled={isLoading || !value} onClick={onUpdate}>
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update"}
+        </Button>
+      </div>
+      {error && (
+        <p className="flex items-center gap-2 text-destructive text-sm">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </p>
+      )}
+      <p className="text-muted-foreground text-xs">Current: {currentValue}</p>
+    </div>
+  );
+}
+
 type ContractSettingsCardProps = {
   contractAddress: `0x${string}`;
   chainId: number;
@@ -36,6 +80,7 @@ type ContractSettingsCardProps = {
   claimRewardAmount: bigint | undefined;
   dailyGMContract: string | undefined;
   backendSigner: string | undefined;
+  rewardToken: string | undefined;
   onRefetchAction: () => void;
 };
 
@@ -48,12 +93,14 @@ export function ContractSettingsCard({
   claimRewardAmount,
   dailyGMContract,
   backendSigner,
+  rewardToken,
   onRefetchAction,
 }: ContractSettingsCardProps) {
   const [newMinVaultBalance, setNewMinVaultBalance] = useState("");
   const [newClaimRewardAmount, setNewClaimRewardAmount] = useState("");
   const [newDailyGMContract, setNewDailyGMContract] = useState("");
   const [newBackendSigner, setNewBackendSigner] = useState("");
+  const [newRewardToken, setNewRewardToken] = useState("");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
@@ -82,6 +129,7 @@ export function ContractSettingsCard({
       setNewClaimRewardAmount("");
       setNewDailyGMContract("");
       setNewBackendSigner("");
+      setNewRewardToken("");
       setPendingAction(null);
       setValidationErrors({});
     }
@@ -132,6 +180,15 @@ export function ContractSettingsCard({
       : "Invalid Ethereum address";
   };
 
+  const validateRewardToken = (value: string): string | undefined => {
+    if (!value) {
+      return "Token address is required";
+    }
+    return isAddress(value as `0x${string}`)
+      ? undefined
+      : "Invalid Ethereum address";
+  };
+
   const handleMinVaultBalanceClick = () => {
     const error = validateMinVaultBalance(newMinVaultBalance);
     if (error) {
@@ -172,95 +229,84 @@ export function ContractSettingsCard({
     setValidationErrors({});
   };
 
+  const handleRewardTokenClick = () => {
+    const error = validateRewardToken(newRewardToken);
+    if (error) {
+      setValidationErrors({ rewardToken: error });
+      return;
+    }
+    setPendingAction("rewardToken");
+    setValidationErrors({});
+  };
+
+  const executeWrite = (
+    functionName: string,
+    args: (bigint | `0x${string}`)[]
+  ) => {
+    writeContract(
+      {
+        address: contractAddress,
+        abi: dailyRewardsV2Abi,
+        functionName: functionName as
+          | "setMinVaultBalance"
+          | "setClaimRewardAmount"
+          | "setDailyGMContract"
+          | "setBackendSigner"
+          | "setRewardToken",
+        args: args as unknown as readonly [bigint | `0x${string}`],
+        chainId,
+      },
+      {
+        onSuccess: () => {
+          toast.info("Transaction submitted...");
+        },
+        onError: (error) => {
+          toast.error(`Error: ${error.message}`);
+          setPendingAction(null);
+        },
+      }
+    );
+  };
+
   const confirmAndExecute = (action: string) => {
-    if (action === "minVaultBalance") {
-      try {
-        const parsed = parseUnits(newMinVaultBalance, tokenDecimals);
-        writeContract(
-          {
-            address: contractAddress,
-            abi: dailyRewardsV2Abi,
-            functionName: "setMinVaultBalance",
-            args: [parsed],
-            chainId,
-          },
-          {
-            onSuccess: () => {
-              toast.info("Transaction submitted...");
-            },
-            onError: (error) => {
-              toast.error(`Error: ${error.message}`);
-              setPendingAction(null);
-            },
-          }
-        );
-      } catch (_err) {
-        toast.error("Invalid amount");
-        setPendingAction(null);
-      }
-    } else if (action === "claimRewardAmount") {
-      try {
-        const parsed = parseUnits(newClaimRewardAmount, tokenDecimals);
-        writeContract(
-          {
-            address: contractAddress,
-            abi: dailyRewardsV2Abi,
-            functionName: "setClaimRewardAmount",
-            args: [parsed],
-            chainId,
-          },
-          {
-            onSuccess: () => {
-              toast.info("Transaction submitted...");
-            },
-            onError: (error) => {
-              toast.error(`Error: ${error.message}`);
-              setPendingAction(null);
-            },
-          }
-        );
-      } catch (_err) {
-        toast.error("Invalid amount");
-        setPendingAction(null);
-      }
-    } else if (action === "dailyGMContract") {
-      writeContract(
-        {
-          address: contractAddress,
-          abi: dailyRewardsV2Abi,
-          functionName: "setDailyGMContract",
-          args: [newDailyGMContract as `0x${string}`],
-          chainId,
-        },
-        {
-          onSuccess: () => {
-            toast.info("Transaction submitted...");
-          },
-          onError: (error) => {
-            toast.error(`Error: ${error.message}`);
-            setPendingAction(null);
-          },
+    switch (action) {
+      case "minVaultBalance": {
+        try {
+          const parsed = parseUnits(newMinVaultBalance, tokenDecimals);
+          executeWrite("setMinVaultBalance", [parsed]);
+        } catch (_err) {
+          toast.error("Invalid amount");
+          setPendingAction(null);
         }
-      );
-    } else if (action === "backendSigner") {
-      writeContract(
-        {
-          address: contractAddress,
-          abi: dailyRewardsV2Abi,
-          functionName: "setBackendSigner",
-          args: [newBackendSigner as `0x${string}`],
-          chainId,
-        },
-        {
-          onSuccess: () => {
-            toast.info("Transaction submitted...");
-          },
-          onError: (error) => {
-            toast.error(`Error: ${error.message}`);
-            setPendingAction(null);
-          },
+        break;
+      }
+      case "claimRewardAmount": {
+        try {
+          const parsed = parseUnits(newClaimRewardAmount, tokenDecimals);
+          executeWrite("setClaimRewardAmount", [parsed]);
+        } catch (_err) {
+          toast.error("Invalid amount");
+          setPendingAction(null);
         }
-      );
+        break;
+      }
+      case "dailyGMContract": {
+        executeWrite("setDailyGMContract", [
+          newDailyGMContract as `0x${string}`,
+        ]);
+        break;
+      }
+      case "backendSigner": {
+        executeWrite("setBackendSigner", [newBackendSigner as `0x${string}`]);
+        break;
+      }
+      case "rewardToken": {
+        executeWrite("setRewardToken", [newRewardToken as `0x${string}`]);
+        break;
+      }
+      default: {
+        break;
+      }
     }
   };
 
@@ -399,44 +445,41 @@ export function ContractSettingsCard({
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label>Backend Signer</Label>
-            <div className="flex gap-2">
-              <Input
-                disabled={isLoading}
-                onChange={(e) => {
-                  setNewBackendSigner(e.target.value);
-                  if (validationErrors.backendSigner) {
-                    setValidationErrors({
-                      ...validationErrors,
-                      backendSigner: "",
-                    });
-                  }
-                }}
-                placeholder={backendSigner}
-                value={newBackendSigner}
-              />
-              <Button
-                disabled={isLoading || !newBackendSigner}
-                onClick={handleBackendSignerClick}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Update"
-                )}
-              </Button>
-            </div>
-            {validationErrors.backendSigner && (
-              <p className="flex items-center gap-2 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                {validationErrors.backendSigner}
-              </p>
-            )}
-            <p className="text-muted-foreground text-xs">
-              Current: {backendSigner}
-            </p>
-          </div>
+          <SettingField
+            currentValue={backendSigner}
+            error={validationErrors.backendSigner}
+            isLoading={isLoading}
+            label="Backend Signer"
+            onUpdate={handleBackendSignerClick}
+            onValueChange={(value) => {
+              setNewBackendSigner(value);
+              if (validationErrors.backendSigner) {
+                setValidationErrors({
+                  ...validationErrors,
+                  backendSigner: "",
+                });
+              }
+            }}
+            value={newBackendSigner}
+          />
+
+          <SettingField
+            currentValue={rewardToken}
+            error={validationErrors.rewardToken}
+            isLoading={isLoading}
+            label="Reward Token Address"
+            onUpdate={handleRewardTokenClick}
+            onValueChange={(value) => {
+              setNewRewardToken(value);
+              if (validationErrors.rewardToken) {
+                setValidationErrors({
+                  ...validationErrors,
+                  rewardToken: "",
+                });
+              }
+            }}
+            value={newRewardToken}
+          />
         </CardContent>
       </Card>
 
@@ -564,6 +607,37 @@ export function ContractSettingsCard({
               className="bg-amber-600 hover:bg-amber-700"
               onClick={() => {
                 confirmAndExecute("backendSigner");
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        onOpenChange={() => setPendingAction(null)}
+        open={pendingAction === "rewardToken"}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Update Reward Token
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will change the reward token address from{" "}
+              <strong className="break-all">{rewardToken}</strong> to{" "}
+              <strong className="break-all">{newRewardToken}</strong>. Rewards
+              will be distributed in the new token going forward.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => {
+                confirmAndExecute("rewardToken");
               }}
             >
               Continue

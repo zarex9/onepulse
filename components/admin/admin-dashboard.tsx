@@ -115,6 +115,7 @@ export function AdminDashboard() {
     dailyClaimLimit,
     dailyGMContract,
     backendSigner,
+    rewardToken,
     owner,
     pendingOwner,
     isLoading,
@@ -132,17 +133,10 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <Button
-          className="flex items-center gap-1"
-          onClick={() => router.back()}
-          size="sm"
-          variant="outline"
-        >
+        <Button onClick={() => router.back()} size="sm" variant="outline">
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-center font-bold text-2xl">Admin Dashboard</h1>
-        <div className="w-fit" />
       </div>
 
       <Tabs
@@ -194,6 +188,7 @@ export function AdminDashboard() {
                   dailyGMContract={dailyGMContract}
                   minVaultBalance={minVaultBalance}
                   onRefetchAction={refetch}
+                  rewardToken={rewardToken}
                   tokenDecimals={currentTokenDecimals}
                   tokenSymbol={currentTokenSymbol}
                 />
