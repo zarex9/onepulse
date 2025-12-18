@@ -1,5 +1,6 @@
 "use client";
 
+import { Copy } from "lucide-react";
 import { memo } from "react";
 import { RewardClaimTransaction } from "@/components/gm-chain-card/reward-claim-transaction";
 import { Icons } from "@/components/icons";
@@ -12,19 +13,7 @@ import {
   ItemFooter,
   ItemMedia,
 } from "@/components/ui/item";
-import { useDailyRewardsV2Read } from "@/hooks/use-daily-rewards-v2-read";
-import {
-  BASE_CHAIN_ID,
-  CELO_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-} from "@/lib/constants";
-import {
-  REWARD_TOKEN_DECIMALS,
-  REWARD_TOKEN_SYMBOLS,
-} from "@/lib/constants/daily-rewards-v2";
-import { getDailyRewardsV2Address } from "@/lib/utils";
-
-const TRAILING_ZEROS_REGEX = /\.?0+$/;
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
 export type RewardChainCardProps = {
   chainId: number;
@@ -36,25 +25,8 @@ export type RewardChainCardProps = {
   onClaimSuccess?: () => void;
 };
 
-function getChainIconName(chainId: number): string {
-  switch (chainId) {
-    case BASE_CHAIN_ID:
-      return "base";
-    case CELO_CHAIN_ID:
-      return "celo";
-    case OPTIMISM_CHAIN_ID:
-      return "optimism";
-    default:
-      return "base";
-  }
-}
-
-function getTokenSymbol(chainId: number): string {
-  return REWARD_TOKEN_SYMBOLS[chainId] || "USDC";
-}
-
-export const RewardChainCard = memo(
-  ({
+export const RewardChainCard = memo((props: RewardChainCardProps) => {
+  const {
     chainId,
     name,
     fid,
@@ -62,122 +34,130 @@ export const RewardChainCard = memo(
     address,
     sponsored,
     onClaimSuccess,
-  }: RewardChainCardProps) => {
-    const {
-      isCorrectChain,
-      claimState,
-      isCheckingEligibility,
-      dailyClaimCount,
-      chainBtnClasses,
-      handleSwitchChain,
-      isSwitching,
-      buttonState,
-      hasAlreadyClaimed,
-    } = useRewardChainCardLogic({
-      chainId,
-      fid,
-      isConnected,
-      address,
-    });
+  } = props;
+  const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const {
+    isCorrectChain,
+    claimState,
+    isCheckingEligibility,
+    dailyClaimCount,
+    chainBtnClasses,
+    handleSwitchChain,
+    isSwitching,
+    buttonState,
+    hasAlreadyClaimed,
+    chainIconName,
+    tokenSymbol,
+    tokenAddress,
+    displayRewardAmount,
+    claimLimitDisplay,
+  } = useRewardChainCardLogic({
+    chainId,
+    fid,
+    isConnected,
+    address,
+  });
 
-    const contractAddress = getDailyRewardsV2Address(chainId);
-    const { claimRewardAmount, dailyClaimLimit } = useDailyRewardsV2Read(
-      contractAddress,
-      chainId
-    );
+  const isEligible = claimState?.isEligible ?? false;
+  const BASE_CHAIN_ID = 8453;
 
-    const chainIconName = getChainIconName(chainId);
-    const tokenSymbol = getTokenSymbol(chainId);
-    const isEligible = claimState?.isEligible ?? false;
-    const decimals = REWARD_TOKEN_DECIMALS[chainId] ?? 6;
-    const displayRewardAmount =
-      claimRewardAmount && claimRewardAmount > 0n
-        ? (Number(claimRewardAmount) / 10 ** decimals)
-            .toFixed(3)
-            .replace(TRAILING_ZEROS_REGEX, "")
-        : "0.01";
-    const claimLimitDisplay = dailyClaimLimit ? Number(dailyClaimLimit) : 250;
-
-    return (
-      <Item variant="outline">
-        <ItemContent className="items-start">
-          <ItemMedia>
-            {Icons[chainIconName as keyof typeof Icons]?.({
-              className: "h-8 w-24 text-current",
-              role: "img",
-              "aria-label": `${name} wordmark`,
-              focusable: false,
-            })}
-          </ItemMedia>
-        </ItemContent>
-        <ItemActions>
-          <span className="font-medium text-lg tracking-tight">
-            {displayRewardAmount} {tokenSymbol}
-          </span>
-        </ItemActions>
-        <ItemFooter className="flex-col gap-3">
-          <div className="w-full space-y-1">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Daily Claims</span>
-              <span className="font-medium">
-                {dailyClaimCount} / {claimLimitDisplay}
-              </span>
-            </div>
-            <div className="overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-2 bg-primary transition-all"
-                style={{
-                  width: `${Math.min(
-                    (dailyClaimCount / claimLimitDisplay) * 100,
-                    100
-                  )}%`,
-                }}
-              />
-            </div>
+  return (
+    <Item variant="outline">
+      <ItemContent className="items-start">
+        <ItemMedia>
+          {Icons[chainIconName as keyof typeof Icons]?.({
+            className: "h-8 w-24 text-current",
+            role: "img",
+            "aria-label": `${name} wordmark`,
+            focusable: false,
+          })}
+        </ItemMedia>
+      </ItemContent>
+      <ItemActions>
+        <span className="font-medium text-lg tracking-tight">
+          {displayRewardAmount} {tokenSymbol}
+        </span>
+      </ItemActions>
+      <ItemFooter className="flex-col gap-3">
+        <div className="w-full space-y-1">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Daily Claims</span>
+            <span className="font-medium">
+              {dailyClaimCount} / {claimLimitDisplay}
+            </span>
           </div>
-
-          {!isCorrectChain && isConnected && !hasAlreadyClaimed && (
-            <Button
-              aria-busy={isSwitching}
-              className={`w-full ${chainBtnClasses}`}
-              disabled={isSwitching}
-              onClick={handleSwitchChain}
-              size="lg"
-            >
-              {isSwitching ? "Switching..." : `Switch to ${name}`}
-            </Button>
-          )}
-
-          {!isCorrectChain && isConnected && hasAlreadyClaimed && (
-            <Button
-              className={`w-full ${chainBtnClasses}`}
-              disabled={true}
-              size="lg"
-            >
-              {buttonState?.label || "Already claimed"}
-            </Button>
-          )}
-
-          {isCorrectChain && (
-            <RewardClaimTransaction
-              className={chainBtnClasses}
-              disabled={!isEligible}
-              fid={fid}
-              onSuccess={onClaimSuccess}
-              sponsored={sponsored && chainId === BASE_CHAIN_ID}
+          <div className="overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-2 bg-primary transition-all"
+              style={{
+                width: `${Math.min(
+                  (dailyClaimCount / claimLimitDisplay) * 100,
+                  100
+                )}%`,
+              }}
             />
-          )}
+          </div>
+        </div>
 
-          {isCheckingEligibility && (
-            <div className="flex items-center justify-center gap-2 py-2 text-muted-foreground text-xs">
-              <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
-              Checking eligibility
-            </div>
-          )}
-        </ItemFooter>
-      </Item>
-    );
-  }
-);
+        {!isCorrectChain && isConnected && !hasAlreadyClaimed && (
+          <Button
+            aria-busy={isSwitching}
+            className={`w-full ${chainBtnClasses}`}
+            disabled={isSwitching}
+            onClick={handleSwitchChain}
+            size="lg"
+          >
+            {isSwitching ? "Switching..." : `Switch to ${name}`}
+          </Button>
+        )}
+
+        {!isCorrectChain && isConnected && hasAlreadyClaimed && (
+          <Button
+            className={`w-full ${chainBtnClasses}`}
+            disabled={true}
+            size="lg"
+          >
+            {buttonState?.label || "Already claimed"}
+          </Button>
+        )}
+
+        {isCorrectChain && (
+          <RewardClaimTransaction
+            className={chainBtnClasses}
+            disabled={!isEligible}
+            fid={fid}
+            onSuccess={onClaimSuccess}
+            sponsored={sponsored && chainId === BASE_CHAIN_ID}
+          />
+        )}
+
+        {isCheckingEligibility && (
+          <div className="flex items-center justify-center gap-2 py-2 text-muted-foreground text-xs">
+            <div className="h-3 w-3 animate-spin rounded-full border border-primary border-t-transparent" />
+            Checking eligibility
+          </div>
+        )}
+
+        {tokenAddress && (
+          <div className="flex items-center gap-2 rounded-md bg-secondary/50 px-3 py-2">
+            <span className="text-muted-foreground text-xs">
+              {tokenAddress.slice(0, 6)}...{tokenAddress.slice(-4)}
+            </span>
+            <button
+              className="ml-auto text-muted-foreground transition-colors hover:text-foreground"
+              onClick={() => copyToClipboard(tokenAddress)}
+              title="Copy token address"
+              type="button"
+            >
+              <Copy
+                className={`h-3.5 w-3.5 ${isCopied ? "text-green-600" : ""}`}
+              />
+            </button>
+          </div>
+        )}
+      </ItemFooter>
+    </Item>
+  );
+});
 
 RewardChainCard.displayName = "RewardChainCard";
