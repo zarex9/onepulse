@@ -2,73 +2,26 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { Infer } from "spacetimedb";
 import { type Address, createPublicClient, http, isAddress } from "viem";
 import { base, celo, optimism } from "viem/chains";
+import { z } from "zod";
 import { dailyGMAbi } from "@/lib/abi/daily-gm";
 import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection";
-import { getDailyGmAddress, normalizeChainId } from "@/lib/utils";
+import { getDailyGmAddress } from "@/lib/utils";
 
 type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
 
 export const runtime = "nodejs";
 
-function validateAddress(
-  address: unknown
-): { error: string; status: number } | { value: string } {
-  if (typeof address !== "string") {
-    return { error: "address is required", status: 400 };
-  }
-  if (!address) {
-    return { error: "address is required", status: 400 };
-  }
-  if (!isAddress(address)) {
-    return { error: "invalid address", status: 400 };
-  }
-  return { value: address };
-}
-
-function validateContractAddress(
-  chainId: number
-): { error: string; status: number } | { value: string } {
-  const contractAddress = getDailyGmAddress(chainId);
-  if (!contractAddress) {
-    return { error: "DAILY_GM_ADDRESS not configured", status: 500 };
-  }
-  return { value: contractAddress };
-}
-
-function extractOptionalFields(body: Record<string, unknown>) {
-  return {
-    fid: typeof body.fid === "number" ? body.fid : undefined,
-    displayName:
-      typeof body.displayName === "string" ? body.displayName : undefined,
-    username: typeof body.username === "string" ? body.username : undefined,
-    txHash: typeof body.txHash === "string" ? body.txHash : undefined,
-  };
-}
-
-function validateReportGmRequest(body: Record<string, unknown>) {
-  const addressResult = validateAddress(body.address);
-  if ("error" in addressResult) {
-    return addressResult;
-  }
-
-  const normalizedChainId = normalizeChainId(body.chainId);
-  if (!normalizedChainId) {
-    return { error: "invalid chainId", status: 400 };
-  }
-  const chainId = normalizedChainId;
-  const contractResult = validateContractAddress(chainId);
-  if ("error" in contractResult) {
-    return contractResult;
-  }
-
-  return {
-    address: addressResult.value,
-    chainId,
-    contractAddress: contractResult.value,
-    ...extractOptionalFields(body),
-  };
-}
+const reportGmRequestSchema = z.object({
+  address: z
+    .string()
+    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" }),
+  chainId: z.number().int().positive(),
+  fid: z.number().int().positive().optional(),
+  displayName: z.string().optional(),
+  username: z.string().optional(),
+  txHash: z.string().optional(),
+});
 
 function resolveChain(chainId: number) {
   if (chainId === celo.id) {
@@ -112,22 +65,27 @@ function formatReportGmResponse(row: GmStatsByAddress) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const validation = validateReportGmRequest(body);
-    if ("error" in validation) {
+    const parseResult = reportGmRequestSchema.safeParse(body);
+
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: validation.error },
-        { status: validation.status }
+        {
+          error: parseResult.error.issues[0]?.message ?? "Invalid request body",
+        },
+        { status: 400 }
       );
     }
-    const {
-      address,
-      chainId,
-      fid,
-      displayName,
-      username,
-      txHash,
-      contractAddress,
-    } = validation;
+
+    const { address, chainId, fid, displayName, username, txHash } =
+      parseResult.data;
+
+    const contractAddress = getDailyGmAddress(chainId);
+    if (!contractAddress) {
+      return NextResponse.json(
+        { error: "DAILY_GM_ADDRESS not configured" },
+        { status: 500 }
+      );
+    }
 
     const lastGmDayOnchain = await readOnchainLastGmDay(
       address,

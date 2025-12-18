@@ -1,21 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getScore } from "@/lib/neynar";
 
 export const dynamic = "force-dynamic";
 
+const getScoreQuerySchema = z.object({
+  fid: z.string().transform(Number).pipe(z.number().int().positive()),
+});
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const fid = searchParams.get("fid");
+    const parseResult = getScoreQuerySchema.safeParse({
+      fid: searchParams.get("fid"),
+    });
 
-    if (!fid) {
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Missing required parameter: fid" },
+        { error: parseResult.error.issues[0]?.message ?? "Invalid parameters" },
         { status: 400 }
       );
     }
 
-    const follows = await getScore([Number(fid)]);
+    const follows = await getScore([parseResult.data.fid]);
 
     return NextResponse.json(follows);
   } catch (error) {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { isAddress } from "viem";
+import { z } from "zod";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
 import { fetchFarcasterUser } from "@/lib/farcaster";
 import { generateSimplifiedGMStatusOGUrl } from "@/lib/og-utils";
@@ -10,6 +11,12 @@ type Props = {
   params: Promise<{ all: string[] }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
+
+const sharePageQuerySchema = z.object({
+  address: z
+    .string()
+    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" }),
+});
 
 function getChainName(chainId: number): string {
   return SUPPORTED_CHAINS.find((c) => c.id === chainId)?.name || "Unknown";
@@ -72,15 +79,19 @@ export async function generateMetadata({
   searchParams,
 }: Props): Promise<Metadata> {
   const sp = await searchParams;
-  const address = (sp.address as string) || "";
 
-  if (!isAddress(address)) {
+  const parseResult = sharePageQuerySchema.safeParse({
+    address: sp.address,
+  });
+
+  if (!parseResult.success) {
     return {
       title: minikitConfig.miniapp.name,
       description: minikitConfig.miniapp.description,
     };
   }
 
+  const address = parseResult.data.address;
   const displayName = await resolveDisplayName(address);
 
   const ogImageUrl = generateSimplifiedGMStatusOGUrl({
@@ -117,8 +128,23 @@ export async function generateMetadata({
 
 export default async function SharePage({ searchParams }: Props) {
   const sp = await searchParams;
-  const address = (sp.address as string) || "";
 
+  const parseResult = sharePageQuerySchema.safeParse({
+    address: sp.address,
+  });
+
+  if (!parseResult.success) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
+        <h1 className="mb-4 font-bold text-2xl">Invalid Address</h1>
+        <p className="text-muted-foreground">
+          Please provide a valid Ethereum address.
+        </p>
+      </div>
+    );
+  }
+
+  const address = parseResult.data.address;
   const displayName = await resolveDisplayName(address);
 
   return (

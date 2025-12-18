@@ -9,6 +9,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, celo, optimism } from "viem/chains";
+import { z } from "zod";
 
 import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 import {
@@ -24,54 +25,12 @@ if (!BACKEND_SIGNER_PRIVATE_KEY) {
   console.warn("BACKEND_SIGNER_PRIVATE_KEY not configured");
 }
 
-type ValidationSuccess = {
-  valid: true;
-  data: {
-    claimer: string;
-    fid: number | bigint;
-    deadline: number | bigint;
-    chainId: number;
-  };
-};
-
-type ValidationFailure = {
-  valid: false;
-  missing: string[];
-};
-
-function validateRequest(
-  body: Record<string, unknown>
-): ValidationSuccess | ValidationFailure {
-  const { claimer, fid, deadline, chainId } = body;
-  const missing: string[] = [];
-
-  if (!claimer) {
-    missing.push("claimer");
-  }
-  if (!fid) {
-    missing.push("fid");
-  }
-  if (!deadline) {
-    missing.push("deadline");
-  }
-  if (!chainId) {
-    missing.push("chainId");
-  }
-
-  if (missing.length > 0) {
-    return { valid: false, missing };
-  }
-
-  return {
-    valid: true,
-    data: {
-      claimer: claimer as string,
-      fid: fid as number | bigint,
-      deadline: deadline as number | bigint,
-      chainId: Number(chainId),
-    },
-  };
-}
+const claimExecuteRequestSchema = z.object({
+  claimer: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  fid: z.number().int().positive(),
+  deadline: z.number().int().positive(),
+  chainId: z.number().int().positive(),
+});
 
 /**
  * Generates a backend-signed authorization for a claim with nonce.
@@ -149,15 +108,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const validation = validateRequest(body);
-    if (!validation.valid) {
+    const parseResult = claimExecuteRequestSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Missing required fields", missing: validation.missing },
+        {
+          error: parseResult.error.issues[0]?.message ?? "Invalid request body",
+        },
         { status: 400 }
       );
     }
 
-    const { claimer, fid, deadline, chainId } = validation.data;
+    const { claimer, fid, deadline, chainId } = parseResult.data;
 
     const authResult = await generateClaimAuthorization({
       claimer,

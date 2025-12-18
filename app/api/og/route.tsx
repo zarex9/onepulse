@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { isAddress } from "viem";
+import { z } from "zod";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
 import { handleError } from "@/lib/error-handling";
 import { fetchFarcasterUser } from "@/lib/farcaster";
@@ -9,6 +10,17 @@ import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
 const RES_REGEXP =
   /src: url\((.+)\) format\('(opentype|truetype|woff|woff2)'\)/g;
+
+const ogQuerySchema = z.object({
+  address: z
+    .string()
+    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" })
+    .optional(),
+  chains: z.string().optional(),
+  displayName: z.string().optional(),
+  username: z.string().optional(),
+  pfp: z.url().optional(),
+});
 
 // Formats supported by Satori/next/og, in order of preference
 // WOFF2 is excluded because next/og does not support it (use WOFF instead)
@@ -484,9 +496,48 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
+    const parseResult = ogQuerySchema.safeParse({
+      address: searchParams.get("address"),
+      chains: searchParams.get("chains"),
+      displayName: searchParams.get("displayName"),
+      username: searchParams.get("username"),
+      pfp: searchParams.get("pfp"),
+    });
+
+    if (!parseResult.success) {
+      handleError(
+        new Error(parseResult.error.issues[0]?.message ?? "Invalid parameters"),
+        "OG query validation failed",
+        { operation: "og/validate-query" },
+        { silent: true }
+      );
+      return new ImageResponse(generateFallbackImage(), {
+        width: 1200,
+        height: 800,
+      });
+    }
+
+    const validParams = parseResult.data;
+    const ogSearchParams = new URLSearchParams();
+    if (validParams.address) {
+      ogSearchParams.set("address", validParams.address);
+    }
+    if (validParams.chains) {
+      ogSearchParams.set("chains", validParams.chains);
+    }
+    if (validParams.displayName) {
+      ogSearchParams.set("displayName", validParams.displayName);
+    }
+    if (validParams.username) {
+      ogSearchParams.set("username", validParams.username);
+    }
+    if (validParams.pfp) {
+      ogSearchParams.set("pfp", validParams.pfp);
+    }
+
     // Load fonts and fetch params in parallel to reduce I/O wait time
     const [params, geistMedium, geistSemiBold, geistBold] = await Promise.all([
-      fetchGMStatusParams(searchParams),
+      fetchGMStatusParams(ogSearchParams),
       loadGoogleFont("Geist", 500),
       loadGoogleFont("Geist", 600),
       loadGoogleFont("Geist", 800),

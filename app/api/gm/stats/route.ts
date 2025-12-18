@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { Infer } from "spacetimedb";
 import { isAddress } from "viem";
+import { z } from "zod";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
 import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
 
@@ -10,18 +11,16 @@ type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
 
 export const runtime = "nodejs";
 
-function validateGmStatsQuery(searchParams: URLSearchParams) {
-  const address = searchParams.get("address") || "";
-  const chainIdParam = searchParams.get("chainId");
-  const chainId = chainIdParam ? Number(chainIdParam) : undefined;
-  if (!address) {
-    return { error: "address is required", status: 400 };
-  }
-  if (!isAddress(address)) {
-    return { error: "invalid address", status: 400 };
-  }
-  return { address, chainId };
-}
+const gmStatsQuerySchema = z.object({
+  address: z
+    .string()
+    .refine((addr) => isAddress(addr), { message: "Invalid Ethereum address" }),
+  chainId: z
+    .string()
+    .transform(Number)
+    .pipe(z.number().int().positive())
+    .optional(),
+});
 
 function getChainName(chainId: number): string {
   return SUPPORTED_CHAINS.find((c) => c.id === chainId)?.name || "Unknown";
@@ -76,14 +75,19 @@ function formatAggregateStatsResponse(
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const validation = validateGmStatsQuery(searchParams);
-  if ("error" in validation) {
+  const parseResult = gmStatsQuerySchema.safeParse({
+    address: searchParams.get("address"),
+    chainId: searchParams.get("chainId"),
+  });
+
+  if (!parseResult.success) {
     return NextResponse.json(
-      { error: validation.error },
-      { status: validation.status }
+      { error: parseResult.error.issues[0]?.message ?? "Invalid parameters" },
+      { status: 400 }
     );
   }
-  const { address, chainId } = validation;
+
+  const { address, chainId } = parseResult.data;
   const rows = await getGmRows(address, chainId);
   if (typeof chainId === "number" && !Number.isNaN(chainId)) {
     return NextResponse.json(formatChainStatsResponse(address, rows[0]));
