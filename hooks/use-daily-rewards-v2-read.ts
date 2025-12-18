@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { Address } from "viem";
 import { useReadContract } from "wagmi";
 import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
 
@@ -23,7 +24,7 @@ type DailyRewardsV2Status = {
 };
 
 export function useDailyRewardsV2Read(
-  contractAddress: `0x${string}` | "",
+  contractAddress: Address | "",
   chainId?: number
 ) {
   const [status, setStatus] = useState<DailyRewardsV2Status>({
@@ -44,7 +45,7 @@ export function useDailyRewardsV2Read(
 
   const enabled = !!contractAddress;
   const validAddress = (enabled ? contractAddress : undefined) as
-    | `0x${string}`
+    | Address
     | undefined;
 
   const {

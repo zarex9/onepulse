@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { Address } from "viem";
 import { useChainId, useSwitchChain } from "wagmi";
 import {
   BASE_CHAIN_ID,
@@ -43,7 +44,7 @@ export function useDailyRewardsV2Config() {
   }, []);
 
   const getContractAddress = useCallback(
-    (id: number): `0x${string}` | "" => DAILY_REWARDS_V2_ADDRESSES[id] || "",
+    (id: number): Address | "" => DAILY_REWARDS_V2_ADDRESSES[id] || "",
     []
   );
 
