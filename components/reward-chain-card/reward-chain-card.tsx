@@ -2,6 +2,7 @@
 
 import { Copy } from "lucide-react";
 import { memo } from "react";
+import { toast } from "sonner";
 import { RewardClaimTransaction } from "@/components/gm-chain-card/reward-claim-transaction";
 import { Icons } from "@/components/icons";
 import { useRewardChainCardLogic } from "@/components/reward-chain-card/use-reward-chain-card-logic";
@@ -35,7 +36,9 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
     sponsored,
     onClaimSuccess,
   } = props;
-  const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const { isCopied, copyToClipboard } = useCopyToClipboard({
+    onCopyAction: () => toast.success("Copied to clipboard"),
+  });
   const {
     isCorrectChain,
     claimState,
@@ -81,12 +84,11 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
           {tokenAddress && (
             <Button
               aria-label="Copy CA"
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              className="h-5 w-5 p-0 text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => copyToClipboard(tokenAddress)}
-              size="icon-sm"
               variant="ghost"
             >
-              <Copy className={`h-4 w-4 ${isCopied ? "text-green-600" : ""}`} />
+              <Copy className={`h-3 w-3 ${isCopied ? "text-green-600" : ""}`} />
             </Button>
           )}
         </div>
