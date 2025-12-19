@@ -81,6 +81,7 @@ type ContractSettingsCardProps = {
   dailyGMContract: string | undefined;
   backendSigner: string | undefined;
   rewardToken: string | undefined;
+  dailyClaimLimit: bigint | undefined;
   onRefetchAction: () => void;
 };
 
@@ -94,6 +95,7 @@ export function ContractSettingsCard({
   dailyGMContract,
   backendSigner,
   rewardToken,
+  dailyClaimLimit,
   onRefetchAction,
 }: ContractSettingsCardProps) {
   const [newMinVaultBalance, setNewMinVaultBalance] = useState("");
@@ -101,6 +103,7 @@ export function ContractSettingsCard({
   const [newDailyGMContract, setNewDailyGMContract] = useState("");
   const [newBackendSigner, setNewBackendSigner] = useState("");
   const [newRewardToken, setNewRewardToken] = useState("");
+  const [newDailyClaimLimit, setNewDailyClaimLimit] = useState("");
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
@@ -130,6 +133,7 @@ export function ContractSettingsCard({
       setNewDailyGMContract("");
       setNewBackendSigner("");
       setNewRewardToken("");
+      setNewDailyClaimLimit("");
       setPendingAction(null);
       setValidationErrors({});
     }
@@ -185,6 +189,21 @@ export function ContractSettingsCard({
     return isAddress(value as Address) ? undefined : "Invalid Ethereum address";
   };
 
+  const validateDailyClaimLimit = (value: string): string | undefined => {
+    if (!value) {
+      return "User limit is required";
+    }
+    try {
+      const num = Number.parseInt(value, 10);
+      if (Number.isNaN(num) || num <= 0) {
+        return "User limit must be greater than 0";
+      }
+      return;
+    } catch {
+      return "Invalid number format";
+    }
+  };
+
   const handleMinVaultBalanceClick = () => {
     const error = validateMinVaultBalance(newMinVaultBalance);
     if (error) {
@@ -232,6 +251,16 @@ export function ContractSettingsCard({
       return;
     }
     setPendingAction("rewardToken");
+    setValidationErrors({});
+  };
+
+  const handleDailyClaimLimitClick = () => {
+    const error = validateDailyClaimLimit(newDailyClaimLimit);
+    if (error) {
+      setValidationErrors({ dailyClaimLimit: error });
+      return;
+    }
+    setPendingAction("dailyClaimLimit");
     setValidationErrors({});
   };
 
@@ -293,6 +322,16 @@ export function ContractSettingsCard({
       }
       case "rewardToken": {
         executeWrite("setRewardToken", [newRewardToken as Address]);
+        break;
+      }
+      case "dailyClaimLimit": {
+        try {
+          const parsed = BigInt(Number.parseInt(newDailyClaimLimit, 10));
+          executeWrite("setDailyClaimLimit", [parsed]);
+        } catch (_err) {
+          toast.error("Invalid claim limit");
+          setPendingAction(null);
+        }
         break;
       }
       default: {
@@ -471,6 +510,46 @@ export function ContractSettingsCard({
             }}
             value={newRewardToken}
           />
+
+          <div className="space-y-2">
+            <Label>Daily Claim Limit (Max Users Per Day)</Label>
+            <div className="flex gap-2">
+              <Input
+                disabled={isLoading}
+                onChange={(e) => {
+                  setNewDailyClaimLimit(e.target.value);
+                  if (validationErrors.dailyClaimLimit) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      dailyClaimLimit: "",
+                    });
+                  }
+                }}
+                placeholder={dailyClaimLimit?.toString() || "100"}
+                type="number"
+                value={newDailyClaimLimit}
+              />
+              <Button
+                disabled={isLoading || !newDailyClaimLimit}
+                onClick={handleDailyClaimLimitClick}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+            {validationErrors.dailyClaimLimit && (
+              <p className="flex items-center gap-2 text-destructive text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {validationErrors.dailyClaimLimit}
+              </p>
+            )}
+            <p className="text-muted-foreground text-xs">
+              Current: {dailyClaimLimit} users per day
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -629,6 +708,37 @@ export function ContractSettingsCard({
               className="bg-amber-600 hover:bg-amber-700"
               onClick={() => {
                 confirmAndExecute("rewardToken");
+              }}
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        onOpenChange={() => setPendingAction(null)}
+        open={pendingAction === "dailyClaimLimit"}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Update Daily Claim Limit
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will change the maximum number of users who can claim rewards
+              per day from <strong>{dailyClaimLimit}</strong> to{" "}
+              <strong>{newDailyClaimLimit}</strong> users. Once this limit is
+              reached, no more users can claim that day.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={() => {
+                confirmAndExecute("dailyClaimLimit");
               }}
             >
               Continue

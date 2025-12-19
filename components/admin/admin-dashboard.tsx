@@ -197,6 +197,7 @@ export function AdminDashboard() {
                   chainId={selectedChainId}
                   claimRewardAmount={claimRewardAmount}
                   contractAddress={currentContractAddress}
+                  dailyClaimLimit={dailyClaimLimit}
                   dailyGMContract={dailyGMContract}
                   minVaultBalance={minVaultBalance}
                   onRefetchAction={refetch}
