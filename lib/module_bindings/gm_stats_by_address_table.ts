@@ -11,16 +11,16 @@ import {
 } from "spacetimedb";
 
 export default __t.row({
-  addressChain: __t.string().primaryKey(),
+  addressChain: __t.string().primaryKey().name("address_chain"),
   address: __t.string(),
-  chainId: __t.i32(),
-  currentStreak: __t.i32(),
-  highestStreak: __t.i32(),
-  allTimeGmCount: __t.i32(),
-  lastGmDay: __t.i32(),
-  lastTxHash: __t.option(__t.string()),
+  chainId: __t.i32().name("chain_id"),
+  currentStreak: __t.i32().name("current_streak"),
+  highestStreak: __t.i32().name("highest_streak"),
+  allTimeGmCount: __t.i32().name("all_time_gm_count"),
+  lastGmDay: __t.i32().name("last_gm_day"),
+  lastTxHash: __t.option(__t.string()).name("last_tx_hash"),
   fid: __t.option(__t.i64()),
-  displayName: __t.option(__t.string()),
+  displayName: __t.option(__t.string()).name("display_name"),
   username: __t.option(__t.string()),
-  updatedAt: __t.timestamp(),
+  updatedAt: __t.timestamp().name("updated_at"),
 });
