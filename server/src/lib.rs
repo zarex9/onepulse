@@ -1,20 +1,5 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Timestamp};
 
-#[reducer(init)]
-pub fn init(_ctx: &ReducerContext) {
-    // Called when the module is initially published
-}
-
-#[reducer(client_connected)]
-pub fn identity_connected(_ctx: &ReducerContext) {
-    // Called everytime a new client connects
-}
-
-#[reducer(client_disconnected)]
-pub fn identity_disconnected(_ctx: &ReducerContext) {
-    // Called everytime a client disconnects
-}
-
 // Helper to compose a primary key from address + chain_id
 fn pk_for(address: &str, chain_id: i32) -> String {
     format!("{}:{}", address, chain_id)

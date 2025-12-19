@@ -31,10 +31,6 @@ import {
 } from "spacetimedb";
 
 // Import and reexport all reducer arg types
-import IdentityConnectedReducer from "./identity_connected_reducer";
-export { IdentityConnectedReducer };
-import IdentityDisconnectedReducer from "./identity_disconnected_reducer";
-export { IdentityDisconnectedReducer };
 import ReportGmReducer from "./report_gm_reducer";
 export { ReportGmReducer };
 
