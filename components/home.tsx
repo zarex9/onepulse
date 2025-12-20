@@ -2,7 +2,7 @@
 
 import { memo, useCallback } from "react";
 import type { useGmStats } from "@/hooks/use-gm-stats";
-import { minikitConfig } from "@/minikit.config";
+import { Countdown } from "./countdown";
 import { ChainList } from "./home/chain-list";
 import { CongratsDialog } from "./home/congrats-dialog";
 import { ModalRenderer } from "./home/modal-renderer";
@@ -34,7 +34,6 @@ export const Home = memo(
       chains,
       gmStatsResult,
       handleStatus,
-      nextTargetSec,
       showCongrats,
       setShowCongrats,
     } = useHomeLogic({
@@ -50,12 +49,7 @@ export const Home = memo(
 
     return (
       <div className="my-12 space-y-4">
-        <div className="space-y-2">
-          <h2 className="font-semibold text-lg">Daily GM</h2>
-          <p className="text-muted-foreground text-sm">
-            {minikitConfig.miniapp.subtitle}
-          </p>
-        </div>
+        <Countdown />
 
         <ChainList
           address={address}
@@ -79,7 +73,6 @@ export const Home = memo(
 
         <CongratsDialog
           gmStats={gmStatsResult?.stats}
-          nextTargetSec={nextTargetSec}
           onOpenChange={setShowCongrats}
           onShare={onShareClick}
           open={showCongrats}

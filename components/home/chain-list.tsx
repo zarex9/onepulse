@@ -11,11 +11,7 @@ type ChainListProps = {
   setActiveRefetchFn: Dispatch<
     SetStateAction<(() => Promise<unknown>) | undefined>
   >;
-  handleStatus: (status: {
-    chainId: number;
-    hasGmToday: boolean;
-    targetSec: number;
-  }) => void;
+  handleStatus: (status: { chainId: number; hasGmToday: boolean }) => void;
 };
 
 export const ChainList = memo(

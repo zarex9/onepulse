@@ -13,11 +13,7 @@ type UseGMChainCardLogicProps = {
   contractAddress: Address;
   isConnected: boolean;
   address?: string;
-  onStatusChange?: (status: {
-    chainId: number;
-    hasGmToday: boolean;
-    targetSec: number;
-  }) => void;
+  onStatusChange?: (status: { chainId: number; hasGmToday: boolean }) => void;
   onOpenModal?: (refetch: () => Promise<unknown>) => void;
 };
 
@@ -33,7 +29,7 @@ export function useGMChainCardLogic({
   const numericChainId = normalizeChainId(currentChainId);
   const onCorrectChain = numericChainId === chainId;
 
-  const { hasGmToday, gmDisabled, targetSec, refetchLastGmDay } = useGMState(
+  const { hasGmToday, gmDisabled, refetchLastGmDay } = useGMState(
     chainId,
     contractAddress,
     address,
@@ -41,8 +37,8 @@ export function useGMChainCardLogic({
   );
 
   useEffect(() => {
-    onStatusChange?.({ chainId, hasGmToday, targetSec });
-  }, [chainId, hasGmToday, targetSec, onStatusChange]);
+    onStatusChange?.({ chainId, hasGmToday });
+  }, [chainId, hasGmToday, onStatusChange]);
 
   const chainBtnClasses = useMemo(() => getChainBtnClasses(chainId), [chainId]);
 
@@ -58,7 +54,6 @@ export function useGMChainCardLogic({
     onCorrectChain,
     hasGmToday,
     gmDisabled,
-    targetSec,
     chainBtnClasses,
     chainIconName,
     handleOpenModal,

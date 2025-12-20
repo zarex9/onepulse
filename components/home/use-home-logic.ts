@@ -1,11 +1,7 @@
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useEffect, useMemo, useState } from "react";
 import type { useGmStats } from "@/hooks/use-gm-stats";
-import {
-  areAllChainsComplete,
-  getChainList,
-  getNextTargetSec,
-} from "./chain-config";
+import { areAllChainsComplete, getChainList } from "./chain-config";
 import { useCongratsLogic } from "./use-congrats-logic";
 import { useHomeStats } from "./use-home-stats";
 import { useLastCongratsDay } from "./use-last-congrats-day";
@@ -54,11 +50,6 @@ export const useHomeLogic = ({
     onAllDoneChange?.(allDone);
   }, [allDone, onAllDoneChange]);
 
-  const nextTargetSec = useMemo(
-    () => getNextTargetSec(chainIds, statusMap),
-    [chainIds, statusMap]
-  );
-
   const { lastCongratsDay, setLastCongratsDay } = useLastCongratsDay();
 
   const { showCongrats, setShowCongrats } = useCongratsLogic({
@@ -81,7 +72,6 @@ export const useHomeLogic = ({
     gmStatsResult,
     handleStatus,
     allDone,
-    nextTargetSec,
     showCongrats,
     setShowCongrats,
   };

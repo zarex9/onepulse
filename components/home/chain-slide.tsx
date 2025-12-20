@@ -11,11 +11,7 @@ type ChainSlideProps = {
   contractAddress: Address;
   isConnected: boolean;
   address?: string;
-  onStatusChange: (status: {
-    chainId: number;
-    hasGmToday: boolean;
-    targetSec: number;
-  }) => void;
+  onStatusChange: (status: { chainId: number; hasGmToday: boolean }) => void;
   onOpenModal: (refetch: () => Promise<unknown>) => void;
 };
 

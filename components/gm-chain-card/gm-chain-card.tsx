@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/item";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { ActionButton } from "./action-button";
-import { CountdownText } from "./countdown-text";
 import { StatsDisplay } from "./stats-display";
 import { useGMChainCardLogic } from "./use-gm-chain-card-logic";
 
@@ -22,11 +21,7 @@ export type GMChainCardProps = {
   contractAddress: Address;
   isConnected: boolean;
   address?: string;
-  onStatusChange?: (status: {
-    chainId: number;
-    hasGmToday: boolean;
-    targetSec: number;
-  }) => void;
+  onStatusChange?: (status: { chainId: number; hasGmToday: boolean }) => void;
   stats: GmStats;
   isStatsReady: boolean;
   onOpenModal?: (refetch: () => Promise<unknown>) => void;
@@ -48,7 +43,6 @@ export const GMChainCard = memo(
       onCorrectChain,
       hasGmToday,
       gmDisabled,
-      targetSec,
       chainBtnClasses,
       chainIconName,
       handleOpenModal,
@@ -90,8 +84,6 @@ export const GMChainCard = memo(
             name={name}
             onCorrectChain={onCorrectChain}
             onOpenModal={() => handleOpenModal()}
-            renderCountdown={(sec: number) => <CountdownText targetSec={sec} />}
-            targetSec={targetSec}
           />
         </ItemFooter>
       </Item>

@@ -2,7 +2,6 @@ import type { Address } from "viem";
 import { useReadContract } from "wagmi";
 import type { Chain } from "@/components/home/chain-config";
 import { dailyGMAbi } from "@/lib/abi/daily-gm";
-import { SECONDS_PER_DAY } from "@/lib/constants";
 import { getCurrentTimestampSeconds, timestampToDayNumber } from "@/lib/utils";
 
 type ComputeGMStateParams = {
@@ -16,7 +15,6 @@ type ComputeGMStateParams = {
 type GMState = {
   hasGmToday: boolean;
   gmDisabled: boolean;
-  targetSec: number;
 };
 
 const computeGMState = (params: ComputeGMStateParams): GMState => {
@@ -29,27 +27,25 @@ const computeGMState = (params: ComputeGMStateParams): GMState => {
   } = params;
 
   if (!(address && contractAddress)) {
-    return { hasGmToday: false, gmDisabled: !isConnected, targetSec: 0 };
+    return { hasGmToday: false, gmDisabled: !isConnected };
   }
 
   if (lastGmDayData === undefined) {
-    return { hasGmToday: false, gmDisabled: true, targetSec: 0 };
+    return { hasGmToday: false, gmDisabled: true };
   }
 
   if (typeof lastGmDayData !== "bigint") {
-    return { hasGmToday: false, gmDisabled: true, targetSec: 0 };
+    return { hasGmToday: false, gmDisabled: true };
   }
 
   const lastDay = Number(lastGmDayData);
   const nowSec = getCurrentTimestampSeconds();
   const currentDay = timestampToDayNumber(nowSec);
   const alreadyGmToday = lastDay >= currentDay;
-  const nextDayStartSec = (currentDay + 1) * SECONDS_PER_DAY;
 
   return {
     hasGmToday: alreadyGmToday,
     gmDisabled: alreadyGmToday || isPendingLastGm,
-    targetSec: nextDayStartSec,
   };
 };
 
@@ -72,7 +68,7 @@ export const useGMState = (
     query: { enabled: Boolean(address && contractAddress) },
   });
 
-  const { hasGmToday, gmDisabled, targetSec } = computeGMState({
+  const { hasGmToday, gmDisabled } = computeGMState({
     address: address as Address | undefined,
     contractAddress,
     isConnected,
@@ -83,7 +79,6 @@ export const useGMState = (
   return {
     hasGmToday,
     gmDisabled,
-    targetSec,
     refetchLastGmDay,
   };
 };

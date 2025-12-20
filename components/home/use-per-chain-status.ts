@@ -8,21 +8,18 @@ import { useCallback, useState } from "react";
  */
 export function usePerChainStatus() {
   const [statusMap, setStatusMap] = useState<
-    Record<number, { hasGmToday: boolean; targetSec: number }>
+    Record<number, { hasGmToday: boolean }>
   >({});
 
   const handleStatus = useCallback(
-    (s: { chainId: number; hasGmToday: boolean; targetSec: number }) => {
+    (s: { chainId: number; hasGmToday: boolean }) => {
       setStatusMap((prev) => {
-        if (
-          prev[s.chainId]?.hasGmToday === s.hasGmToday &&
-          prev[s.chainId]?.targetSec === s.targetSec
-        ) {
+        if (prev[s.chainId]?.hasGmToday === s.hasGmToday) {
           return prev;
         }
         return {
           ...prev,
-          [s.chainId]: { hasGmToday: s.hasGmToday, targetSec: s.targetSec },
+          [s.chainId]: { hasGmToday: s.hasGmToday },
         };
       });
     },

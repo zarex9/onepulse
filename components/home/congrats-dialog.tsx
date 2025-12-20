@@ -13,12 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { GmStats } from "@/hooks/use-gm-stats";
-import { CountdownValue } from "./countdown-value";
 import { useCongratsDialogLogic } from "./use-congrats-dialog-logic";
 
 type CongratsDialogProps = {
   open: boolean;
-  nextTargetSec: number;
   onOpenChange: (open: boolean) => void;
   onShare?: () => void;
   gmStats?: GmStats;
@@ -29,13 +27,7 @@ type CongratsDialogProps = {
  * Displays countdown to next GM time and triggers confetti animation
  */
 export const CongratsDialog = memo(
-  ({
-    open,
-    nextTargetSec,
-    onOpenChange,
-    onShare,
-    gmStats,
-  }: CongratsDialogProps) => {
+  ({ open, onOpenChange, onShare, gmStats }: CongratsDialogProps) => {
     const { handleClose, handleShare, showShareButton } =
       useCongratsDialogLogic({
         onOpenChange,
@@ -55,9 +47,8 @@ export const CongratsDialog = memo(
 
           <div className="py-2">
             <p>
-              You already completed GM on all chains, come back in{" "}
-              <CountdownValue targetSec={nextTargetSec} /> to continue your
-              streaks!
+              You already completed GM on all chains, come back in tomorrow to
+              continue your streaks!
             </p>
           </div>
 

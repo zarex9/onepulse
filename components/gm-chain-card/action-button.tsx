@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type ReactNode } from "react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
@@ -13,10 +13,8 @@ type ActionButtonProps = {
   onCorrectChain: boolean;
   hasGmToday: boolean;
   gmDisabled: boolean;
-  targetSec: number;
   chainBtnClasses: string;
   onOpenModal: () => void;
-  renderCountdown: (targetSec: number) => ReactNode;
 };
 
 export const ActionButton = memo(
@@ -27,10 +25,8 @@ export const ActionButton = memo(
     onCorrectChain,
     hasGmToday,
     gmDisabled,
-    targetSec,
     chainBtnClasses,
     onOpenModal,
-    renderCountdown,
   }: ActionButtonProps) => {
     const { doSwitch, isLoading, handleOpenModal } = useActionButtonLogic({
       chainId,
@@ -44,15 +40,15 @@ export const ActionButton = memo(
       );
     }
 
-    if (!onCorrectChain) {
-      if (hasGmToday) {
-        return (
-          <Button className={`w-full ${chainBtnClasses}`} disabled size="lg">
-            {renderCountdown(targetSec)}
-          </Button>
-        );
-      }
+    if (hasGmToday) {
+      return (
+        <Button className={`w-full ${chainBtnClasses}`} disabled size="lg">
+          Already GM'd
+        </Button>
+      );
+    }
 
+    if (!onCorrectChain) {
       return (
         <Button
           aria-busy={isLoading}
@@ -79,7 +75,7 @@ export const ActionButton = memo(
         onClick={handleOpenModal}
         size="lg"
       >
-        {hasGmToday ? renderCountdown(targetSec) : `GM on ${name}`}
+        GM on {name}
       </Button>
     );
   }
