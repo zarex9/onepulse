@@ -23,7 +23,6 @@ type UseHeaderLogicProps = {
   inMiniApp: boolean;
   onMiniAppAddedAction: () => void;
   gmStats?: GmStats;
-  onShareModalOpenChangeAction: (open: boolean) => void;
 };
 
 const extractUserFromContext = (
@@ -43,7 +42,6 @@ export const useHeaderLogic = ({
   inMiniApp,
   onMiniAppAddedAction,
   gmStats,
-  onShareModalOpenChangeAction,
 }: UseHeaderLogicProps) => {
   const { address } = useAppKitAccount({ namespace: "eip155" });
   const miniAppContext = useMiniAppContext();
@@ -71,11 +69,6 @@ export const useHeaderLogic = ({
     }
   }, [onMiniAppAddedAction]);
 
-  const handleShareClick = useCallback(
-    () => onShareModalOpenChangeAction(true),
-    [onShareModalOpenChangeAction]
-  );
-
   const user = extractUserFromContext(miniAppContext?.context);
   const shouldShowUserInfo = !!user || !!address;
   const showAdminButton = Boolean(
@@ -101,6 +94,5 @@ export const useHeaderLogic = ({
     showAdminButton,
     showShareButton,
     handleAddMiniApp,
-    handleShareClick,
   };
 };

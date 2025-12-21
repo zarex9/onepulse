@@ -20,31 +20,22 @@ function Content({
   tab,
   setTab,
 }: ContentProps) {
-  const {
-    gmStats,
-    setGmStats,
-    isShareModalOpen,
-    setIsShareModalOpen,
-    completedAllChains,
-    setCompletedAllChains,
-    openShareModal,
-  } = useContentLogic();
+  const { gmStats, setGmStats, setCompletedAllChains, shareNow } =
+    useContentLogic();
 
   return (
     <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
       <Header
-        completedAllChains={completedAllChains}
         gmStats={gmStats?.stats}
         inMiniApp={inMiniApp}
         isMiniAppReady={isMiniAppReady}
-        isShareModalOpen={isShareModalOpen}
         onMiniAppAddedAction={handleMiniAppAdded}
-        onShareModalOpenChangeAction={setIsShareModalOpen}
+        onShareClick={shareNow}
       />
       <Tabs
         onAllDoneChangeAction={setCompletedAllChains}
         onGmStatsChangeAction={setGmStats}
-        onShareClickAction={openShareModal}
+        onShareClickAction={shareNow}
         onTabChangeAction={setTab}
         tab={tab}
       />

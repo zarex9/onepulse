@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { HeaderRight } from "@/components/header/header-right";
 import { useHeaderLogic } from "@/components/header/use-header-logic";
-import { ShareModal } from "@/components/share-modal";
 import { UserInfo } from "@/components/user-info";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import { minikitConfig } from "@/minikit.config";
@@ -13,9 +12,7 @@ type HeaderProps = {
   inMiniApp: boolean;
   onMiniAppAddedAction: () => void;
   gmStats?: GmStats;
-  isShareModalOpen: boolean;
-  onShareModalOpenChangeAction: (open: boolean) => void;
-  completedAllChains?: boolean;
+  onShareClick: () => void;
 };
 
 export const Header = memo(
@@ -24,9 +21,7 @@ export const Header = memo(
     inMiniApp,
     onMiniAppAddedAction,
     gmStats,
-    isShareModalOpen,
-    onShareModalOpenChangeAction,
-    completedAllChains,
+    onShareClick,
   }: HeaderProps) => {
     const {
       address,
@@ -38,13 +33,11 @@ export const Header = memo(
       showAdminButton,
       showShareButton,
       handleAddMiniApp,
-      handleShareClick,
     } = useHeaderLogic({
       isMiniAppReady,
       inMiniApp,
       onMiniAppAddedAction,
       gmStats,
-      onShareModalOpenChangeAction,
     });
     return (
       <div className="fixed top-0 right-0 left-0 z-50 mx-auto h-16 w-full max-w-lg bg-transparent">
@@ -65,17 +58,11 @@ export const Header = memo(
             notificationsEnabled={isNotificationsEnabled}
             onNotificationToggle={handleAddMiniApp}
             onSaveClick={handleAddMiniApp}
-            onShareClick={handleShareClick}
+            onShareClick={onShareClick}
             showAdminButton={showAdminButton}
             showShareButton={showShareButton}
           />
         </div>
-
-        <ShareModal
-          completedAllChains={completedAllChains}
-          onOpenChange={onShareModalOpenChangeAction}
-          open={isShareModalOpen}
-        />
       </div>
     );
   }

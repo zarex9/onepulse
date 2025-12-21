@@ -1,8 +1,7 @@
 "use client";
 
-import { Share2 } from "lucide-react";
-import { memo } from "react";
-
+import { Share2, Trophy } from "lucide-react";
+import { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,59 +11,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { GmStats } from "@/hooks/use-gm-stats";
-import { useCongratsDialogLogic } from "./use-congrats-dialog-logic";
 
 type CongratsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onShare?: () => void;
-  gmStats?: GmStats;
+  onShareClick?: () => void;
+  isStatsReady?: boolean;
 };
 
 /**
  * Congratulations dialog shown when all chains are completed
- * Displays countdown to next GM time and triggers confetti animation
+ * Displays celebration message with stats and share option
  */
 export const CongratsDialog = memo(
-  ({ open, onOpenChange, onShare, gmStats }: CongratsDialogProps) => {
-    const { handleClose, handleShare, showShareButton } =
-      useCongratsDialogLogic({
-        onOpenChange,
-        onShare,
-        gmStats,
-      });
+  ({ open, onOpenChange, onShareClick, isStatsReady }: CongratsDialogProps) => {
+    const handleShare = useCallback(() => {
+      onShareClick?.();
+      onOpenChange(false);
+    }, [onOpenChange, onShareClick]);
 
     return (
-      <Dialog onOpenChange={onOpenChange} open={open}>
-        <DialogContent className="text-center sm:max-w-md">
+      <Dialog onOpenChange={onOpenChange} open={open && isStatsReady}>
+        <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
-            <DialogTitle>Congratulations 🎉</DialogTitle>
-            <DialogDescription className="sr-only">
-              You completed GM on all chains
+            <div className="mx-auto flex h-12 w-12 items-center justify-center sm:h-16 sm:w-16 sm:rounded-xl">
+              <Trophy className="h-6 w-6 text-primary sm:h-8 sm:w-8" />
+            </div>
+            <DialogTitle className="text-center">Perfect Streak!</DialogTitle>
+            <DialogDescription className="text-center">
+              You've completed GM on all chains today
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-2">
-            <p>
-              You already completed GM on all chains, come back in tomorrow to
-              continue your streaks!
-            </p>
-          </div>
-
-          <DialogFooter className="flex-col gap-2 sm:flex-row">
-            {showShareButton && (
-              <Button
-                className="w-full sm:flex-1"
-                onClick={handleShare}
-                variant="outline"
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share Progress
-              </Button>
-            )}
-            <Button className="w-full sm:flex-1" onClick={handleClose}>
-              Close
+          <DialogFooter>
+            <Button className="w-full" onClick={handleShare}>
+              <Share2 className="mr-1.5 h-3.5 w-3.5" />
+              Share
             </Button>
           </DialogFooter>
         </DialogContent>

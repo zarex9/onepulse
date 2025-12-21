@@ -72,9 +72,9 @@ export const Home = memo(
         />
 
         <CongratsDialog
-          gmStats={gmStatsResult?.stats}
+          isStatsReady={gmStatsResult?.isReady}
           onOpenChange={setShowCongrats}
-          onShare={onShareClick}
+          onShareClick={onShareClick}
           open={showCongrats}
         />
       </div>
