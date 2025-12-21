@@ -278,35 +278,35 @@ function generateProfileSection(
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 24,
-        padding: "0 60px",
+        gap: 16,
+        flex: "0 0 320px",
       }}
     >
       {pfp ? (
         // biome-ignore lint: OG image generation requires img for next/og
         <img
           alt="Profile"
-          height={180}
+          height={140}
           src={pfp}
           style={{
             borderRadius: "50%",
             objectFit: "cover",
-            boxShadow: "0 0 0 6px rgba(255,255,255,0.1)",
+            boxShadow: "0 0 0 4px rgba(255,255,255,0.1)",
           }}
-          width={180}
+          width={140}
         />
       ) : (
         <div
           style={{
-            width: 180,
-            height: 180,
+            width: 140,
+            height: 140,
             borderRadius: "50%",
             background: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 72,
-            boxShadow: "0 0 0 6px rgba(255,255,255,0.1)",
+            fontSize: 56,
+            boxShadow: "0 0 0 4px rgba(255,255,255,0.1)",
             color: "white",
           }}
         >
@@ -319,18 +319,23 @@ function generateProfileSection(
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 6,
+          gap: 4,
+          width: "100%",
         }}
       >
         <div
           style={{
             display: "flex",
-            fontSize: 48,
+            fontSize: 32,
             fontWeight: 800,
             letterSpacing: -1,
             color: "#ffffff",
             textAlign: "center",
-            lineHeight: 1,
+            lineHeight: 1.2,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: "100%",
           }}
         >
           {displayName}
@@ -338,10 +343,14 @@ function generateProfileSection(
         <div
           style={{
             display: "flex",
-            fontSize: 24,
+            fontSize: 18,
             fontWeight: 500,
             color: "#94a3b8",
             textAlign: "center",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: "100%",
           }}
         >
           @{username}
@@ -562,8 +571,9 @@ function generateMainOGImage(
         height: "100%",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
-        padding: "80px",
+        justifyContent: "flex-start",
+        gap: 60,
+        padding: "60px 80px",
         background: "#0a0a0a",
         backgroundImage:
           "radial-gradient(circle at 50% 0%, #171717 0%, #0a0a0a 100%)",
@@ -588,22 +598,14 @@ function generateMainOGImage(
       </div>
 
       {/* Left: Profile */}
-      <div
-        style={{
-          display: "flex",
-          flex: "0 0 auto",
-        }}
-      >
-        {generateProfileSection(displayName, username, pfp)}
-      </div>
+      {generateProfileSection(displayName, username, pfp)}
 
       {/* Right: Stats Table */}
       <div
         style={{
           display: "flex",
           flex: "1 1 auto",
-          justifyContent: "flex-end",
-          paddingLeft: 60,
+          minWidth: 0,
         }}
       >
         {generateGmStatsTable(stats)}
