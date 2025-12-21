@@ -26,7 +26,6 @@ const nextConfig: NextConfig = {
   experimental: {
     inlineCss: true,
   },
-  transpilePackages: ["spacetimedb"],
   async headers() {
     return [
       {
