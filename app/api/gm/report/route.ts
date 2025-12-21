@@ -39,17 +39,47 @@ async function readOnchainLastGmDay(
   chainId: number
 ) {
   const chain = resolveChain(chainId);
+
+  // Add a small delay for Celo to ensure block propagation
+  if (chainId === celo.id) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
   const client = createPublicClient({
     chain,
     transport: http(),
   });
-  const onchainLastGmDay = await client.readContract({
-    address: contractAddress as Address,
-    abi: dailyGMAbi,
-    functionName: "lastGMDay",
-    args: [address as Address],
-  });
-  return Number(onchainLastGmDay);
+
+  let onchainLastGmDay: bigint | undefined;
+  let attempt = 0;
+  const maxAttempts = 3;
+
+  // Retry logic for Celo to handle RPC inconsistency
+  while (attempt < maxAttempts) {
+    try {
+      onchainLastGmDay = await client.readContract({
+        address: contractAddress as Address,
+        abi: dailyGMAbi,
+        functionName: "lastGMDay",
+        args: [address as Address],
+      });
+
+      if (onchainLastGmDay !== undefined && onchainLastGmDay !== BigInt(0)) {
+        break;
+      }
+    } catch {
+      attempt += 1;
+      if (attempt >= maxAttempts) {
+        throw new Error(
+          `Failed to read lastGMDay after ${maxAttempts} attempts`
+        );
+      }
+      // Wait before retrying, with exponential backoff
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+    }
+  }
+
+  return Number(onchainLastGmDay ?? 0);
 }
 
 function formatReportGmResponse(row: GmStatsByAddress) {
@@ -59,6 +89,7 @@ function formatReportGmResponse(row: GmStatsByAddress) {
     highestStreak: row.highestStreak,
     allTimeGmCount: row.allTimeGmCount,
     lastGmDay: row.lastGmDay,
+    chainId: row.chainId,
   };
 }
 
