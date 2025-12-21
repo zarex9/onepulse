@@ -74,14 +74,14 @@ git clone https://github.com/nirwanadoteth/onepulse.git
 cd onepulse
 
 # Install dependencies
-bun install
+npm install
 
 # Configure environment
 cp .env.example .env.local
 # Edit .env.local with your API keys
 
 # Start development server
-bun dev
+npm run dev
 ```
 
 Visit `http://localhost:3000` to see the app.
@@ -173,11 +173,11 @@ graph TD
 ### Available Scripts
 
 ```bash
-bun dev              # Start development server
-bun run build        # Build for production
-bun typecheck        # Run TypeScript checks
-bun check            # Run ultracite check
-bun format           # Format code with ultracite
+npm dev              # Start development server
+npm run build        # Build for production
+npm run typecheck        # Run TypeScript checks
+npm run check            # Run ultracite check
+npm run format           # Format code with ultracite
 ```
 
 ### Code Quality
@@ -202,7 +202,7 @@ The project maintains high code quality with:
 ### Vercel Deployment
 
 ```bash
-bun run build
+npm run build
 vercel --prod
 ```
 
@@ -249,7 +249,7 @@ We welcome contributions! Please follow these steps:
 1. **Fork the repository**
 2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
 3. **Make your changes** following our coding standards**
-4. **Run quality checks** (`bun check`)
+4. **Run quality checks** (`npm check`)
 5. **Commit your changes** (`git commit -m 'feat: add amazing feature'`)
 6. **Push to the branch** (`git push origin feature/amazing-feature`)
 7. **Open a Pull Request**

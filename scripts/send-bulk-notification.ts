@@ -1,11 +1,12 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
+
 /**
  * Bulk Notification Script
  *
  * Sends notifications to all users stored in Redis KV.
  *
  * Usage:
- *   bun scripts/send-bulk-notification.ts --title 'Your Title' --body 'Your message'
+ *   node scripts/send-bulk-notification.ts --title 'Your Title' --body 'Your message'
  *
  * Options:
  *   --title, -t           Notification title (required)
@@ -18,13 +19,13 @@
  * Note: Use single quotes for arguments containing ! (zsh interprets ! in double quotes)
  *
  * Examples:
- *   bun scripts/send-bulk-notification.ts -t 'GM!' -b 'Rise and shine!'
- *   bun scripts/send-bulk-notification.ts -t 'Update' -b 'New features!' --dry-run
- *   bun scripts/send-bulk-notification.ts -t 'GM!' -b 'Hello!' -n 'gm-reminder-2024-12-03'
+ *   node scripts/send-bulk-notification.ts -t 'GM!' -b 'Rise and shine!'
+ *   node scripts/send-bulk-notification.ts -t 'Update' -b 'New features!' --dry-run
+ *   node scripts/send-bulk-notification.ts -t 'GM!' -b 'Hello!' -n 'gm-reminder-2024-12-03'
  */
 
+import "dotenv/config";
 import { parseArgs } from "node:util";
-
 import { handleError } from "@/lib/error-handling";
 import { minikitConfig } from "@/minikit.config";
 
@@ -160,7 +161,7 @@ function validateInputs(
       { silent: true }
     );
     process.stderr.write(
-      "\nUsage: bun scripts/send-bulk-notification.ts --title 'Title' --body 'Message'\n"
+      "\nUsage: node scripts/send-bulk-notification.ts --title 'Title' --body 'Message'\n"
     );
     process.exit(1);
   }
@@ -174,7 +175,7 @@ function validateInputs(
       { silent: true }
     );
     process.stderr.write(
-      "\nUsage: bun scripts/send-bulk-notification.ts --title 'Title' --body 'Message'\n"
+      "\nUsage: node scripts/send-bulk-notification.ts --title 'Title' --body 'Message'\n"
     );
     process.exit(1);
   }

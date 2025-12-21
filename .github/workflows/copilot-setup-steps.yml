@@ -25,13 +25,9 @@ jobs:
     # You can define any steps you want, and they will run before the agent starts.
     # If you do not check out your code, Copilot will do this for you.
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v6
+      - name: Setup node
+        uses: actions/setup-node@v5
         with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+          node-version: '22'
+      - run: npm ci
