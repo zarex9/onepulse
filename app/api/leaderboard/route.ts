@@ -10,8 +10,6 @@ import {
 
 type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
 
-export const runtime = "nodejs";
-
 type LeaderboardEntry = {
   address: string;
   displayName: string | null;
@@ -97,7 +95,7 @@ async function fetchAllGmStats(
   conn: DbConnection
 ): Promise<GmStatsByAddress[]> {
   const query = "SELECT * FROM gm_stats_by_address";
-  await subscribeOnce(conn, [query], 30_000);
+  await subscribeOnce(conn, [query], 60_000);
 
   const rows: GmStatsByAddress[] = [];
   const gmStatsTable = conn.db.gmStatsByAddress as {
@@ -159,7 +157,7 @@ export async function GET(req: Request) {
     const userAddress = url.searchParams.get("user");
     const limit = limitStr ? Math.min(Number.parseInt(limitStr, 10), 100) : 10;
 
-    const conn = await connectServerDbConnection(10_000);
+    const conn = await connectServerDbConnection(30_000);
 
     try {
       const allRows = await fetchAllGmStats(conn);
