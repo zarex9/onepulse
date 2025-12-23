@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { Infer } from "spacetimedb";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
+import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import { normalizeAddress } from "@/lib/utils";
 import { gmStatsByAddressStore } from "@/stores/gm-store";
 import { deriveStatsForAddress, groupRowsByAddress } from "./gm-stats-helpers";
@@ -11,7 +11,7 @@ import {
   useGmStatsSubscription,
 } from "./use-gm-stats-internal";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 export type GmStats = Record<
   string,

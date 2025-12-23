@@ -38,7 +38,7 @@ export const onConnect = (
   notifyConnectionEstablished();
 
   // Re-establish subscriptions after reconnection
-  subscribeToQueries(conn, ["SELECT * FROM gm_stats_by_address"]);
+  subscribeToQueries(conn, ["SELECT * FROM gm_stats_by_address_v2"]);
 };
 
 export const onDisconnect = () => {

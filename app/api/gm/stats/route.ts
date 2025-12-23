@@ -3,11 +3,10 @@ import type { Infer } from "spacetimedb";
 import { isAddress } from "viem";
 import { z } from "zod";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
-
+import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import { getGmRows } from "@/lib/spacetimedb/server-connection";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 const gmStatsQuerySchema = z.object({
   address: z

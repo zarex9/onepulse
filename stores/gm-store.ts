@@ -1,6 +1,8 @@
 import type { Infer } from "spacetimedb";
-import type { DbConnection } from "@/lib/module_bindings";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
+import type {
+  DbConnection,
+  GmStatsByAddressV2Row,
+} from "@/lib/module_bindings";
 import {
   connectionStatus,
   onConnectionChange,
@@ -8,7 +10,7 @@ import {
 import { getDbConnection } from "@/lib/spacetimedb/connection-factory";
 import { onSubscriptionChange } from "@/lib/spacetimedb/subscription-events";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 type ReportGmParams = {
   address: string;
@@ -18,6 +20,8 @@ type ReportGmParams = {
   fid: bigint | undefined;
   displayName: string | undefined;
   username: string | undefined;
+  pfpUrl: string | undefined;
+  primaryWallet: string | undefined;
 };
 
 class GmStatsByAddressStore {
@@ -168,7 +172,7 @@ class GmStatsByAddressStore {
           this.emitChange();
         })
         .subscribe([
-          `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`,
+          `SELECT * FROM gm_stats_by_address_v2 WHERE address = '${address}'`,
         ]);
     } catch (error) {
       console.error(
@@ -190,15 +194,15 @@ class GmStatsByAddressStore {
     if (!this.connection) {
       this.connection = getDbConnection();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.connection.db.gmStatsByAddress.onInsert((_ctx, _row) => {
+      this.connection.db.gmStatsByAddressV2.onInsert((_ctx, _row) => {
         this.updateSnapshot();
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.connection.db.gmStatsByAddress.onDelete((_ctx, _row) => {
+      this.connection.db.gmStatsByAddressV2.onDelete((_ctx, _row) => {
         this.updateSnapshot();
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      this.connection.db.gmStatsByAddress.onUpdate((_ctx, _old, _new) => {
+      this.connection.db.gmStatsByAddressV2.onUpdate((_ctx, _old, _new) => {
         this.updateSnapshot();
       });
     }
@@ -208,7 +212,7 @@ class GmStatsByAddressStore {
   private updateSnapshot() {
     if (this.connection) {
       this.cachedSnapshot = Array.from(
-        this.connection.db.gmStatsByAddress.iter()
+        this.connection.db.gmStatsByAddressV2.iter()
       );
       this.emitChange();
     }

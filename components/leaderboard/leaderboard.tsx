@@ -56,6 +56,9 @@ function getRankBadge(rank: number, className?: string) {
   if (rank === 3) {
     return <Badge className={className}>🥉</Badge>;
   }
+  if (rank > 100) {
+    return <Badge className={className}>100+</Badge>;
+  }
   return <Badge className={className}>{rank}</Badge>;
 }
 
@@ -77,7 +80,7 @@ function LeaderboardSkeleton() {
     <div className="my-12 space-y-1">
       {skeletonIds.map((id) => (
         <div className="flex items-center gap-2 rounded-lg border p-2" key={id}>
-          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-8 w-8" />
           <Skeleton className="h-8 w-8 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-24" />
@@ -164,7 +167,7 @@ export function Leaderboard({ userAddress }: { userAddress?: string }) {
             <div className="items-start">
               {getRankBadge(
                 userEntry.rank,
-                "h-6 w-6 text-sm bg-transparent text-foreground"
+                "h-8 w-8 text-sm bg-transparent text-foreground"
               )}
             </div>
             <Avatar className="h-8 w-8">
@@ -214,7 +217,7 @@ export function Leaderboard({ userAddress }: { userAddress?: string }) {
             <div className="flex flex-col items-start gap-1">
               {getRankBadge(
                 entry.rank,
-                "h-6 w-6 text-sm bg-transparent text-foreground"
+                "h-8 w-8 text-sm bg-transparent text-foreground"
               )}
             </div>
             <Avatar className="ml-1 h-8 w-8">

@@ -31,6 +31,8 @@ import {
 } from "spacetimedb";
 
 // Import and reexport all reducer arg types
+import CreateGmStatsReducer from "./create_gm_stats_reducer";
+export { CreateGmStatsReducer };
 import ReportGmReducer from "./report_gm_reducer";
 export { ReportGmReducer };
 
@@ -39,10 +41,14 @@ export { ReportGmReducer };
 // Import and reexport all table handle types
 import GmStatsByAddressRow from "./gm_stats_by_address_table";
 export { GmStatsByAddressRow };
+import GmStatsByAddressV2Row from "./gm_stats_by_address_v_2_table";
+export { GmStatsByAddressV2Row };
 
 // Import and reexport all types
 import GmStatsByAddress from "./gm_stats_by_address_type";
 export { GmStatsByAddress };
+import GmStatsByAddressV2 from "./gm_stats_by_address_v_2_type";
+export { GmStatsByAddressV2 };
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema(
@@ -70,10 +76,35 @@ const tablesSchema = __schema(
       { name: 'gm_stats_by_address_address_chain_key', constraint: 'unique', columns: ['addressChain'] },
     ],
   }, GmStatsByAddressRow),
+  __table({
+    name: 'gm_stats_by_address_v2',
+    indexes: [
+      { name: 'address_chainid', algorithm: 'btree', columns: [
+        'address',
+        'chainId',
+      ] },
+      { name: 'address_chain', algorithm: 'btree', columns: [
+        'addressChain',
+      ] },
+      { name: 'address', algorithm: 'btree', columns: [
+        'address',
+      ] },
+      { name: 'chain_id', algorithm: 'btree', columns: [
+        'chainId',
+      ] },
+      { name: 'updated_at', algorithm: 'btree', columns: [
+        'updatedAt',
+      ] },
+    ],
+    constraints: [
+      { name: 'gm_stats_by_address_v2_address_chain_key', constraint: 'unique', columns: ['addressChain'] },
+    ],
+  }, GmStatsByAddressV2Row),
 );
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("create_gm_stats", CreateGmStatsReducer),
   __reducerSchema("report_gm", ReportGmReducer),
 );
 

@@ -4,11 +4,12 @@ import { type Address, createPublicClient, http, isAddress } from "viem";
 import { base, celo, optimism } from "viem/chains";
 import { z } from "zod";
 import { dailyGMAbi } from "@/lib/abi/daily-gm";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
+import { fetchFarcasterUser, fetchPrimaryWallet } from "@/lib/farcaster";
+import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection";
 import { getDailyGmAddress } from "@/lib/utils";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 const reportGmRequestSchema = z.object({
   address: z
@@ -80,6 +81,36 @@ async function readOnchainLastGmDay(
   return Number(onchainLastGmDay ?? 0);
 }
 
+async function fetchFarcasterEnrichment(fid: number | undefined): Promise<{
+  primaryWallet: string | undefined;
+  pfpUrl: string | undefined;
+}> {
+  if (!fid || typeof fid !== "number") {
+    return { primaryWallet: undefined, pfpUrl: undefined };
+  }
+
+  try {
+    const [primaryWallet, farcasterUser] = await Promise.all([
+      fetchPrimaryWallet(fid),
+      fetchFarcasterUser(fid),
+    ]);
+    return {
+      primaryWallet: primaryWallet || undefined,
+      pfpUrl: farcasterUser?.pfp.url || undefined,
+    };
+  } catch (error) {
+    // Log error in development for debugging
+    if (process.env.NODE_ENV !== "production") {
+      console.error(
+        "Error fetching Farcaster enrichment:",
+        error instanceof Error ? error.message : error
+      );
+    }
+    // Return empty values and let the request continue
+    return { primaryWallet: undefined, pfpUrl: undefined };
+  }
+}
+
 function formatReportGmResponse(row: GmStatsByAddress) {
   return {
     address: row.address,
@@ -121,6 +152,9 @@ export async function POST(req: NextRequest) {
       contractAddress,
       chainId
     );
+
+    const { primaryWallet, pfpUrl } = await fetchFarcasterEnrichment(fid);
+
     const updated = await callReportGm({
       address,
       chainId,
@@ -129,6 +163,8 @@ export async function POST(req: NextRequest) {
       fid: typeof fid === "number" ? BigInt(fid) : undefined,
       displayName,
       username,
+      primaryWallet,
+      pfpUrl,
     });
     const row = updated ?? (await getGmRows(address, chainId)).at(0) ?? null;
     if (!row) {
@@ -143,9 +179,12 @@ export async function POST(req: NextRequest) {
       error: "internal error",
     };
 
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     if (process.env.NODE_ENV !== "production") {
-      response.message =
-        error instanceof Error ? error.message : "Unknown error";
+      console.error("Error in /api/gm/report:", errorMessage);
+      response.message = errorMessage;
     }
 
     return NextResponse.json(response, { status: 500 });

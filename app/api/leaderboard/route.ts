@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import type { Infer } from "spacetimedb";
-import { fetchFarcasterUser } from "@/lib/farcaster";
-import type { DbConnection } from "@/lib/module_bindings";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
+import type {
+  DbConnection,
+  GmStatsByAddressV2Row,
+} from "@/lib/module_bindings";
 import {
   connectServerDbConnection,
   subscribeOnce,
 } from "@/lib/spacetimedb/server-connection";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 type LeaderboardEntry = {
   address: string;
@@ -16,6 +17,7 @@ type LeaderboardEntry = {
   username: string | null;
   fid: bigint | null;
   pfpUrl: string | null;
+  primaryWallet: string | null;
   allTimeGmCount: number;
   rank: number;
 };
@@ -27,6 +29,19 @@ function assignRanks(entries: LeaderboardEntry[]): void {
       entry.rank = i + 1;
     }
   }
+}
+
+function extractStringField(
+  rows: GmStatsByAddress[],
+  key: string
+): string | null {
+  for (const row of rows) {
+    const rowTyped = row as unknown as Record<string, unknown>;
+    if (typeof rowTyped[key] === "string") {
+      return rowTyped[key] as string;
+    }
+  }
+  return null;
 }
 
 function sumStatsForRow(
@@ -54,12 +69,16 @@ function sumStatsForRow(
     return null;
   }
 
+  const pfpUrl = extractStringField(addrRows, "pfpUrl");
+  const primaryWallet = extractStringField(addrRows, "primaryWallet");
+
   return {
     address: addrRows[0]?.address ?? "",
     displayName,
     username,
     fid,
-    pfpUrl: null,
+    pfpUrl,
+    primaryWallet,
     allTimeGmCount: totalGm,
   };
 }
@@ -94,11 +113,11 @@ function aggregateByAddress(rows: GmStatsByAddress[]): LeaderboardEntry[] {
 async function fetchAllGmStats(
   conn: DbConnection
 ): Promise<GmStatsByAddress[]> {
-  const query = "SELECT * FROM gm_stats_by_address";
+  const query = "SELECT * FROM gm_stats_by_address_v2";
   await subscribeOnce(conn, [query], 60_000);
 
   const rows: GmStatsByAddress[] = [];
-  const gmStatsTable = conn.db.gmStatsByAddress as {
+  const gmStatsTable = conn.db.gmStatsByAddressV2 as {
     iter(): Iterable<GmStatsByAddress>;
   };
   for (const row of gmStatsTable.iter()) {
@@ -108,46 +127,57 @@ async function fetchAllGmStats(
   return rows;
 }
 
-function getEntriesToEnrich(
-  leaderboard: LeaderboardEntry[],
-  userAddress: string | null,
-  limit: number
+function filterToPrimaryWallets(
+  entries: LeaderboardEntry[]
 ): LeaderboardEntry[] {
-  const top = leaderboard.slice(0, limit);
+  // Group by FID to detect and filter out non-primary wallet entries
+  const fidToEntries = new Map<string, LeaderboardEntry[]>();
 
-  if (!userAddress) {
-    return top;
+  for (const entry of entries) {
+    const fid = entry.fid?.toString();
+    if (fid) {
+      const existing = fidToEntries.get(fid) ?? [];
+      existing.push(entry);
+      fidToEntries.set(fid, existing);
+    }
   }
 
-  const userInTop = top.some(
-    (entry) => entry.address.toLowerCase() === userAddress.toLowerCase()
-  );
-  if (userInTop) {
-    return top;
+  // For each FID, keep only the primary wallet entry
+  const filtered: LeaderboardEntry[] = [];
+  for (const sameUserEntries of fidToEntries.values()) {
+    // If user has multiple wallet entries, keep only primary
+    if (sameUserEntries.length > 1) {
+      const primaryEntry = sameUserEntries.find(
+        (e) => e.address.toLowerCase() === e.primaryWallet?.toLowerCase()
+      );
+      if (primaryEntry) {
+        filtered.push(primaryEntry);
+      }
+    } else {
+      const entry = sameUserEntries[0];
+      if (entry) {
+        filtered.push(entry);
+      }
+    }
   }
 
-  const userEntry = leaderboard.find(
-    (entry) => entry.address.toLowerCase() === userAddress.toLowerCase()
-  );
-  return userEntry ? [...top, userEntry] : top;
+  return filtered;
 }
 
-async function enrichWithPfps(
-  entries: LeaderboardEntry[]
-): Promise<LeaderboardEntry[]> {
-  const results = await Promise.all(
-    entries.map(async (entry) => {
-      if (entry.fid) {
-        const fcUser = await fetchFarcasterUser(Number(entry.fid));
-        return {
-          ...entry,
-          pfpUrl: fcUser?.pfp?.url ?? null,
-        };
-      }
-      return entry;
-    })
-  );
-  return results;
+function getUserRank(
+  fullLeaderboard: LeaderboardEntry[],
+  userAddress: string
+): number | null {
+  // Filter to primary wallets and assign ranks
+  const filtered = filterToPrimaryWallets(fullLeaderboard);
+  assignRanks(filtered);
+
+  // Find user's rank in filtered leaderboard
+  const userRank = filtered.find(
+    (entry) => entry.address.toLowerCase() === userAddress.toLowerCase()
+  )?.rank;
+
+  return userRank ?? null;
 }
 
 export async function GET(req: Request) {
@@ -163,24 +193,36 @@ export async function GET(req: Request) {
       const allRows = await fetchAllGmStats(conn);
       const fullLeaderboard = aggregateByAddress(allRows);
 
-      // Get only the entries we need to display
-      const entriesToDisplay = getEntriesToEnrich(
-        fullLeaderboard,
-        userAddress,
-        limit
-      );
+      // Filter to keep only primary wallet entries per user
+      const filtered = filterToPrimaryWallets(fullLeaderboard);
 
-      // Enrich only the entries we'll return
-      const enriched = await enrichWithPfps(entriesToDisplay);
+      // Assign ranks to filtered entries
+      assignRanks(filtered);
 
-      const serializable = enriched.map((entry) => ({
+      // Take top 10 from filtered results
+      const top10 = filtered.slice(0, limit);
+
+      // Get user's rank if they're not in top 10
+      const userRank =
+        userAddress &&
+        !top10.some(
+          (e) => e.address.toLowerCase() === userAddress.toLowerCase()
+        )
+          ? getUserRank(filtered, userAddress)
+          : null;
+
+      // Calculate total count
+      const totalCount = userRank ?? top10.length;
+
+      const serializable = top10.map((entry) => ({
         ...entry,
         fid: entry.fid ? entry.fid.toString() : null,
       }));
 
       return NextResponse.json({
         leaderboard: serializable,
-        total: fullLeaderboard.length,
+        userRank,
+        total: totalCount,
         timestamp: new Date().toISOString(),
       });
     } finally {

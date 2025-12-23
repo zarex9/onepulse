@@ -1,10 +1,9 @@
 import type { Infer } from "spacetimedb";
 import { SUPPORTED_CHAINS } from "@/lib/constants";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
-
+import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import type { GmStats } from "./use-gm-stats";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 export function groupRowsByAddress(
   rows: GmStatsByAddress[]

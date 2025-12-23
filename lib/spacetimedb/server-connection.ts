@@ -1,8 +1,10 @@
 import type { Infer } from "spacetimedb";
-import { DbConnection } from "@/lib/module_bindings";
-import type GmStatsByAddressSchema from "@/lib/module_bindings/gm_stats_by_address_table";
+import {
+  DbConnection,
+  type GmStatsByAddressV2Row,
+} from "@/lib/module_bindings";
 
-type GmStatsByAddress = Infer<typeof GmStatsByAddressSchema>;
+type GmStatsByAddress = Infer<typeof GmStatsByAddressV2Row>;
 
 type SpacetimeDbConfig = {
   uri: string;
@@ -133,10 +135,10 @@ export async function getGmRows(
   const conn = await connectServerDbConnection();
 
   try {
-    const query = `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`;
+    const query = `SELECT * FROM gm_stats_by_address_v2 WHERE address = '${address}'`;
     await subscribeOnce(conn, [query]);
 
-    const all = Array.from(conn.db.gmStatsByAddress.iter());
+    const all = Array.from(conn.db.gmStatsByAddressV2.iter());
     const filtered = all.filter(
       (r) => r.address.toLowerCase() === address.toLowerCase()
     );
@@ -169,6 +171,8 @@ export async function callReportGm(
     fid: bigint | undefined;
     displayName: string | undefined;
     username: string | undefined;
+    primaryWallet: string | undefined;
+    pfpUrl: string | undefined;
   },
   timeoutMs = 10_000
 ): Promise<GmStatsByAddress | null> {
@@ -177,16 +181,36 @@ export async function callReportGm(
   try {
     const { address, chainId } = params;
 
-    const query = `SELECT * FROM gm_stats_by_address WHERE address = '${address}' AND chain_id = ${chainId}`;
+    const query = `SELECT * FROM gm_stats_by_address_v2 WHERE address = '${address}' AND chain_id = ${chainId}`;
     await subscribeOnce(conn, [query]);
 
-    conn.reducers.reportGm(params);
+    console.log("[SpacetimeDB] Calling reportGm reducer with:", {
+      address: params.address,
+      chainId: params.chainId,
+      lastGmDayOnchain: params.lastGmDayOnchain,
+    });
 
-    return await waitForGmUpdate(conn, address, chainId, timeoutMs);
+    conn.reducers.reportGm({
+      address: params.address,
+      chainId: params.chainId,
+      lastGmDayOnchain: params.lastGmDayOnchain,
+      txHash: params.txHash,
+      fid: params.fid,
+      displayName: params.displayName,
+      username: params.username,
+      pfpUrl: params.pfpUrl,
+      primaryWallet: params.primaryWallet,
+    });
+
+    console.log("[SpacetimeDB] Waiting for GM update...");
+    const result = await waitForGmUpdate(conn, address, chainId, timeoutMs);
+    console.log("[SpacetimeDB] GM update result:", result);
+    return result;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(
       `[SpacetimeDB] Failed to report GM for ${params.address}:`,
-      error
+      errorMessage
     );
     return null;
   } finally {
@@ -208,8 +232,8 @@ function waitForGmUpdate(
     let resolved = false;
 
     const cleanup = () => {
-      conn.db.gmStatsByAddress.removeOnInsert(handleInsert);
-      conn.db.gmStatsByAddress.removeOnUpdate(handleUpdate);
+      conn.db.gmStatsByAddressV2.removeOnInsert(handleInsert);
+      conn.db.gmStatsByAddressV2.removeOnUpdate(handleUpdate);
     };
 
     const finish = () => {
@@ -220,7 +244,7 @@ function waitForGmUpdate(
       cleanup();
       clearTimeout(timer);
 
-      const rows = Array.from(conn.db.gmStatsByAddress.iter()).filter(
+      const rows = Array.from(conn.db.gmStatsByAddressV2.iter()).filter(
         (r) =>
           r.address.toLowerCase() === address.toLowerCase() &&
           r.chainId === chainId
@@ -236,8 +260,8 @@ function waitForGmUpdate(
       finish();
     };
 
-    conn.db.gmStatsByAddress.onInsert(handleInsert);
-    conn.db.gmStatsByAddress.onUpdate(handleUpdate);
+    conn.db.gmStatsByAddressV2.onInsert(handleInsert);
+    conn.db.gmStatsByAddressV2.onUpdate(handleUpdate);
 
     const timer = setTimeout(() => {
       finish();

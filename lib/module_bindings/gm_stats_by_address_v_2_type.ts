@@ -10,14 +10,21 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
-export default {
+export default __t.object("GmStatsByAddressV2", {
+  addressChain: __t.string(),
   address: __t.string(),
   chainId: __t.i32(),
-  lastGmDayOnchain: __t.i32(),
-  txHash: __t.option(__t.string()),
+  currentStreak: __t.i32(),
+  highestStreak: __t.i32(),
+  allTimeGmCount: __t.i32(),
+  lastGmDay: __t.i32(),
+  lastTxHash: __t.option(__t.string()),
   fid: __t.option(__t.i64()),
   displayName: __t.option(__t.string()),
   username: __t.option(__t.string()),
   pfpUrl: __t.option(__t.string()),
   primaryWallet: __t.option(__t.string()),
-};
+  updatedAt: __t.timestamp(),
+});
+
+
