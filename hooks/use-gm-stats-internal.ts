@@ -119,18 +119,13 @@ export function useGmStatsFallback(
     [address, checkHasSubscriptionData, lastFetchTime]
   );
 
-  const buildStatsUrl = useCallback(() => {
-    if (!address) {
-      throw new Error("Address is required for stats URL");
-    }
-    const url = new URL("/api/gm/stats", window.location.origin);
-    url.searchParams.set("address", address);
-    return url.toString();
-  }, [address]);
-
   const fetchFallbackStats = useCallback(
     async (key: string) => {
       try {
+        if (!address) {
+          throw new Error("Address is required for stats fetch");
+        }
+
         const latestRows = gmStatsByAddressStore
           .getSnapshot()
           .filter((r) => r.address.toLowerCase() === normalizedAddress);
@@ -139,7 +134,10 @@ export function useGmStatsFallback(
           return;
         }
 
-        const res = await fetch(buildStatsUrl(), {
+        const url = new URL("/api/gm/stats", window.location.origin);
+        url.searchParams.set("address", address);
+
+        const res = await fetch(url.toString(), {
           signal: abortControllerRef.current?.signal,
         });
 
@@ -158,7 +156,7 @@ export function useGmStatsFallback(
         // Ignore other errors for fallback
       }
     },
-    [normalizedAddress, shouldSkipFetch, buildStatsUrl]
+    [address, normalizedAddress, shouldSkipFetch]
   );
 
   useEffect(() => {
