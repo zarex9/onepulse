@@ -104,6 +104,7 @@ export function useRewardClaimTransactionLogic({
     isDailyLimitReached,
     isVaultDepleted,
     hasAlreadyClaimed,
+    hasFid: Boolean(fid),
   });
 
   // If already claimed, disable regardless of network
