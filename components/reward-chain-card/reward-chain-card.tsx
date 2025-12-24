@@ -34,7 +34,6 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
   const {
     isCorrectChain,
     claimState,
-    isCheckingEligibility,
     dailyClaimCount,
     chainBtnClasses,
     handleSwitchChain,
@@ -135,7 +134,7 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
         ) : (
           <RewardClaimTransaction
             className={chainBtnClasses}
-            disabled={!(isEligible && isCheckingEligibility)}
+            disabled={!isEligible}
             fid={fid}
             handleSwitchChain={handleSwitchChain}
             isCorrectChain={isCorrectChain}
