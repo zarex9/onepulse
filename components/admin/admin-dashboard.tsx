@@ -171,7 +171,7 @@ export function AdminDashboard() {
             value={String(chainId)}
           >
             {isValidAddress(currentContractAddress) &&
-            isValidAddress(currentTokenAddress) ? (
+            isValidAddress(rewardToken || currentTokenAddress) ? (
               <>
                 <ContractOverview
                   chainName={getChainName(chainId)}
@@ -187,7 +187,7 @@ export function AdminDashboard() {
                   chainId={selectedChainId}
                   contractAddress={currentContractAddress}
                   onRefetchAction={refetch}
-                  tokenAddress={currentTokenAddress}
+                  tokenAddress={(rewardToken || currentTokenAddress) as Address}
                   tokenDecimals={tokenDecimals}
                   tokenSymbol={tokenSymbol}
                   vaultStatus={vaultStatus}

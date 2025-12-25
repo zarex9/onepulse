@@ -86,14 +86,14 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
         </ItemMedia>
       </ItemContent>
       <ItemActions>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-end gap-1">
           <span className="font-medium text-lg tracking-tight">
             {displayRewardAmount}
           </span>
           {tokenAddress && (
             <Button
-              aria-label="Copy CA"
-              className="mr-2 ml-1 h-4 w-4 text-accent-foreground text-lg underline underline-offset-2 hover:text-primary"
+              aria-label={`Copy ${tokenSymbol} contract address`}
+              className="h-auto p-0 font-medium text-muted-foreground text-xs underline underline-offset-1 hover:text-primary"
               onClick={() => copyToClipboard(tokenAddress)}
               variant="link"
             >
