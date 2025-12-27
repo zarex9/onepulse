@@ -39,8 +39,8 @@ export function useMiniAppSharing() {
         embeds: [window.location.origin],
       });
 
-      // If result is undefined, user didn't cast (saved to draft or closed)
-      const success = result !== undefined;
+      // Check if user actually created a cast (cast property is not null)
+      const success = result?.cast !== null;
       if (success) {
         markAsShared();
       }

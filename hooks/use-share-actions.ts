@@ -24,8 +24,8 @@ export function useShareActions(): ShareActions {
         text: shareText,
         embeds: [shareUrl],
       });
-      // If result is undefined, user didn't cast (saved to draft or closed)
-      return result !== undefined;
+      // Check if user actually created a cast (cast property is not null)
+      return result?.cast !== null;
     } catch (error) {
       // Cast composition failure handled by copying to clipboard
       handleError(
