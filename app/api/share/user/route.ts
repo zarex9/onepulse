@@ -13,7 +13,7 @@ const shareUserRequestSchema = z.object({
   data: z.object({
     username: z.string().min(1).max(MAX_USERNAME_LENGTH),
     displayName: z.string().min(1).max(MAX_DISPLAY_NAME_LENGTH),
-    pfp: z.string().url().max(MAX_PFP_URL_LENGTH).optional(),
+    pfp: z.url().max(MAX_PFP_URL_LENGTH).optional(),
   }),
 });
 
