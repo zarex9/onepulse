@@ -54,5 +54,6 @@ export function useMiniAppSharing() {
   return {
     hasSharedToday,
     shareMiniApp,
+    markAsShared,
   };
 }

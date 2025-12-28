@@ -56,11 +56,11 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
     address,
   });
 
-  const { hasSharedToday } = useMiniAppSharing();
+  const { hasSharedToday, markAsShared } = useMiniAppSharing();
 
   // Now that claimState is available, get stats and sharing logic
   const { stats } = useGmStats(address);
-  const claimedToday = Boolean(claimState?.hasClaimedToday);
+  const claimedToday = Boolean(hasAlreadyClaimed);
   const completedAllChains = address
     ? Object.values(stats).every((s) => s.currentStreak > 0)
     : false;
@@ -100,10 +100,11 @@ export const RewardChainCard = memo((props: RewardChainCardProps) => {
     const success = await shareToCast(shareText, shareUrl);
     if (success) {
       toast.success("Mini app shared successfully!");
+      markAsShared();
     } else {
       toast.error("Failed to share mini app. Please try again.");
     }
-  }, [shareText, shareUrl, shareToCast]);
+  }, [shareText, shareUrl, shareToCast, markAsShared]);
 
   return (
     <Item variant="outline">
