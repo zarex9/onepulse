@@ -4,14 +4,12 @@ import { useChainId, useSwitchChain } from "wagmi";
 import {
   BASE_CHAIN_ID,
   CELO_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-} from "@/lib/constants";
-import {
   DAILY_REWARDS_V2_ADDRESSES,
+  OPTIMISM_CHAIN_ID,
   REWARD_TOKEN_DECIMALS,
   REWARD_TOKEN_SYMBOLS,
   REWARD_TOKENS,
-} from "@/lib/constants/daily-rewards-v2";
+} from "@/lib/constants";
 
 export function useDailyRewardsV2Config() {
   const chainId = useChainId();

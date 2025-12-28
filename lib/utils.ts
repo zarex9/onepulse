@@ -14,13 +14,11 @@ import {
   CELO_CHAIN_ID,
   DAILY_GM_ADDRESS,
   DAILY_GM_ADDRESSES,
-  DAILY_REWARDS_ADDRESS,
-  DAILY_REWARDS_ADDRESSES,
+  DAILY_REWARDS_V2_ADDRESSES,
   MILLISECONDS_PER_DAY,
   OPTIMISM_CHAIN_ID,
   SECONDS_PER_DAY,
 } from "./constants";
-import { DAILY_REWARDS_V2_ADDRESSES } from "./constants/daily-rewards-v2";
 
 const digitRegex = /^\d+$/;
 const EIP155_REGEX = /^eip155:(\d+)$/;
@@ -43,12 +41,6 @@ export function getDailyGmAddress(chainId?: number): Address | "" {
 /**
  * Get the Daily Rewards contract address for a given chain ID
  */
-export function getDailyRewardsAddress(chainId?: number): Address | "" {
-  if (!chainId) {
-    return DAILY_REWARDS_ADDRESS as Address | "";
-  }
-  return DAILY_REWARDS_ADDRESSES[chainId] || ("" as const);
-}
 
 export function getDailyRewardsV2Address(chainId?: number): Address | "" {
   if (!chainId) {

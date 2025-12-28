@@ -14,12 +14,10 @@ import {
   BASE_CHAIN_ID,
   CELO_CHAIN_ID,
   OPTIMISM_CHAIN_ID,
-} from "@/lib/constants";
-import {
   REWARD_TOKEN_DECIMALS,
   REWARD_TOKEN_SYMBOLS,
   REWARD_TOKENS,
-} from "@/lib/constants/daily-rewards-v2";
+} from "@/lib/constants";
 import {
   getChainBtnClasses,
   getDailyRewardsV2Address,
