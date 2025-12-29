@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
     ],
   },
   poweredByHeader: false,
+  reactCompiler: true,
   reactStrictMode: true,
   async headers() {
     return [
