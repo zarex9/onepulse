@@ -3,7 +3,7 @@ import { useAppKitNetwork } from "@reown/appkit/react";
 import { useMemo, useState } from "react";
 import type { Address } from "viem";
 import { getButtonState } from "@/components/gm-chain-card/get-button-state";
-import { extractClaimState } from "@/components/reward-card/utils";
+import { extractClaimState } from "@/components/reward-chain-card/utils";
 import { useDailyRewardsV2Read } from "@/hooks/use-daily-rewards-v2-read";
 import { useErc20Metadata } from "@/hooks/use-erc20-metadata";
 import {
