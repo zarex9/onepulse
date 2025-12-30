@@ -1,11 +1,7 @@
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { useCallback } from "react";
-import {
-  type MiniAppContext,
-  type UserContext,
-  useMiniAppContext,
-} from "@/components/providers/miniapp-provider";
+import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import { useContractOwner } from "@/hooks/use-contract-owner";
 import type { GmStats } from "@/hooks/use-gm-stats";
 import {
@@ -17,6 +13,7 @@ import {
 } from "@/lib/error-handling";
 import { shouldShowShareButton } from "@/lib/share";
 import { canSaveMiniApp } from "@/lib/utils";
+import type { MiniAppContext, UserContext } from "@/types/miniapp";
 
 type UseHeaderLogicProps = {
   isMiniAppReady: boolean;

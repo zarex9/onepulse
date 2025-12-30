@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { MiniAppUser } from "@/components/providers/miniapp-provider";
 import { gmStatsByAddressStore } from "@/stores/gm-store";
+import type { MiniAppUser } from "@/types/miniapp";
 
 export async function reportToApi({
   address,

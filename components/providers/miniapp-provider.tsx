@@ -4,8 +4,6 @@ import { createContext, type ReactNode, useContext } from "react";
 import type { MiniAppContext } from "@/types/miniapp";
 import { useMiniAppProviderLogic } from "./use-miniapp-provider-logic";
 
-export type * from "@/types/miniapp";
-
 type MiniAppProviderContextType = {
   context: MiniAppContext | null;
   isInMiniApp: boolean;
