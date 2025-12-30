@@ -6,7 +6,7 @@ import {
   optimism,
 } from "@reown/appkit/networks";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { cookieStorage, createStorage, http, injected } from "wagmi";
+import { http, injected } from "wagmi";
 import { baseAccount } from "wagmi/connectors";
 import { minikitConfig } from "@/minikit.config";
 
@@ -37,10 +37,6 @@ export const wagmiAdapter = new WagmiAdapter({
     }),
     injected(),
   ],
-  storage: createStorage({
-    storage: cookieStorage,
-  }),
-  ssr: true,
   transports: {
     [base.id]: http(),
     [celo.id]: http(),
