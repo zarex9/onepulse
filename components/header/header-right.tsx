@@ -9,11 +9,9 @@ import {
   RefreshCcw,
   Settings,
   Share2,
-  SunMoon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import {
   BASE_APP_PROFILE_URL,
   FARCASTER_PROFILE_URL,
@@ -30,12 +28,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Toggle } from "@/components/ui/toggle";
@@ -65,17 +58,11 @@ export const HeaderRight = memo(
     onShareClick,
   }: HeaderRightProps) => {
     const router = useRouter();
-    const { resolvedTheme, setTheme, theme } = useTheme();
     const [aboutOpen, setAboutOpen] = useState(false);
     const [howItWorksOpen, setHowItWorksOpen] = useState(false);
     const [isMenuBusy, setIsMenuBusy] = useState(false);
     const isMenuBusyRef = useRef(false);
     const { handleOpenUrl, handleViewProfile } = useAboutLogic();
-
-    const selectedTheme = useMemo(
-      () => resolvedTheme ?? theme ?? "system",
-      [resolvedTheme, theme]
-    );
 
     const handleReload = useCallback(() => {
       window.location.reload();
@@ -227,28 +214,6 @@ export const HeaderRight = memo(
               </>
             )}
 
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <SunMoon className="size-4" />
-                Theme
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup
-                  onValueChange={setTheme}
-                  value={selectedTheme}
-                >
-                  <DropdownMenuRadioItem value="light">
-                    Light
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="dark">
-                    Dark
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="system">
-                    System
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setAboutOpen(true)}>
               <Info className="size-4" />
