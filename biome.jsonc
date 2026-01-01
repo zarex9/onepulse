@@ -3,5 +3,17 @@
   "extends": ["ultracite/core", "ultracite/react", "ultracite/next"],
   "files": {
     "includes": ["**/*", "!components/ui", "!lib/module_bindings", "!styles"]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useConsistentTypeDefinitions": {
+          "options": {
+            "style": "type"
+          },
+          "level": "error"
+        }
+      }
+    }
   }
 }
