@@ -1,11 +1,10 @@
-import type { Address } from "viem/accounts";
 import { useReadDailyGmLastGmDay } from "@/helpers/contracts";
 import type { ChainId } from "@/lib/constants";
 import { getCurrentTimestampSeconds, timestampToDayNumber } from "@/lib/utils";
 
 type ComputeGMStateParams = {
   address?: `0x${string}`;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isConnected: boolean;
   lastGmDayData: unknown;
   isPendingLastGm: boolean;
@@ -50,7 +49,7 @@ const computeGMState = (params: ComputeGMStateParams): GMState => {
 
 export const useGMState = (
   chainId: ChainId,
-  contractAddress: Address,
+  contractAddress: `0x${string}`,
   isConnected: boolean,
   address?: `0x${string}`
 ) => {

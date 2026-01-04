@@ -1,6 +1,5 @@
 "use client";
 
-import type { Address } from "viem/accounts";
 import { ProcessingMirror } from "@/components/gm-chain-card/processing-mirror";
 import { SuccessReporter } from "@/components/gm-chain-card/success-reporter";
 import { Button } from "@/components/ui/button";
@@ -14,14 +13,12 @@ import { useGMTransactionLogic } from "./use-gm-transaction-logic";
 
 type GMTransactionProps = {
   chainId: ChainId;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isSponsored: boolean;
   isContractReady: boolean;
   processing: boolean;
   chainBtnClasses: string;
   buttonLabel: string;
-  transactionType: "gm" | "gmTo";
-  recipient?: string;
   address: `0x${string}`;
   refetchLastGmDayAction?: () => Promise<unknown>;
   onCloseAction: () => void;
@@ -36,8 +33,6 @@ export function GMTransaction({
   processing,
   chainBtnClasses,
   buttonLabel,
-  transactionType,
-  recipient,
   address,
   refetchLastGmDayAction,
   onCloseAction,
@@ -45,8 +40,6 @@ export function GMTransaction({
 }: GMTransactionProps) {
   const { calls, hasCalls } = useGMTransactionLogic({
     contractAddress,
-    transactionType,
-    recipient,
   });
 
   if (!hasCalls) {
@@ -69,7 +62,7 @@ export function GMTransaction({
               {status === "pending" ? (
                 <>
                   <Spinner />
-                  {transactionType === "gm" ? "Processing..." : "Sending..."}
+                  Processing...
                 </>
               ) : (
                 buttonLabel

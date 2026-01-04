@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import type { Address } from "viem/accounts";
 import { useChainId } from "wagmi";
 import type { ChainId } from "@/lib/constants";
 import { getChainBtnClasses, getChainIconName } from "@/lib/utils";
@@ -7,7 +6,7 @@ import { useGMState } from "./use-gm-state";
 
 type UseGMChainCardLogicProps = {
   chainId: ChainId;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: `0x${string}`;
   onStatusChange?: (status: { chainId: ChainId; hasGmToday: boolean }) => void;

@@ -1,6 +1,5 @@
 "use client";
 
-import type { Address } from "viem/accounts";
 import { Button } from "@/components/ui/button";
 import { CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ChainId } from "@/lib/constants";
@@ -8,7 +7,7 @@ import { GMTransaction } from "./gm-transaction";
 
 type MainModeProps = {
   chainId: ChainId;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isSponsored: boolean;
   isContractReady: boolean;
   processing: boolean;
@@ -17,7 +16,6 @@ type MainModeProps = {
   refetchLastGmDayAction?: () => Promise<unknown>;
   onCloseAction: () => void;
   setProcessingAction: (value: boolean) => void;
-  onSwitchToGmToAction: () => void;
 };
 
 export function MainMode({
@@ -31,7 +29,6 @@ export function MainMode({
   refetchLastGmDayAction,
   onCloseAction,
   setProcessingAction,
-  onSwitchToGmToAction,
 }: MainModeProps) {
   return (
     <>
@@ -56,16 +53,7 @@ export function MainMode({
           processing={processing}
           refetchLastGmDayAction={refetchLastGmDayAction}
           setProcessingAction={setProcessingAction}
-          transactionType="gm"
         />{" "}
-        <Button
-          aria-disabled={!isContractReady || processing}
-          className={`w-full ${chainBtnClasses}`}
-          disabled={!isContractReady || processing}
-          onClick={onSwitchToGmToAction}
-        >
-          GM to a Fren
-        </Button>
         <Button
           aria-disabled={processing}
           className="w-full"

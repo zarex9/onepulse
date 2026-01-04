@@ -1,6 +1,5 @@
 "use client";
 
-import type { Address } from "viem/accounts";
 import { Icons } from "@/components/icons";
 import {
   Item,
@@ -18,7 +17,7 @@ import { useGMChainCardLogic } from "./use-gm-chain-card-logic";
 export type GMChainCardProps = {
   chainId: ChainId;
   name: string;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: `0x${string}`;
   onStatusChangeAction?: (status: {

@@ -1,16 +1,14 @@
 "use client";
 
-import type { Address } from "viem/accounts";
 import { Card } from "@/components/ui/card";
 import type { ChainId } from "@/lib/constants";
-import { GmToMode } from "./gm-to-mode";
 import { MainMode } from "./main-mode";
 import { useGMModalLogic } from "./use-gm-modal-logic";
 
 type GMModalProps = {
   isOpen: boolean;
   chainId: ChainId;
-  contractAddress: Address;
+  contractAddress: `0x${string}`;
   isSponsored: boolean;
   isContractReady: boolean;
   processing: boolean;
@@ -34,15 +32,7 @@ export function GMModal({
   onCloseAction,
   setProcessingAction,
 }: GMModalProps) {
-  const {
-    mode,
-    setMode,
-    recipient,
-    setRecipient,
-    handleClose,
-    handleBackdropClick,
-    dialogRef,
-  } = useGMModalLogic({
+  const { handleClose, handleBackdropClick, dialogRef } = useGMModalLogic({
     isOpen,
     processing,
     onClose: onCloseAction,
@@ -73,40 +63,18 @@ export function GMModal({
         type="button"
       />
       <Card className="relative z-10 w-[95%] max-w-sm" tabIndex={-1}>
-        {mode === "main" ? (
-          <MainMode
-            address={address}
-            chainBtnClasses={chainBtnClasses}
-            chainId={chainId}
-            contractAddress={contractAddress}
-            isContractReady={isContractReady}
-            isSponsored={isSponsored}
-            onCloseAction={handleClose}
-            onSwitchToGmToAction={() => setMode("gmTo")}
-            processing={processing}
-            refetchLastGmDayAction={refetchLastGmDayAction}
-            setProcessingAction={setProcessingAction}
-          />
-        ) : (
-          <GmToMode
-            address={address}
-            chainBtnClasses={chainBtnClasses}
-            chainId={chainId}
-            contractAddress={contractAddress}
-            isContractReady={isContractReady}
-            isSponsored={isSponsored}
-            onBack={() => {
-              setMode("main");
-              setRecipient("");
-            }}
-            onClose={handleClose}
-            processing={processing}
-            recipient={recipient}
-            refetchLastGmDay={refetchLastGmDayAction}
-            setProcessing={setProcessingAction}
-            setRecipient={setRecipient}
-          />
-        )}
+        <MainMode
+          address={address}
+          chainBtnClasses={chainBtnClasses}
+          chainId={chainId}
+          contractAddress={contractAddress}
+          isContractReady={isContractReady}
+          isSponsored={isSponsored}
+          onCloseAction={handleClose}
+          processing={processing}
+          refetchLastGmDayAction={refetchLastGmDayAction}
+          setProcessingAction={setProcessingAction}
+        />
       </Card>
     </div>
   );

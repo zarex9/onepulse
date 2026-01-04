@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useFocusTrap } from "./use-focus-trap";
 import { useModalScrollPrevention } from "./use-modal-scroll-prevention";
 
@@ -15,12 +14,7 @@ export function useGMModalLogic({
   onClose,
   setProcessing,
 }: UseGMModalLogicProps) {
-  const [mode, setMode] = useState<"main" | "gmTo">("main");
-  const [recipient, setRecipient] = useState("");
-
   const handleClose = () => {
-    setMode("main");
-    setRecipient("");
     setProcessing(false);
     onClose();
   };
@@ -40,10 +34,6 @@ export function useGMModalLogic({
   useModalScrollPrevention(isOpen);
 
   return {
-    mode,
-    setMode,
-    recipient,
-    setRecipient,
     handleClose,
     handleBackdropClick,
     dialogRef,

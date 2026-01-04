@@ -1,4 +1,4 @@
-import type { Address, ContractFunctionParameters } from "viem";
+import type { ContractFunctionParameters } from "viem";
 import { dailyRewardsV2Abi } from "@/helpers/contracts";
 import { signIn } from "@/lib/client-auth";
 import { handleError } from "@/lib/error-handling";
@@ -98,7 +98,7 @@ export function useClaimContracts({
 
     return [
       {
-        address: contractAddress as Address,
+        address: contractAddress as `0x${string}`,
         abi: dailyRewardsV2Abi,
         functionName: "claim",
         args: [

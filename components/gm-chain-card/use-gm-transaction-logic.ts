@@ -1,21 +1,14 @@
-import type { Address } from "viem/accounts";
 import { useGMCalls } from "./use-gm-calls";
 
 type UseGMTransactionLogicProps = {
-  contractAddress: Address;
-  transactionType: "gm" | "gmTo";
-  recipient?: string;
+  contractAddress: `0x${string}`;
 };
 
 export function useGMTransactionLogic({
   contractAddress,
-  transactionType,
-  recipient,
 }: UseGMTransactionLogicProps) {
   const calls = useGMCalls({
     contractAddress,
-    transactionType,
-    recipient,
   });
 
   const hasCalls = calls.length > 0;
