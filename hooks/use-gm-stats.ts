@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import type { Infer } from "spacetimedb";
 import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import { normalizeAddress } from "@/lib/utils";
@@ -36,18 +35,15 @@ export type GmStatsResult = {
 export function useGmStats(address?: string | null): GmStatsResult {
   const normalizedAddress = normalizeAddress(address);
   const snapshot = useGmStatsSubscription(address);
-  const rowsByAddress = useMemo(() => groupRowsByAddress(snapshot), [snapshot]);
-  const rowsForAddress = useMemo(() => {
+  const rowsByAddress = groupRowsByAddress(snapshot);
+  const rowsForAddress = (() => {
     if (!normalizedAddress) {
       return EMPTY_ROWS;
     }
     return rowsByAddress.get(normalizedAddress) ?? EMPTY_ROWS;
-  }, [normalizedAddress, rowsByAddress]);
+  })();
   const fallbackStats = useGmStatsFallback(rowsForAddress, address);
-  const subDerived = useMemo(
-    () => deriveStatsForAddress(rowsForAddress, normalizedAddress),
-    [rowsForAddress, normalizedAddress]
-  );
+  const subDerived = deriveStatsForAddress(rowsForAddress, normalizedAddress);
   const currentKey = `${address ?? ""}:all`;
   const fallbackForKey =
     fallbackStats && fallbackStats.key === currentKey
@@ -58,5 +54,5 @@ export function useGmStats(address?: string | null): GmStatsResult {
     gmStatsByAddressStore.isSubscribedForAddress(address) ||
     Boolean(fallbackForKey);
 
-  return useMemo(() => ({ stats, isReady }), [stats, isReady]);
+  return { stats, isReady };
 }
