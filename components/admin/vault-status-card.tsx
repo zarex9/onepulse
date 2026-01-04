@@ -3,8 +3,8 @@
 import { ArrowDownCircle, ArrowUpCircle, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { type Address, formatUnits, parseUnits } from "viem";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import type { Address } from "viem/accounts";
+import { formatUnits, parseUnits } from "viem/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,8 +15,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
-import { ERC20_ABI } from "@/lib/abi/erc20";
+import {
+  useWriteDailyRewardsV2Deposit,
+  useWriteDailyRewardsV2EmergencyWithdraw,
+  useWriteErc20Approve,
+} from "@/helpers/contracts";
+import type { ChainId } from "@/lib/constants";
 
 type VaultStatus = {
   currentBalance: bigint;
@@ -27,7 +31,7 @@ type VaultStatus = {
 type VaultStatusCardProps = {
   vaultStatus?: VaultStatus;
   contractAddress: Address;
-  chainId: number;
+  chainId: ChainId;
   tokenAddress: Address;
   tokenSymbol: string;
   tokenDecimals: number;
@@ -50,80 +54,59 @@ export function VaultStatusCard({
     bigint | null
   >(null);
 
-  const {
-    writeContract: approve,
-    data: approvalHash,
-    isPending: isApprovePending,
-  } = useWriteContract();
+  const approve = useWriteErc20Approve();
 
-  const {
-    writeContract: deposit,
-    data: depositHash,
-    isPending: isDepositPending,
-  } = useWriteContract();
+  const deposit = useWriteDailyRewardsV2Deposit();
 
-  const {
-    writeContract: withdraw,
-    data: withdrawHash,
-    isPending: isWithdrawPending,
-  } = useWriteContract();
-
-  const { isLoading: isApprovalConfirming } = useWaitForTransactionReceipt({
-    hash: approvalHash,
-  });
-
-  const { isLoading: isDepositConfirming } = useWaitForTransactionReceipt({
-    hash: depositHash,
-  });
-
-  const { isLoading: isWithdrawConfirming } = useWaitForTransactionReceipt({
-    hash: withdrawHash,
-  });
+  const emergencyWithdraw = useWriteDailyRewardsV2EmergencyWithdraw();
 
   useEffect(() => {
-    if (isApprovalConfirming === false && approvalHash && !isApprovePending) {
+    if (approve.data && !approve.isPending) {
       if (!pendingDepositAmount) {
         return;
       }
 
-      toast.success("Approval confirmed! Now depositing...");
-      deposit(
-        {
-          address: contractAddress,
-          abi: dailyRewardsV2Abi,
-          functionName: "deposit",
-          args: [pendingDepositAmount],
-          chainId,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Deposit transaction submitted");
-            setDepositAmount("");
-            setApprovalStep(false);
-            setPendingDepositAmount(null);
-            onRefetchAction();
-          },
-          onError: (error) => {
-            toast.error(error.message || "Deposit failed");
-            setApprovalStep(false);
-            setPendingDepositAmount(null);
-          },
-        }
-      );
+      toast.success("Approval confirmed");
+      deposit.mutate({
+        args: [pendingDepositAmount],
+        chainId,
+      });
+    }
+  }, [approve.data, approve.isPending, pendingDepositAmount, deposit, chainId]);
+
+  useEffect(() => {
+    if (deposit.data && !deposit.isPending) {
+      toast.success("Deposit success");
+      setDepositAmount("");
+      setApprovalStep(false);
+      setPendingDepositAmount(null);
+      onRefetchAction();
+    }
+    if (deposit.error && !deposit.isPending) {
+      toast.error(deposit.error.message || "Deposit failed");
+      setApprovalStep(false);
+      setPendingDepositAmount(null);
+    }
+  }, [deposit.data, deposit.error, deposit.isPending, onRefetchAction]);
+
+  useEffect(() => {
+    if (emergencyWithdraw.data && !emergencyWithdraw.isPending) {
+      toast.success("Withdraw success");
+      setWithdrawAmount("");
+      onRefetchAction();
+    }
+    if (emergencyWithdraw.error && !emergencyWithdraw.isPending) {
+      toast.error(emergencyWithdraw.error.message || "Withdraw failed");
     }
   }, [
-    isApprovalConfirming,
-    approvalHash,
-    isApprovePending,
-    pendingDepositAmount,
-    deposit,
-    contractAddress,
-    chainId,
+    emergencyWithdraw.data,
+    emergencyWithdraw.error,
+    emergencyWithdraw.isPending,
     onRefetchAction,
   ]);
 
-  const isDepositing = isDepositPending || isDepositConfirming;
-  const isWithdrawing = isWithdrawPending || isWithdrawConfirming;
+  const isDepositing = deposit.isPending;
+  const isWithdrawing = emergencyWithdraw.isPending;
 
   const getDepositButtonText = () => {
     if (!isDepositing) {
@@ -142,11 +125,9 @@ export function VaultStatusCard({
     setPendingDepositAmount(parsed);
     setApprovalStep(true);
 
-    approve(
+    approve.mutate(
       {
         address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: "approve",
         args: [contractAddress, parsed],
         chainId,
       },
@@ -170,25 +151,10 @@ export function VaultStatusCard({
     }
 
     const parsed = parseUnits(withdrawAmount, tokenDecimals);
-    withdraw(
-      {
-        address: contractAddress,
-        abi: dailyRewardsV2Abi,
-        functionName: "emergencyWithdraw",
-        args: [parsed],
-        chainId,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Withdraw transaction submitted");
-          setWithdrawAmount("");
-          onRefetchAction();
-        },
-        onError: (error) => {
-          toast.error(error.message || "Withdraw failed");
-        },
-      }
-    );
+    emergencyWithdraw.mutate({
+      args: [parsed],
+      chainId,
+    });
   };
 
   const formatToken = (value?: bigint) => {

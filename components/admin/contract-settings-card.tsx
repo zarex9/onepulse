@@ -3,8 +3,8 @@
 import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { type Address, formatUnits, isAddress, parseUnits } from "viem";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import type { Address } from "viem/accounts";
+import { formatUnits, isAddress, parseUnits } from "viem/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
+import {
+  useWriteDailyRewardsV2SetBackendSigner,
+  useWriteDailyRewardsV2SetClaimRewardAmount,
+  useWriteDailyRewardsV2SetDailyClaimLimit,
+  useWriteDailyRewardsV2SetDailyGmContract,
+  useWriteDailyRewardsV2SetMinVaultBalance,
+  useWriteDailyRewardsV2SetRewardToken,
+} from "@/helpers/contracts";
+import type { ChainId } from "@/lib/constants";
 
 type SettingFieldProps = {
   label: string;
@@ -71,9 +79,73 @@ function SettingField({
   );
 }
 
+const validateMinVaultBalance = (value: string): string | undefined => {
+  if (!value) {
+    return "Amount is required";
+  }
+  try {
+    const num = Number.parseFloat(value);
+    if (Number.isNaN(num) || num <= 0) {
+      return "Amount must be greater than 0";
+    }
+    if (num > 1_000_000) {
+      return "Amount seems too large";
+    }
+    return;
+  } catch {
+    return "Invalid amount format";
+  }
+};
+
+const validateClaimRewardAmount = (value: string): string | undefined => {
+  if (!value) {
+    return "Amount is required";
+  }
+  try {
+    const num = Number.parseFloat(value);
+    if (Number.isNaN(num) || num <= 0) {
+      return "Amount must be greater than 0";
+    }
+    if (num > 1000) {
+      return "Amount seems too large";
+    }
+    return;
+  } catch {
+    return "Invalid amount format";
+  }
+};
+
+const validateDailyGMContract = (value: string): string | undefined => {
+  if (!value) {
+    return "Contract address is required";
+  }
+  return isAddress(value as Address) ? undefined : "Invalid Ethereum address";
+};
+
+const validateRewardToken = (value: string): string | undefined => {
+  if (!value) {
+    return "Token address is required";
+  }
+  return isAddress(value as Address) ? undefined : "Invalid Ethereum address";
+};
+
+const validateDailyClaimLimit = (value: string): string | undefined => {
+  if (!value) {
+    return "User limit is required";
+  }
+  try {
+    const num = Number.parseInt(value, 10);
+    if (Number.isNaN(num) || num <= 0) {
+      return "User limit must be greater than 0";
+    }
+    return;
+  } catch {
+    return "Invalid number format";
+  }
+};
+
 type ContractSettingsCardProps = {
-  contractAddress: Address;
-  chainId: number;
+  chainId: ChainId;
   tokenSymbol: string;
   tokenDecimals: number;
   minVaultBalance: bigint | undefined;
@@ -86,7 +158,6 @@ type ContractSettingsCardProps = {
 };
 
 export function ContractSettingsCard({
-  contractAddress,
   chainId,
   tokenSymbol,
   tokenDecimals,
@@ -109,11 +180,12 @@ export function ContractSettingsCard({
     Record<string, string>
   >({});
 
-  const { writeContract, isPending, data: hash } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const setMinVaultBalance = useWriteDailyRewardsV2SetMinVaultBalance();
+  const setClaimRewardAmount = useWriteDailyRewardsV2SetClaimRewardAmount();
+  const setDailyGMContract = useWriteDailyRewardsV2SetDailyGmContract();
+  const setBackendSigner = useWriteDailyRewardsV2SetBackendSigner();
+  const setRewardToken = useWriteDailyRewardsV2SetRewardToken();
+  const setDailyClaimLimit = useWriteDailyRewardsV2SetDailyClaimLimit();
 
   useEffect(() => {
     if (minVaultBalance) {
@@ -125,7 +197,14 @@ export function ContractSettingsCard({
   }, [minVaultBalance, claimRewardAmount, tokenDecimals]);
 
   useEffect(() => {
-    if (isSuccess) {
+    if (
+      setMinVaultBalance.isSuccess ||
+      setClaimRewardAmount.isSuccess ||
+      setDailyGMContract.isSuccess ||
+      setBackendSigner.isSuccess ||
+      setRewardToken.isSuccess ||
+      setDailyClaimLimit.isSuccess
+    ) {
       toast.success("Transaction confirmed!");
       onRefetchAction();
       setNewMinVaultBalance("");
@@ -137,72 +216,15 @@ export function ContractSettingsCard({
       setPendingAction(null);
       setValidationErrors({});
     }
-  }, [isSuccess, onRefetchAction]);
-
-  const validateMinVaultBalance = (value: string): string | undefined => {
-    if (!value) {
-      return "Amount is required";
-    }
-    try {
-      const num = Number.parseFloat(value);
-      if (Number.isNaN(num) || num <= 0) {
-        return "Amount must be greater than 0";
-      }
-      if (num > 1_000_000) {
-        return "Amount seems too large";
-      }
-      return;
-    } catch {
-      return "Invalid amount format";
-    }
-  };
-
-  const validateClaimRewardAmount = (value: string): string | undefined => {
-    if (!value) {
-      return "Amount is required";
-    }
-    try {
-      const num = Number.parseFloat(value);
-      if (Number.isNaN(num) || num <= 0) {
-        return "Amount must be greater than 0";
-      }
-      if (num > 1000) {
-        return "Amount seems too large";
-      }
-      return;
-    } catch {
-      return "Invalid amount format";
-    }
-  };
-
-  const validateDailyGMContract = (value: string): string | undefined => {
-    if (!value) {
-      return "Contract address is required";
-    }
-    return isAddress(value as Address) ? undefined : "Invalid Ethereum address";
-  };
-
-  const validateRewardToken = (value: string): string | undefined => {
-    if (!value) {
-      return "Token address is required";
-    }
-    return isAddress(value as Address) ? undefined : "Invalid Ethereum address";
-  };
-
-  const validateDailyClaimLimit = (value: string): string | undefined => {
-    if (!value) {
-      return "User limit is required";
-    }
-    try {
-      const num = Number.parseInt(value, 10);
-      if (Number.isNaN(num) || num <= 0) {
-        return "User limit must be greater than 0";
-      }
-      return;
-    } catch {
-      return "Invalid number format";
-    }
-  };
+  }, [
+    setMinVaultBalance.isSuccess,
+    setClaimRewardAmount.isSuccess,
+    setDailyGMContract.isSuccess,
+    setBackendSigner.isSuccess,
+    setRewardToken.isSuccess,
+    setDailyClaimLimit.isSuccess,
+    onRefetchAction,
+  ]);
 
   const handleMinVaultBalanceClick = () => {
     const error = validateMinVaultBalance(newMinVaultBalance);
@@ -264,38 +286,21 @@ export function ContractSettingsCard({
     setValidationErrors({});
   };
 
-  const executeWrite = (functionName: string, args: (bigint | Address)[]) => {
-    writeContract(
-      {
-        address: contractAddress,
-        abi: dailyRewardsV2Abi,
-        functionName: functionName as
-          | "setMinVaultBalance"
-          | "setClaimRewardAmount"
-          | "setDailyGMContract"
-          | "setBackendSigner"
-          | "setRewardToken",
-        args: args as unknown as readonly [bigint | Address],
-        chainId,
-      },
-      {
-        onSuccess: () => {
-          toast.info("Transaction submitted...");
-        },
-        onError: (error) => {
-          toast.error(`Error: ${error.message}`);
-          setPendingAction(null);
-        },
-      }
-    );
-  };
-
   const confirmAndExecute = (action: string) => {
+    const config = {
+      onSuccess: () => {
+        toast.info("Transaction submitted...");
+      },
+      onError: (error: Error) => {
+        toast.error(`Error: ${error.message}`);
+        setPendingAction(null);
+      },
+    };
     switch (action) {
       case "minVaultBalance": {
         try {
           const parsed = parseUnits(newMinVaultBalance, tokenDecimals);
-          executeWrite("setMinVaultBalance", [parsed]);
+          setMinVaultBalance.mutate({ args: [parsed], chainId }, config);
         } catch (_err) {
           toast.error("Invalid amount");
           setPendingAction(null);
@@ -305,7 +310,7 @@ export function ContractSettingsCard({
       case "claimRewardAmount": {
         try {
           const parsed = parseUnits(newClaimRewardAmount, tokenDecimals);
-          executeWrite("setClaimRewardAmount", [parsed]);
+          setClaimRewardAmount.mutate({ args: [parsed], chainId }, config);
         } catch (_err) {
           toast.error("Invalid amount");
           setPendingAction(null);
@@ -313,21 +318,30 @@ export function ContractSettingsCard({
         break;
       }
       case "dailyGMContract": {
-        executeWrite("setDailyGMContract", [newDailyGMContract as Address]);
+        setDailyGMContract.mutate(
+          { args: [newDailyGMContract as Address], chainId },
+          config
+        );
         break;
       }
       case "backendSigner": {
-        executeWrite("setBackendSigner", [newBackendSigner as Address]);
+        setBackendSigner.mutate(
+          { args: [newBackendSigner as Address], chainId },
+          config
+        );
         break;
       }
       case "rewardToken": {
-        executeWrite("setRewardToken", [newRewardToken as Address]);
+        setRewardToken.mutate(
+          { args: [newRewardToken as Address], chainId },
+          config
+        );
         break;
       }
       case "dailyClaimLimit": {
         try {
           const parsed = BigInt(Number.parseInt(newDailyClaimLimit, 10));
-          executeWrite("setDailyClaimLimit", [parsed]);
+          setDailyClaimLimit.mutate({ args: [parsed], chainId }, config);
         } catch (_err) {
           toast.error("Invalid claim limit");
           setPendingAction(null);
@@ -340,7 +354,14 @@ export function ContractSettingsCard({
     }
   };
 
-  const isLoading = isPending || isConfirming;
+  const isLoading =
+    setMinVaultBalance.isPending ||
+    setClaimRewardAmount.isPending ||
+    setDailyGMContract.isPending ||
+    setBackendSigner.isPending ||
+    setRewardToken.isPending ||
+    setDailyClaimLimit.isPending;
+
   const formatBalance = (value: bigint | undefined): string => {
     if (value === undefined) {
       return "—";

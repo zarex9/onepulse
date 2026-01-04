@@ -1,24 +1,12 @@
 "use client";
 
-import { type Address, formatUnits } from "viem";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Address } from "viem/accounts";
+import { formatUnits, isAddress } from "viem/utils";
 import { useDailyRewardsV2Config } from "@/hooks/use-daily-rewards-v2-config";
 import { useDailyRewardsV2Read } from "@/hooks/use-daily-rewards-v2-read";
 import { useErc20Metadata } from "@/hooks/use-erc20-metadata";
-import { BlacklistManagementCard } from "./blacklist-management-card";
-import { ChainVisibilityControls } from "./chain-visibility-controls";
 import { ContractSettingsCard } from "./contract-settings-card";
-import { OwnershipCard } from "./ownership-card";
 import { VaultStatusCard } from "./vault-status-card";
-
-function isValidAddress(address: string | undefined): address is Address {
-  return (
-    typeof address === "string" &&
-    address.startsWith("0x") &&
-    address.length === 42
-  );
-}
 
 type ContractOverviewProps = {
   chainName: string;
@@ -98,9 +86,7 @@ function ContractOverview({
 export function AdminDashboard() {
   const {
     selectedChainId,
-    setSelectedChainId,
     getChainName,
-    supportedChains,
     currentTokenAddress,
     currentContractAddress,
     currentTokenSymbol,
@@ -115,11 +101,9 @@ export function AdminDashboard() {
     dailyGMContract,
     backendSigner,
     rewardToken,
-    owner,
-    pendingOwner,
     isLoading,
     refetch,
-  } = useDailyRewardsV2Read(currentContractAddress, selectedChainId);
+  } = useDailyRewardsV2Read(selectedChainId);
 
   // Fetch dynamic token metadata from the reward token contract
   const { decimals: dynamicTokenDecimals, symbol: dynamicTokenSymbol } =
@@ -141,88 +125,50 @@ export function AdminDashboard() {
   }
 
   return (
-    <Tabs
-      onValueChange={(value) => setSelectedChainId(Number(value))}
-      value={String(selectedChainId)}
-    >
-      <TabsList className="grid w-full grid-cols-3">
-        {supportedChains.map((chainId) => (
-          <TabsTrigger key={chainId} value={String(chainId)}>
-            {getChainName(chainId)}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <div className="space-y-2">
+      {isAddress(currentContractAddress) &&
+      isAddress(rewardToken || currentTokenAddress) ? (
+        <>
+          <ContractOverview
+            chainName={getChainName()}
+            claimRewardAmount={claimRewardAmount}
+            currentBalance={vaultStatus?.currentBalance}
+            currentTokenDecimals={tokenDecimals}
+            currentTokenSymbol={tokenSymbol}
+            dailyClaimLimit={dailyClaimLimit}
+            minVaultBalance={minVaultBalance}
+          />
 
-      <ScrollArea className="h-120 w-full">
-        {supportedChains.map((chainId) => (
-          <TabsContent
-            className="space-y-2"
-            key={chainId}
-            value={String(chainId)}
-          >
-            {isValidAddress(currentContractAddress) &&
-            isValidAddress(rewardToken || currentTokenAddress) ? (
-              <>
-                <ContractOverview
-                  chainName={getChainName(chainId)}
-                  claimRewardAmount={claimRewardAmount}
-                  currentBalance={vaultStatus?.currentBalance}
-                  currentTokenDecimals={tokenDecimals}
-                  currentTokenSymbol={tokenSymbol}
-                  dailyClaimLimit={dailyClaimLimit}
-                  minVaultBalance={minVaultBalance}
-                />
+          <VaultStatusCard
+            chainId={selectedChainId}
+            contractAddress={currentContractAddress}
+            onRefetchAction={refetch}
+            tokenAddress={(rewardToken || currentTokenAddress) as Address}
+            tokenDecimals={tokenDecimals}
+            tokenSymbol={tokenSymbol}
+            vaultStatus={vaultStatus}
+          />
 
-                <VaultStatusCard
-                  chainId={selectedChainId}
-                  contractAddress={currentContractAddress}
-                  onRefetchAction={refetch}
-                  tokenAddress={(rewardToken || currentTokenAddress) as Address}
-                  tokenDecimals={tokenDecimals}
-                  tokenSymbol={tokenSymbol}
-                  vaultStatus={vaultStatus}
-                />
-
-                <ChainVisibilityControls />
-
-                <ContractSettingsCard
-                  backendSigner={backendSigner}
-                  chainId={selectedChainId}
-                  claimRewardAmount={claimRewardAmount}
-                  contractAddress={currentContractAddress}
-                  dailyClaimLimit={dailyClaimLimit}
-                  dailyGMContract={dailyGMContract}
-                  minVaultBalance={minVaultBalance}
-                  onRefetchAction={refetch}
-                  rewardToken={rewardToken}
-                  tokenDecimals={tokenDecimals}
-                  tokenSymbol={tokenSymbol}
-                />
-
-                <BlacklistManagementCard
-                  contractAddress={currentContractAddress}
-                  onRefetchAction={refetch}
-                />
-
-                <OwnershipCard
-                  contractAddress={currentContractAddress}
-                  onRefetchAction={refetch}
-                  owner={isValidAddress(owner) ? owner : undefined}
-                  pendingOwner={
-                    isValidAddress(pendingOwner) ? pendingOwner : undefined
-                  }
-                />
-              </>
-            ) : (
-              <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/50 py-12">
-                <div className="text-center text-muted-foreground">
-                  No contract address found for {getChainName(chainId)}
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </ScrollArea>
-    </Tabs>
+          <ContractSettingsCard
+            backendSigner={backendSigner}
+            chainId={selectedChainId}
+            claimRewardAmount={claimRewardAmount}
+            dailyClaimLimit={dailyClaimLimit}
+            dailyGMContract={dailyGMContract}
+            minVaultBalance={minVaultBalance}
+            onRefetchAction={refetch}
+            rewardToken={rewardToken}
+            tokenDecimals={tokenDecimals}
+            tokenSymbol={tokenSymbol}
+          />
+        </>
+      ) : (
+        <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/50 py-12">
+          <div className="text-center text-muted-foreground">
+            No contract address found for {getChainName()}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
