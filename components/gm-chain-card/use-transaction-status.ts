@@ -1,6 +1,6 @@
-import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
+import type { LifecycleStatus } from "@/components/ui/custom-transaction";
 import { ERROR_MESSAGES, handleError } from "@/lib/error-handling";
 
 type UseTransactionStatusProps = {
@@ -32,8 +32,7 @@ export function useTransactionStatus({
 }: UseTransactionStatusProps): TransactionStatusHandlers {
   const processedTxHashes = useRef<Set<string>>(new Set());
 
-  const handleRefreshAfterSuccess = useCallback(
-    async (txHash: string) => {
+  const handleRefreshAfterSuccess = async (txHash: string) => {
       try {
         // Refetch eligibility to update claim state from on-chain contract
         if (refetchEligibility) {
@@ -50,12 +49,9 @@ export function useTransactionStatus({
           onSuccess(txHash);
         }
       }
-    },
-    [refetchEligibility, onSuccess, onRefreshError]
-  );
+    };
 
-  const onStatus = useCallback(
-    (status: LifecycleStatus) => {
+  const onStatus = (status: LifecycleStatus) => {
       const isSuccess = status.statusName === "success";
       const isError = status.statusName === "error";
       const isPending = status.statusName === "transactionPending";
@@ -90,9 +86,7 @@ export function useTransactionStatus({
           onError(error);
         }
       }
-    },
-    [handleRefreshAfterSuccess, onError]
-  );
+    };
 
   return { onStatus, handleRefreshAfterSuccess };
 }

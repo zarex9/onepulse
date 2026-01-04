@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import { type Address, isAddress } from "viem";
-import { dailyGMAbi } from "@/lib/abi/daily-gm";
+import type { Address } from "viem/accounts";
+import { isAddress } from "viem/utils";
+import { dailyGmAbi } from "@/helpers/contracts";
 
 type UseGMCallsParams = {
   contractAddress: Address;
@@ -12,29 +12,28 @@ export const useGMCalls = ({
   contractAddress,
   transactionType,
   recipient,
-}: UseGMCallsParams) =>
-  useMemo(() => {
-    if (transactionType === "gm") {
-      return [
-        {
-          abi: dailyGMAbi,
-          address: contractAddress,
-          functionName: "gm" as const,
-        },
-      ];
-    }
-
-    const hasValidRecipient = recipient && isAddress(recipient);
-    if (transactionType !== "gmTo" || !hasValidRecipient) {
-      return [];
-    }
-
+}: UseGMCallsParams) => {
+  if (transactionType === "gm") {
     return [
       {
-        abi: dailyGMAbi,
+        abi: dailyGmAbi,
         address: contractAddress,
-        functionName: "gmTo" as const,
-        args: [recipient as Address],
+        functionName: "gm" as const,
       },
     ];
-  }, [contractAddress, transactionType, recipient]);
+  }
+
+  const hasValidRecipient = recipient && isAddress(recipient);
+  if (transactionType !== "gmTo" || !hasValidRecipient) {
+    return [];
+  }
+
+  return [
+    {
+      abi: dailyGmAbi,
+      address: contractAddress,
+      functionName: "gmTo" as const,
+      args: [recipient as Address],
+    },
+  ];
+};

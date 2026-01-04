@@ -1,11 +1,10 @@
-import type { Address } from "viem";
-import { useReadContract } from "wagmi";
-import type { Chain } from "@/components/home/chain-config";
-import { dailyGMAbi } from "@/lib/abi/daily-gm";
+import type { Address } from "viem/accounts";
+import { useReadDailyGmLastGmDay } from "@/helpers/contracts";
+import type { ChainId } from "@/lib/constants";
 import { getCurrentTimestampSeconds, timestampToDayNumber } from "@/lib/utils";
 
 type ComputeGMStateParams = {
-  address: Address | undefined;
+  address?: `0x${string}`;
   contractAddress: Address;
   isConnected: boolean;
   lastGmDayData: unknown;
@@ -50,26 +49,23 @@ const computeGMState = (params: ComputeGMStateParams): GMState => {
 };
 
 export const useGMState = (
-  chainId: Chain["id"],
+  chainId: ChainId,
   contractAddress: Address,
-  address: string | undefined,
-  isConnected: boolean
+  isConnected: boolean,
+  address?: `0x${string}`
 ) => {
   const {
     data: lastGmDayData,
     isPending: isPendingLastGm,
     refetch: refetchLastGmDay,
-  } = useReadContract({
+  } = useReadDailyGmLastGmDay({
     chainId,
-    abi: dailyGMAbi,
-    address: contractAddress,
-    functionName: "lastGMDay",
-    args: address ? [address as Address] : undefined,
-    query: { enabled: Boolean(address && contractAddress) },
+    args: address ? [address] : undefined,
+    query: { enabled: Boolean(address) },
   });
 
   const { hasGmToday, gmDisabled } = computeGMState({
-    address: address as Address | undefined,
+    address,
     contractAddress,
     isConnected,
     lastGmDayData,
