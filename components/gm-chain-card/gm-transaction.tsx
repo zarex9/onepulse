@@ -1,21 +1,19 @@
 "use client";
 
+import type { Address } from "viem/accounts";
+import { ProcessingMirror } from "@/components/gm-chain-card/processing-mirror";
+import { SuccessReporter } from "@/components/gm-chain-card/success-reporter";
+import { Button } from "@/components/ui/button";
 import {
   Transaction,
   TransactionButton,
-  TransactionSponsor,
-} from "@coinbase/onchainkit/transaction";
-import { memo } from "react";
-import type { Address } from "viem";
-import { ProcessingMirror } from "@/components/gm-chain-card/processing-mirror";
-import { SuccessReporter } from "@/components/gm-chain-card/success-reporter";
-import { TransactionToast } from "@/components/transaction-toast";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/custom-transaction";
 import { Spinner } from "@/components/ui/spinner";
+import type { ChainId } from "@/lib/constants";
 import { useGMTransactionLogic } from "./use-gm-transaction-logic";
 
 type GMTransactionProps = {
-  chainId: number;
+  chainId: ChainId;
   contractAddress: Address;
   isSponsored: boolean;
   isContractReady: boolean;
@@ -24,74 +22,70 @@ type GMTransactionProps = {
   buttonLabel: string;
   transactionType: "gm" | "gmTo";
   recipient?: string;
-  address?: string;
-  refetchLastGmDay?: () => Promise<unknown>;
-  onClose: () => void;
-  setProcessing: (value: boolean) => void;
+  address: `0x${string}`;
+  refetchLastGmDayAction?: () => Promise<unknown>;
+  onCloseAction: () => void;
+  setProcessingAction: (value: boolean) => void;
 };
 
-export const GMTransaction = memo(
-  ({
-    chainId,
+export function GMTransaction({
+  chainId,
+  contractAddress,
+  isSponsored,
+  isContractReady,
+  processing,
+  chainBtnClasses,
+  buttonLabel,
+  transactionType,
+  recipient,
+  address,
+  refetchLastGmDayAction,
+  onCloseAction,
+  setProcessingAction,
+}: GMTransactionProps) {
+  const { calls, hasCalls } = useGMTransactionLogic({
     contractAddress,
-    isSponsored,
-    isContractReady,
-    processing,
-    chainBtnClasses,
-    buttonLabel,
     transactionType,
     recipient,
-    address,
-    refetchLastGmDay,
-    onClose,
-    setProcessing,
-  }: GMTransactionProps) => {
-    const { calls, hasCalls } = useGMTransactionLogic({
-      contractAddress,
-      transactionType,
-      recipient,
-    });
+  });
 
-    if (!hasCalls) {
-      return null;
-    }
-
-    return (
-      <Transaction calls={calls} chainId={chainId} isSponsored={isSponsored}>
-        <TransactionButton
-          disabled={!isContractReady || processing}
-          render={({ onSubmit, isDisabled, status, context }) => (
-            <>
-              <ProcessingMirror onChange={setProcessing} status={status} />
-              <Button
-                aria-busy={status === "pending"}
-                className={`w-full ${chainBtnClasses}`}
-                disabled={isDisabled}
-                onClick={onSubmit}
-              >
-                {status === "pending" ? (
-                  <>
-                    <Spinner />
-                    {transactionType === "gm" ? "Processing..." : "Sending..."}
-                  </>
-                ) : (
-                  buttonLabel
-                )}
-              </Button>
-              <SuccessReporter
-                address={address}
-                chainId={chainId}
-                onReported={onClose}
-                refetchLastGmDay={refetchLastGmDay}
-                status={status}
-                txHash={context?.transactionHash}
-              />
-            </>
-          )}
-        />
-        {isSponsored && <TransactionSponsor />}
-        <TransactionToast />
-      </Transaction>
-    );
+  if (!hasCalls) {
+    return null;
   }
-);
+
+  return (
+    <Transaction calls={calls} chainId={chainId} isSponsored={isSponsored}>
+      <TransactionButton
+        disabled={!isContractReady || processing}
+        renderAction={({ onSubmit, isDisabled, status, context }) => (
+          <>
+            <ProcessingMirror onChange={setProcessingAction} status={status} />
+            <Button
+              aria-busy={status === "pending"}
+              className={`w-full ${chainBtnClasses}`}
+              disabled={isDisabled}
+              onClick={onSubmit}
+            >
+              {status === "pending" ? (
+                <>
+                  <Spinner />
+                  {transactionType === "gm" ? "Processing..." : "Sending..."}
+                </>
+              ) : (
+                buttonLabel
+              )}
+            </Button>
+            <SuccessReporter
+              address={address}
+              chainId={chainId}
+              onReported={onCloseAction}
+              refetchLastGmDay={refetchLastGmDayAction}
+              status={status}
+              txHash={context?.transactionHash}
+            />
+          </>
+        )}
+      />
+    </Transaction>
+  );
+}
