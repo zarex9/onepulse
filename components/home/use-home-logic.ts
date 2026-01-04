@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useConnection } from "wagmi";
 import type { useGmStats } from "@/hooks/use-gm-stats";
 import type { ChainId } from "@/lib/constants";
@@ -6,7 +6,6 @@ import { areAllChainsComplete, getChainList } from "./chain-config";
 import { useCongratsLogic } from "./use-congrats-logic";
 import { useHomeStats } from "./use-home-stats";
 import { useLastCongratsDay } from "./use-last-congrats-day";
-import { useModalManagement } from "./use-modal-management";
 import { usePerChainStatus } from "./use-per-chain-status";
 
 type UseHomeLogicProps = {
@@ -21,16 +20,6 @@ export const useHomeLogic = ({
   onAllDoneChange,
 }: UseHomeLogicProps) => {
   const { isConnected, address } = useConnection();
-  const {
-    activeModalChainId,
-    processing,
-    setActiveModalChainId,
-    setProcessing,
-  } = useModalManagement();
-
-  const [activeRefetchFn, setActiveRefetchFn] = useState<
-    (() => Promise<unknown>) | undefined
-  >(undefined);
 
   const chains = getChainList(allowedChainIds);
   const chainIds = chains.map((c) => c.id);
@@ -57,13 +46,6 @@ export const useHomeLogic = ({
   return {
     isConnected,
     address,
-    activeModalChainId,
-    processing,
-    setActiveModalChainId,
-    setProcessing,
-    activeRefetchFn,
-    setActiveRefetchFn,
-    chains,
     gmStatsResult,
     handleStatus,
     allDone,
