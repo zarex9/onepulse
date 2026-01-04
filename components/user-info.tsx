@@ -1,6 +1,5 @@
 "use client";
 
-import type { Address } from "viem/accounts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserInfoLogic } from "./user-info/use-user-info-logic";
 import { UserAvatar } from "./user-info/user-avatar";
@@ -45,7 +44,7 @@ const WalletConnectedView = ({
   isConnected,
 }: {
   user: UserInfoProps["user"];
-  address: Address;
+  address: `0x${string}`;
   isConnected: boolean;
 }) => {
   const { avatarUrl, displayName } = getWalletConnectedDisplay(user, address);

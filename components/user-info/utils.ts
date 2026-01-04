@@ -1,10 +1,9 @@
-import type { Address } from "viem/accounts";
 import { getSlicedAddress } from "@/lib/ens-utils";
 import type { UserContext } from "@/types/miniapp";
 
 export type UserInfoProps = {
   user?: UserContext;
-  address?: Address | string;
+  address?: `0x${string}` | string;
 };
 
 export const getAvatarUrl = (userPfp: string | undefined): string | undefined =>
@@ -23,7 +22,7 @@ export const getMiniAppUserDisplay = (user: UserInfoProps["user"]) => ({
 
 export const getWalletConnectedDisplay = (
   user: UserInfoProps["user"],
-  address: Address
+  address: `0x${string}`
 ) => ({
   avatarUrl: getAvatarUrl(user?.pfpUrl),
   displayName: getDisplayName(user?.displayName, address),
@@ -33,7 +32,7 @@ export type DisplayState = "hidden" | "miniapp" | "loading" | "wallet";
 
 export const determineDisplayState = (
   user: UserInfoProps["user"],
-  address: Address | undefined
+  address: `0x${string}` | undefined
 ): DisplayState => {
   const hasIdentity = Boolean(user || address);
   if (!hasIdentity) {
