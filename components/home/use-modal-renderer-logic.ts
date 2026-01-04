@@ -1,4 +1,3 @@
-import type { Address } from "viem/accounts";
 import { BASE_CHAIN_ID, type ChainId, DAILY_GM_ADDRESS } from "@/lib/constants";
 import { getChainBtnClasses, isSponsoredOnChain } from "@/lib/utils";
 
@@ -19,7 +18,7 @@ type ModalRendererResult =
   | {
       shouldRender: true;
       activeChain: { id: ChainId; name: string };
-      activeContractAddress: Address;
+      activeContractAddress: `0x${string}`;
       chainBtnClasses: string;
       isSponsored: boolean;
     };
@@ -52,7 +51,7 @@ export function useModalRendererLogic({
 
   const activeContractAddress =
     activeChain.id === BASE_CHAIN_ID
-      ? (DAILY_GM_ADDRESS as Address)
+      ? (DAILY_GM_ADDRESS as `0x${string}`)
       : undefined;
   if (!activeContractAddress) {
     return {

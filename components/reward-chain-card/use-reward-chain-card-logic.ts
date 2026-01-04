@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { Address } from "viem/accounts";
 import { useChainId, useSwitchChain } from "wagmi";
 import { getButtonState } from "@/components/gm-chain-card/get-button-state";
 import { extractClaimState } from "@/components/reward-chain-card/utils";
@@ -33,11 +32,11 @@ function getChainIconName(): string {
 function getTokenAddress(
   rewardToken: string | undefined,
   _chainId: number
-): Address | undefined {
+): `0x${string}` | undefined {
   if (rewardToken?.startsWith("0x")) {
-    return rewardToken as Address;
+    return rewardToken as `0x${string}`;
   }
-  return REWARD_TOKEN as Address;
+  return REWARD_TOKEN as `0x${string}`;
 }
 
 function getTokenSymbol(): string {
