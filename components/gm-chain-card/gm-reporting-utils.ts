@@ -10,6 +10,7 @@ export async function reportToApi({
   lastGmDay,
   displayName,
   username,
+  pfpUrl,
 }: {
   address: string;
   chainId: number;
@@ -18,6 +19,7 @@ export async function reportToApi({
   lastGmDay: bigint;
   displayName?: string;
   username?: string;
+  pfpUrl?: string;
 }) {
   try {
     const lastGmDayNumber = Number(lastGmDay);
@@ -32,6 +34,7 @@ export async function reportToApi({
         displayName,
         lastGmDay: lastGmDayNumber,
         username,
+        pfpUrl,
       }),
     });
   } catch {
@@ -95,6 +98,7 @@ export async function performGmReporting({
     lastGmDay,
     displayName: user?.displayName,
     username: user?.username,
+    pfpUrl: user?.pfpUrl,
   });
 
   await new Promise((resolve) => setTimeout(resolve, 1000));

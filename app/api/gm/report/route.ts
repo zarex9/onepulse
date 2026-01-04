@@ -4,7 +4,7 @@ import { isAddress } from "viem/utils";
 import { z } from "zod";
 import { dailyGmAddress } from "@/helpers/contracts";
 import { BASE_CHAIN_ID, type ChainId } from "@/lib/constants";
-import { fetchFarcasterUser, fetchPrimaryWallet } from "@/lib/farcaster";
+import { fetchPrimaryWallet } from "@/lib/farcaster";
 import type { GmStatsByAddressV2Row } from "@/lib/module_bindings";
 import { callReportGm, getGmRows } from "@/lib/spacetimedb/server-connection";
 
@@ -20,24 +20,20 @@ const reportGmRequestSchema = z.object({
   displayName: z.string().optional(),
   username: z.string().optional(),
   txHash: z.string().optional(),
+  pfpUrl: z.string().optional(),
 });
 
 async function fetchFarcasterEnrichment(fid: number | undefined): Promise<{
   primaryWallet: string | undefined;
-  pfpUrl: string | undefined;
 }> {
   if (!fid || typeof fid !== "number") {
-    return { primaryWallet: undefined, pfpUrl: undefined };
+    return { primaryWallet: undefined };
   }
 
   try {
-    const [primaryWallet, farcasterUser] = await Promise.all([
-      fetchPrimaryWallet(fid),
-      fetchFarcasterUser(fid),
-    ]);
+    const [primaryWallet] = await Promise.all([fetchPrimaryWallet(fid)]);
     return {
       primaryWallet: primaryWallet || undefined,
-      pfpUrl: farcasterUser?.pfp.url || undefined,
     };
   } catch (error) {
     // Log error in development for debugging
@@ -48,7 +44,7 @@ async function fetchFarcasterEnrichment(fid: number | undefined): Promise<{
       );
     }
     // Return empty values and let the request continue
-    return { primaryWallet: undefined, pfpUrl: undefined };
+    return { primaryWallet: undefined };
   }
 }
 
@@ -77,8 +73,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { address, chainId, fid, displayName, lastGmDay, username, txHash } =
-      parseResult.data;
+    const {
+      address,
+      chainId,
+      fid,
+      displayName,
+      lastGmDay,
+      username,
+      txHash,
+      pfpUrl,
+    } = parseResult.data;
 
     const contractAddress = dailyGmAddress[chainId as ChainId];
     if (!contractAddress) {
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { primaryWallet, pfpUrl } = await fetchFarcasterEnrichment(fid);
+    const { primaryWallet } = await fetchFarcasterEnrichment(fid);
 
     const updated = await callReportGm({
       address,
