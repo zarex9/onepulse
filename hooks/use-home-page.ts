@@ -9,9 +9,7 @@ import { useOnboardingModal } from "@/hooks/use-onboarding-modal";
 import { usePageState } from "@/hooks/use-page-state";
 import { useSafeAreaStyle } from "@/hooks/use-safe-area-style";
 import { useShareActions } from "@/hooks/use-share-actions";
-import {
-  BASE_CHAIN_ID,
-} from "@/lib/constants";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { canSaveMiniApp } from "@/lib/utils";
 import { useClaimEligibility } from "./use-reward-claim";
 
@@ -44,13 +42,11 @@ export const useHomePage = () => {
   return {
     inMiniApp,
     safeAreaStyle,
-    handleMiniAppAdded,
     shouldShowOnboarding,
     dismissOnboarding,
     canSaveApp,
     tab,
     setTab,
-    isMiniAppReady,
     onboardingSaveHandler,
   };
 };

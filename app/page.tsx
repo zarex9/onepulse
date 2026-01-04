@@ -10,20 +10,12 @@ const OnboardingModal = dynamic(() =>
 );
 
 type ContentProps = {
-  isMiniAppReady: boolean;
   inMiniApp: boolean;
-  handleMiniAppAdded: () => void;
   tab: string;
   setTab: (tab: string) => void;
 };
 
-function Content({
-  isMiniAppReady,
-  inMiniApp,
-  handleMiniAppAdded,
-  tab,
-  setTab,
-}: ContentProps) {
+function Content({ inMiniApp, tab, setTab }: ContentProps) {
   const { gmStats, setGmStats, setCompletedAllChains, shareNow } =
     useContentLogic();
 
@@ -32,8 +24,6 @@ function Content({
       <Header
         gmStats={gmStats?.stats}
         inMiniApp={inMiniApp}
-        isMiniAppReady={isMiniAppReady}
-        onMiniAppAddedAction={handleMiniAppAdded}
         onShareClickAction={shareNow}
       />
       <Tabs
@@ -51,25 +41,17 @@ export default function Home() {
   const {
     inMiniApp,
     safeAreaStyle,
-    handleMiniAppAdded,
     shouldShowOnboarding,
     dismissOnboarding,
     canSaveApp,
     tab,
     setTab,
-    isMiniAppReady,
     onboardingSaveHandler,
   } = useHomePage();
 
   return (
     <div className="font-sans" style={safeAreaStyle}>
-      <Content
-        handleMiniAppAdded={handleMiniAppAdded}
-        inMiniApp={inMiniApp}
-        isMiniAppReady={isMiniAppReady}
-        setTab={setTab}
-        tab={tab}
-      />
+      <Content inMiniApp={inMiniApp} setTab={setTab} tab={tab} />
       <OnboardingModal
         canSave={canSaveApp(inMiniApp)}
         onCloseAction={dismissOnboarding}
