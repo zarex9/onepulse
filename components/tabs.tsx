@@ -1,17 +1,16 @@
 "use client";
 
 import { Gift, House, MessageCircle, TrendingUp } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useChainId, useSwitchChain } from "wagmi";
 import { Home } from "@/components/home";
-import { Leaderboard } from "@/components/leaderboard/leaderboard";
-import { OnChatWidget } from "@/components/onchat-widget";
-import { Rewards } from "@/components/rewards";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tabs as TabsComponent,
   TabsContent,
@@ -21,6 +20,30 @@ import {
 import type { useGmStats } from "@/hooks/use-gm-stats";
 import { BASE_CHAIN_ID } from "@/lib/constants";
 import { useTabsLogic } from "./tabs/use-tabs-logic";
+
+const Leaderboard = dynamic(
+  () =>
+    import("@/components/leaderboard/leaderboard").then(
+      (mod) => mod.Leaderboard
+    ),
+  {
+    loading: () => <Skeleton className="h-125 w-full rounded-xl" />,
+  }
+);
+
+const OnChatWidget = dynamic(
+  () => import("@/components/onchat-widget").then((mod) => mod.OnChatWidget),
+  {
+    loading: () => <Skeleton className="h-125 w-full rounded-xl" />,
+  }
+);
+
+const Rewards = dynamic(
+  () => import("@/components/rewards").then((mod) => mod.Rewards),
+  {
+    loading: () => <Skeleton className="h-125 w-full rounded-xl" />,
+  }
+);
 
 type TabsProps = {
   tab: string;
@@ -39,7 +62,7 @@ export function Tabs({
 }: TabsProps) {
   const { isBaseApp, allowedChainIds } = useTabsLogic();
   const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
+  const switchChain = useSwitchChain();
   const isOnBaseChain = chainId === BASE_CHAIN_ID;
 
   return (
@@ -48,9 +71,9 @@ export function Tabs({
         <TabsContent value="home">
           <Home
             allowedChainIds={allowedChainIds}
-            onAllDoneChange={onAllDoneChangeAction}
-            onGmStatsChange={onGmStatsChangeAction}
-            onShareClick={onShareClickAction}
+            onAllDoneChangeAction={onAllDoneChangeAction}
+            onGmStatsChangeAction={onGmStatsChangeAction}
+            onShareClickAction={onShareClickAction}
             sponsored={isBaseApp}
           />
         </TabsContent>
@@ -89,10 +112,10 @@ export function Tabs({
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  className="-top-12 absolute right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
+                  className="absolute -top-12 right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
                   onClick={() => {
                     if (!isOnBaseChain) {
-                      switchChain?.({ chainId: BASE_CHAIN_ID });
+                      switchChain.mutate({ chainId: BASE_CHAIN_ID });
                     }
                   }}
                   size="icon-sm"
