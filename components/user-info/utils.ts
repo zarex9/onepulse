@@ -1,6 +1,5 @@
-import type { GetNameReturnType } from "@coinbase/onchainkit/identity";
-import type { Address } from "viem";
-import { truncateAddress } from "@/lib/ens-utils";
+import type { Address } from "viem/accounts";
+import { getSlicedAddress } from "@/lib/ens-utils";
 import type { UserContext } from "@/types/miniapp";
 
 export type UserInfoProps = {
@@ -15,9 +14,9 @@ export const getAvatarUrl = (
 
 export const getDisplayName = (
   userDisplayName: string | undefined,
-  ensName: GetNameReturnType | undefined,
-  address: string | undefined
-): string => userDisplayName || ensName || truncateAddress(address);
+  ensName: string | null | undefined,
+  address: `0x${string}`
+): string => userDisplayName || ensName || getSlicedAddress(address);
 
 export const getMiniAppUserDisplay = (user: UserInfoProps["user"]) => ({
   displayName: user?.displayName || "Unknown",
@@ -28,7 +27,7 @@ export const getMiniAppUserDisplay = (user: UserInfoProps["user"]) => ({
 export const getWalletConnectedDisplay = (
   user: UserInfoProps["user"],
   address: Address,
-  ensName: GetNameReturnType | undefined,
+  ensName: string | null | undefined,
   ensAvatar: string | null | undefined
 ) => ({
   avatarUrl: getAvatarUrl(user?.pfpUrl, ensAvatar),
