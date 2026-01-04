@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 type UseActionButtonsLogicProps = {
   sanitizedRecipient: string;
   isContractReady: boolean;
@@ -11,10 +9,8 @@ export const useActionButtonsLogic = ({
   isContractReady,
   processing,
 }: UseActionButtonsLogicProps) => {
-  const isPlaceholderButtonDisabled = useMemo(
-    () => !(sanitizedRecipient && isContractReady) || processing,
-    [sanitizedRecipient, isContractReady, processing]
-  );
+  const isPlaceholderButtonDisabled =
+    !(sanitizedRecipient && isContractReady) || processing;
 
   return {
     isPlaceholderButtonDisabled,
