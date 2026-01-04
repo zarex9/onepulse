@@ -1,55 +1,43 @@
 "use client";
 
-import type { VariantProps } from "class-variance-authority";
+import { ConnectWallet as ConnectWalletButton } from "@coinbase/onchainkit/wallet";
 import { Unplug } from "lucide-react";
-import { memo } from "react";
-import { Button, type buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useConnectWalletLogic } from "./wallet/use-connect-wallet-logic";
 import { useDisconnectWalletLogic } from "./wallet/use-disconnect-wallet-logic";
 
-type ButtonSize = VariantProps<typeof buttonVariants>["size"];
+export function ConnectWallet({ className }: { className?: string }) {
+  return (
+    <div className="mx-auto w-full">
+      <ConnectWalletButton
+        className={cn(
+          "size-lg w-full bg-[#0052ff] text-white hover:bg-[#0052ff]/90",
+          className
+        )}
+        disconnectedLabel="Log In"
+      />
+    </div>
+  );
+}
 
-const ConnectWallet = memo(
-  ({ size = "lg", className }: { size?: ButtonSize; className?: string }) => {
-    const { connectWallet } = useConnectWalletLogic();
-    const buttonSize = size === "lg" ? "size-lg" : "size-sm";
-    return (
-      <div className="mx-auto w-full">
-        <Button
-          aria-label="Connect wallet"
-          className={cn(className, buttonSize)}
-          onClick={connectWallet}
-        >
-          Connect Wallet
-        </Button>
-      </div>
-    );
+export function DisconnectWallet() {
+  const { shouldShowDisconnect, disconnect, isLoading } =
+    useDisconnectWalletLogic();
+
+  if (!shouldShowDisconnect) {
+    return null;
   }
-);
 
-const DisconnectWallet = memo(
-  ({ onDisconnected }: { onDisconnected?: () => void }) => {
-    const { shouldShowDisconnect, disconnectWallet, isLoading } =
-      useDisconnectWalletLogic(onDisconnected);
-
-    if (!shouldShowDisconnect) {
-      return null;
-    }
-
-    return (
-      <Button
-        aria-label="Disconnect wallet"
-        className="flex-1"
-        disabled={isLoading}
-        onClick={disconnectWallet}
-        size="sm"
-        variant="outline"
-      >
-        <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
-      </Button>
-    );
-  }
-);
-
-export { ConnectWallet, DisconnectWallet };
+  return (
+    <Button
+      aria-label="Disconnect wallet"
+      className="flex-1"
+      disabled={isLoading}
+      onClick={() => disconnect.mutate()}
+      size="sm"
+      variant="outline"
+    >
+      <Unplug className="mr-2 h-4 w-4" /> Disconnect Wallet
+    </Button>
+  );
+}

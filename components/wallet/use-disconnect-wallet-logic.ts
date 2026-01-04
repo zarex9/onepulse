@@ -1,19 +1,17 @@
-import { useAppKitAccount } from "@reown/appkit/react";
+import { useConnection, useDisconnect } from "wagmi";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
-import { useDisconnectLogic as useBaseDisconnectLogic } from "@/components/user-info/use-disconnect-logic";
 
-export const useDisconnectWalletLogic = (onDisconnected?: () => void) => {
-  const { isConnected } = useAppKitAccount({ namespace: "eip155" });
+export const useDisconnectWalletLogic = () => {
+  const { isConnected } = useConnection();
   const miniAppContextData = useMiniAppContext();
-  const { disconnectWallet, isLoading } =
-    useBaseDisconnectLogic(onDisconnected);
+  const disconnect = useDisconnect();
 
   const isInMiniApp = Boolean(miniAppContextData?.isInMiniApp);
   const shouldShowDisconnect = isConnected && !isInMiniApp;
 
   return {
     shouldShowDisconnect,
-    disconnectWallet,
-    isLoading,
+    disconnect,
+    isLoading: disconnect.isPending,
   };
 };
