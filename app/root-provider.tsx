@@ -10,7 +10,6 @@ import { MiniAppProvider } from "@/components/providers/miniapp-provider";
 import { OnchainKitProvider } from "@/components/providers/onchainkit-provider";
 import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { getQueryClient } from "@/lib/client";
 import { config } from "@/lib/wagmi";
 
@@ -30,15 +29,13 @@ export function RootProvider({
           <MiniAppProvider>
             <SpacetimeDBProvider>
               <SafeArea>
-                <TooltipProvider delayDuration={0}>
-                  {children}
-                  <Toaster
-                    className="flex justify-center"
-                    duration={2000}
-                    position="top-center"
-                    visibleToasts={1}
-                  />
-                </TooltipProvider>
+                {children}
+                <Toaster
+                  className="flex justify-center"
+                  duration={2000}
+                  position="top-center"
+                  visibleToasts={1}
+                />
               </SafeArea>
             </SpacetimeDBProvider>
           </MiniAppProvider>
