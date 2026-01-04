@@ -1,5 +1,3 @@
-import { DAILY_CLAIM_LIMIT } from "@/lib/constants";
-
 export type ClaimState = {
   isEligible: boolean;
   isFidBlacklisted: boolean;
@@ -51,7 +49,7 @@ export function getStatusConfig(state: ClaimState) {
   if (state.globalLimitReached) {
     return {
       title: "Daily Limit Reached",
-      description: `The daily claim limit of ${DAILY_CLAIM_LIMIT} users has been reached`,
+      description: "The daily claim limit has reached max capacity",
       accentColor: "text-orange-600 dark:text-orange-400",
     };
   }
