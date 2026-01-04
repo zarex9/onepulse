@@ -1,13 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Header } from "@/components/header";
 import { Tabs } from "@/components/tabs";
 import { useContentLogic, useHomePage } from "@/hooks/use-home-page";
-
-const OnboardingModal = dynamic(() =>
-  import("@/components/onboarding-modal").then((mod) => mod.OnboardingModal)
-);
 
 type ContentProps = {
   tab: string;
@@ -30,26 +25,11 @@ function Content({ tab, setTab }: ContentProps) {
 }
 
 export default function Home() {
-  const {
-    inMiniApp,
-    safeAreaStyle,
-    shouldShowOnboarding,
-    dismissOnboarding,
-    canSaveApp,
-    tab,
-    setTab,
-    onboardingSaveHandler,
-  } = useHomePage();
+  const { safeAreaStyle, tab, setTab } = useHomePage();
 
   return (
     <div className="font-sans" style={safeAreaStyle}>
       <Content setTab={setTab} tab={tab} />
-      <OnboardingModal
-        canSave={canSaveApp(inMiniApp)}
-        onCloseAction={dismissOnboarding}
-        onSaveAction={onboardingSaveHandler}
-        open={shouldShowOnboarding()}
-      />
     </div>
   );
 }
