@@ -2,7 +2,7 @@ import { http } from "@wagmi/core";
 import { base } from "@wagmi/core/chains";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "viem";
-import { type Address, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import { readContract } from "viem/actions";
 import { encodePacked, keccak256 } from "viem/utils";
 import { z } from "zod";
@@ -48,10 +48,10 @@ async function generateClaimAuthorization(params: {
   }
 
   const nonce = await readContract(client, {
-    address: contractAddress as Address,
+    address: contractAddress as `0x${string}`,
     abi: dailyRewardsV2Abi,
     functionName: "nonces",
-    args: [params.claimer as Address],
+    args: [params.claimer as `0x${string}`],
   });
 
   // Create message hash matching the contract's format with nonce:
@@ -60,11 +60,11 @@ async function generateClaimAuthorization(params: {
     encodePacked(
       ["address", "uint256", "uint256", "uint256", "address"],
       [
-        params.claimer as Address,
+        params.claimer as `0x${string}`,
         BigInt(params.fid),
         BigInt(nonce.toString()),
         BigInt(params.deadline),
-        contractAddress as Address,
+        contractAddress as `0x${string}`,
       ]
     )
   );
