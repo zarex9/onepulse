@@ -1,23 +1,13 @@
+import { http } from "@wagmi/core";
+import { base } from "@wagmi/core/chains";
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  type Chain,
-  createPublicClient,
-  createWalletClient,
-  encodePacked,
-  http,
-  keccak256,
-} from "viem";
+import { createClient } from "viem";
 import { type Address, privateKeyToAccount } from "viem/accounts";
-import { base, celo, optimism } from "viem/chains";
+import { readContract } from "viem/actions";
+import { encodePacked, keccak256 } from "viem/utils";
 import { z } from "zod";
-
-import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
-import {
-  BASE_CHAIN_ID,
-  CELO_CHAIN_ID,
-  OPTIMISM_CHAIN_ID,
-} from "@/lib/constants";
-import { getDailyRewardsV2Address } from "@/lib/utils";
+import { dailyRewardsV2Abi, dailyRewardsV2Address } from "@/helpers/contracts";
+import { BASE_CHAIN_ID, type ChainId } from "@/lib/constants";
 
 const BACKEND_SIGNER_PRIVATE_KEY = process.env.BACKEND_SIGNER_PRIVATE_KEY;
 
@@ -29,8 +19,12 @@ const claimExecuteRequestSchema = z.object({
   claimer: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   fid: z.number().int().positive(),
   deadline: z.number().int().positive(),
-  chainId: z.number().int().positive(),
+  chainId: z.literal(BASE_CHAIN_ID),
 });
+
+const account = privateKeyToAccount(
+  BACKEND_SIGNER_PRIVATE_KEY as `0x${string}`
+);
 
 /**
  * Generates a backend-signed authorization for a claim with nonce.
@@ -40,37 +34,20 @@ async function generateClaimAuthorization(params: {
   claimer: string;
   fid: number | bigint;
   deadline: number | bigint;
-  chainId: number;
+  chainId: ChainId;
 }) {
-  const account = privateKeyToAccount(BACKEND_SIGNER_PRIVATE_KEY as Address);
-
-  // Select the correct chain based on chainId
-  const chainMap: Record<number, Chain> = {
-    [BASE_CHAIN_ID]: base,
-    [CELO_CHAIN_ID]: celo,
-    [OPTIMISM_CHAIN_ID]: optimism,
-  };
-
-  const chain = chainMap[params.chainId] ?? base;
-
-  const walletClient = createWalletClient({
-    account,
-    chain,
+  const client = createClient({
+    chain: base,
     transport: http(),
   });
 
-  const publicClient = createPublicClient({
-    chain,
-    transport: http(),
-  });
-
-  const contractAddress = getDailyRewardsV2Address(params.chainId);
+  const contractAddress = dailyRewardsV2Address[params.chainId];
 
   if (!contractAddress) {
     throw new Error("Contract address not configured");
   }
 
-  const nonce = await publicClient.readContract({
+  const nonce = await readContract(client, {
     address: contractAddress as Address,
     abi: dailyRewardsV2Abi,
     functionName: "nonces",
@@ -92,7 +69,7 @@ async function generateClaimAuthorization(params: {
     )
   );
 
-  const signature = await walletClient.signMessage({
+  const signature = await account.signMessage({
     message: { raw: messageHash },
   });
 
@@ -122,7 +99,7 @@ export async function POST(req: NextRequest) {
       claimer,
       fid,
       deadline,
-      chainId,
+      chainId: chainId as ChainId,
     });
 
     return NextResponse.json({
