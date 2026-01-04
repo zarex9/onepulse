@@ -1,23 +1,31 @@
 "use client";
 
 import { SafeArea } from "@coinbase/onchainkit/minikit";
+
+import { QueryClientProvider } from "@tanstack/react-query";
+import type { State } from "@wagmi/core";
 import type { ReactNode } from "react";
+import { WagmiProvider } from "wagmi";
 import { MiniAppProvider } from "@/components/providers/miniapp-provider";
 import { OnchainKitProvider } from "@/components/providers/onchainkit-provider";
-import QueryClientProvider from "@/components/providers/query-client-provider";
 import { SpacetimeDBProvider } from "@/components/providers/spacetimedb-provider";
-import { WagmiProvider } from "@/components/providers/wagmi-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getQueryClient } from "@/lib/client";
+import { config } from "@/lib/wagmi";
+
+const queryClient = getQueryClient();
 
 export function RootProvider({
   children,
+  initialState,
 }: Readonly<{
   children: ReactNode;
+  initialState: State | undefined;
 }>) {
   return (
-    <WagmiProvider>
-      <QueryClientProvider>
+    <WagmiProvider config={config} initialState={initialState}>
+      <QueryClientProvider client={queryClient}>
         <OnchainKitProvider>
           <MiniAppProvider>
             <SpacetimeDBProvider>
