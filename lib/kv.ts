@@ -106,81 +106,10 @@ export async function getUserShareData(
 }
 
 // Cache TTLs in seconds
-const FARCASTER_USER_CACHE_TTL = 300; // 5 minutes
-const NEYNAR_SCORE_CACHE_TTL = 3600; // 1 hour
 const GOOGLE_FONT_CACHE_TTL = 86_400; // 24 hours
-
-function getFarcasterUserCacheKey(fid: number): string {
-  return `onepulse:cache:farcaster_user:${fid}`;
-}
-
-function getNeynarScoreCacheKey(fids: number[]): string {
-  const sortedFids = [...fids].sort((a, b) => a - b);
-  return `onepulse:cache:neynar_score:${sortedFids.join(",")}`;
-}
 
 function getGoogleFontCacheKey(font: string, weight: number): string {
   return `onepulse:cache:font:${font}:${weight}`;
-}
-
-export type CachedFarcasterUser = {
-  fid: number;
-  username: string;
-  displayName: string;
-  pfpUrl: string | null;
-  pfpVerified: boolean;
-};
-
-export async function getCachedFarcasterUser(
-  fid: number
-): Promise<CachedFarcasterUser | null> {
-  try {
-    return await redis.get<CachedFarcasterUser>(getFarcasterUserCacheKey(fid));
-  } catch (error) {
-    reportKvError(error, "getCachedFarcasterUser", { fid });
-    return null;
-  }
-}
-
-export async function setCachedFarcasterUser(
-  fid: number,
-  user: CachedFarcasterUser
-): Promise<void> {
-  try {
-    await redis.set(getFarcasterUserCacheKey(fid), user, {
-      ex: FARCASTER_USER_CACHE_TTL,
-    });
-  } catch (error) {
-    reportKvError(error, "setCachedFarcasterUser", { fid });
-  }
-}
-
-export type CachedNeynarScore = {
-  users: { fid: number; score: number }[];
-};
-
-export async function getCachedNeynarScore(
-  fids: number[]
-): Promise<CachedNeynarScore | null> {
-  try {
-    return await redis.get<CachedNeynarScore>(getNeynarScoreCacheKey(fids));
-  } catch (error) {
-    reportKvError(error, "getCachedNeynarScore", { fids });
-    return null;
-  }
-}
-
-export async function setCachedNeynarScore(
-  fids: number[],
-  data: CachedNeynarScore
-): Promise<void> {
-  try {
-    await redis.set(getNeynarScoreCacheKey(fids), data, {
-      ex: NEYNAR_SCORE_CACHE_TTL,
-    });
-  } catch (error) {
-    reportKvError(error, "setCachedNeynarScore", { fids });
-  }
 }
 
 export async function getCachedGoogleFont(

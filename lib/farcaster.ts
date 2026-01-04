@@ -1,10 +1,5 @@
 import { z } from "zod";
 import { handleError } from "@/lib/error-handling";
-import {
-  type CachedFarcasterUser,
-  getCachedFarcasterUser,
-  setCachedFarcasterUser,
-} from "./kv";
 
 export type FarcasterUser = {
   fid: number;
@@ -43,20 +38,6 @@ const farcasterUserResponseSchema = z.object({
 export async function fetchFarcasterUser(
   fid: number
 ): Promise<FarcasterUser | null> {
-  // Check cache first
-  const cached = await getCachedFarcasterUser(fid);
-  if (cached) {
-    return {
-      fid: cached.fid,
-      username: cached.username,
-      displayName: cached.displayName,
-      pfp: {
-        url: cached.pfpUrl || "",
-        verified: cached.pfpVerified ?? false,
-      },
-    };
-  }
-
   try {
     const response = await fetch(
       `https://api.farcaster.xyz/v2/user?fid=${fid}`,
@@ -68,16 +49,6 @@ export async function fetchFarcasterUser(
     const json = await response.json();
     const data = farcasterUserResponseSchema.parse(json);
     const user = data.result.user;
-
-    // Cache the result
-    const cacheData: CachedFarcasterUser = {
-      fid: user.fid,
-      username: user.username,
-      displayName: user.displayName,
-      pfpUrl: user.pfp?.url || null,
-      pfpVerified: user.pfp?.verified ?? false,
-    };
-    await setCachedFarcasterUser(fid, cacheData);
 
     return {
       ...user,
