@@ -1,49 +1,43 @@
-"use client";
-
-import { memo } from "react";
-import type { Address } from "viem";
+import type { Address } from "viem/accounts";
 import { GMChainCard } from "@/components/gm-chain-card/gm-chain-card";
+import type { ChainId } from "@/lib/constants";
 import { useChainSlideLogic } from "./use-chain-slide-logic";
 
 type ChainSlideProps = {
-  chainId: number;
+  chainId: ChainId;
   chainName: string;
   contractAddress: Address;
   isConnected: boolean;
-  address?: string;
-  onStatusChange: (status: { chainId: number; hasGmToday: boolean }) => void;
+  address?: `0x${string}`;
+  onStatusChange: (status: { chainId: ChainId; hasGmToday: boolean }) => void;
   onOpenModal: (refetch: () => Promise<unknown>) => void;
 };
 
-export const ChainSlide = memo(
-  ({
-    chainId,
-    chainName,
-    contractAddress,
-    isConnected,
+export function ChainSlide({
+  chainId,
+  chainName,
+  contractAddress,
+  isConnected,
+  address,
+  onStatusChange,
+  onOpenModal,
+}: ChainSlideProps) {
+  const { stats, isReady, handleOpenModal } = useChainSlideLogic({
     address,
-    onStatusChange,
     onOpenModal,
-  }: ChainSlideProps) => {
-    const { stats, isReady, handleOpenModal } = useChainSlideLogic({
-      address,
-      onOpenModal,
-    });
+  });
 
-    return (
-      <GMChainCard
-        address={address}
-        chainId={chainId}
-        contractAddress={contractAddress}
-        isConnected={isConnected}
-        isStatsReady={isReady}
-        name={chainName}
-        onOpenModal={handleOpenModal}
-        onStatusChange={onStatusChange}
-        stats={stats}
-      />
-    );
-  }
-);
-
-ChainSlide.displayName = "ChainSlide";
+  return (
+    <GMChainCard
+      address={address}
+      chainId={chainId}
+      contractAddress={contractAddress}
+      isConnected={isConnected}
+      isStatsReady={isReady}
+      name={chainName}
+      onOpenModalAction={handleOpenModal}
+      onStatusChangeAction={onStatusChange}
+      stats={stats}
+    />
+  );
+}
