@@ -47,18 +47,12 @@ export function StatsDisplay({
 
   return (
     <div className="grid grid-cols-3 gap-2 text-center">
+      <StatColumn label="Current" value={getValue(chainStats?.currentStreak)} />
+      <StatColumn label="Highest" value={getValue(chainStats?.highestStreak)} />
       <StatColumn
-        label="Current"
-        value={getValue(chainStats?.currentStreak)}
+        label="All-Time"
+        value={getValue(chainStats?.allTimeGmCount)}
       />
-      <StatColumn
-          label="Highest"
-          value={getValue(chainStats?.highestStreak)}
-        />
-        <StatColumn
-          label="All-Time"
-          value={getValue(chainStats?.allTimeGmCount)}
-        />
-      </div>
-    );
-  }
+    </div>
+  );
+}
