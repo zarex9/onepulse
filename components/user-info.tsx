@@ -1,7 +1,6 @@
 "use client";
 
-import { memo } from "react";
-import type { Address } from "viem";
+import type { Address } from "viem/accounts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserInfoLogic } from "./user-info/use-user-info-logic";
 import { UserAvatar } from "./user-info/user-avatar";
@@ -72,34 +71,31 @@ const WalletConnectedView = ({
   );
 };
 
-export const UserInfo = memo(
-  ({ user, address: addressProp }: UserInfoProps) => {
-    const { address, ensName, ensAvatar, isConnected, state } =
-      useUserInfoLogic({
-        user,
-        address: addressProp,
-      });
+export const UserInfo = ({ user, address: addressProp }: UserInfoProps) => {
+  const { address, ensName, ensAvatar, isConnected, state } = useUserInfoLogic({
+    user,
+    address: addressProp,
+  });
 
-    if (state === "hidden") {
-      return null;
-    }
-
-    if (state === "miniapp") {
-      return <MiniAppUserView isConnected={isConnected} user={user} />;
-    }
-
-    if (state === "loading") {
-      return <WalletLoadingView />;
-    }
-
-    return (
-      <WalletConnectedView
-        address={address}
-        ensAvatar={ensAvatar}
-        ensName={ensName}
-        isConnected={isConnected}
-        user={user}
-      />
-    );
+  if (state === "hidden") {
+    return null;
   }
-);
+
+  if (state === "miniapp") {
+    return <MiniAppUserView isConnected={isConnected} user={user} />;
+  }
+
+  if (state === "loading") {
+    return <WalletLoadingView />;
+  }
+
+  return (
+    <WalletConnectedView
+      address={address}
+      ensAvatar={ensAvatar}
+      ensName={ensName}
+      isConnected={isConnected}
+      user={user}
+    />
+  );
+};
