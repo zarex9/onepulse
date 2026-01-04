@@ -17,8 +17,8 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   const { miniAppContext } = useMiniAppProviderLogic();
 
   return (
-    <MiniAppProviderContext.Provider value={miniAppContext}>
+    <MiniAppProviderContext value={miniAppContext}>
       {children}
-    </MiniAppProviderContext.Provider>
+    </MiniAppProviderContext>
   );
 }
