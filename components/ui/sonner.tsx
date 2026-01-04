@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import { cn } from "@/lib/utils";
+import type { CSSProperties } from "react";
 
 const Toaster = ({ ...props }: ToasterProps) => {
 
@@ -35,7 +36,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius-3xl)",
-        } as React.CSSProperties
+        } as CSSProperties
       }
       toastOptions={{
         classNames: {
