@@ -139,38 +139,13 @@ export async function getGmRows(
 
     await subscribeOnce(conn, [
       `SELECT * FROM gm_stats_by_address_v2 WHERE address = '${address}'`,
-      `SELECT * FROM gm_stats_by_address WHERE address = '${address}'`,
     ]);
 
     const v2Rows = Array.from(conn.db.gmStatsByAddressV2.iter()).filter(
       (r) => r.address.toLowerCase() === lowerAddress
     );
 
-    const v2ChainIds = new Set(v2Rows.map((r) => r.chainId));
-
-    const v1Rows = Array.from(conn.db.gmStatsByAddress.iter())
-      .filter((r) => r.address.toLowerCase() === lowerAddress)
-      .filter((r) => !v2ChainIds.has(r.chainId))
-      .map(
-        (v1) =>
-          ({
-            address: v1.address,
-            chainId: v1.chainId,
-            currentStreak: v1.currentStreak,
-            highestStreak: v1.highestStreak,
-            allTimeGmCount: v1.allTimeGmCount,
-            lastGmDay: v1.lastGmDay,
-            lastTxHash: v1.lastTxHash,
-            fid: v1.fid,
-            displayName: v1.displayName,
-            username: v1.username,
-            pfpUrl: undefined,
-            primaryWallet: undefined,
-            updatedAt: v1.updatedAt,
-          }) as GmStatsByAddress
-      );
-
-    const all = [...v2Rows, ...v1Rows];
+    const all = [...v2Rows];
 
     if (typeof chainId === "number") {
       return all.filter((r) => r.chainId === chainId);
