@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { encodeFunctionData, TransactionExecutionError, type Address, type Capabilities, type ContractFunctionParameters, type Hex, type TransactionReceipt } from "viem";
+import { encodeFunctionData, TransactionExecutionError, type Capabilities, type ContractFunctionParameters, type Hex, type TransactionReceipt } from "viem";
 import { useCapabilities, useConfig, useConnection, useSwitchChain, useWaitForTransactionReceipt, type Config, useCallsStatus as useCallsStatusWagmi, useSendTransaction, useChainId } from 'wagmi';
 import { useSendCalls as useSendCallsWagmi } from "wagmi";
 import type { SendTransactionMutateAsync } from "wagmi/query";
@@ -88,7 +88,7 @@ export type LifecycleStatus =
   | {
       statusName: 'transactionLegacyExecuted';
       statusData: {
-        transactionHashList: Address[];
+        transactionHashList: `0x${string}`[];
       };
     }
   | {
@@ -279,12 +279,12 @@ export type UseCallsStatusParams = {
 
 export type UseWriteContractParams = {
   setLifecycleStatusAction: (state: LifecycleStatus) => void;
-  transactionHashList: Address[];
+  transactionHashList: `0x${string}`[];
 };
 
 export type UseSendCallParams = {
   setLifecycleStatusAction: (state: LifecycleStatus) => void;
-  transactionHashList: Address[];
+  transactionHashList: `0x${string}`[];
 };
 
 export type UseSendCallsParams = {
@@ -533,7 +533,7 @@ export function useSendCall({
           },
         });
       },
-      onSuccess: (hash: Address) => {
+      onSuccess: (hash: `0x${string}`) => {
         setLifecycleStatusAction({
           statusName: 'transactionLegacyExecuted',
           statusData: {
@@ -618,7 +618,7 @@ function TransactionProvider({
   const [transactionCount, setTransactionCount] = useState<
     number | undefined
   >();
-  const [transactionHashList, setTransactionHashList] = useState<Address[]>([]);
+  const [transactionHashList, setTransactionHashList] = useState<`0x${string}`[]>([]);
 
   // Retrieve wallet capabilities
   const walletCapabilities = useCapabilitiesSafe({
