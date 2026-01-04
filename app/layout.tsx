@@ -4,10 +4,13 @@ import { RootProvider } from "./root-provider";
 
 import "@/styles/globals.css";
 
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 import { preconnect } from "react-dom";
+import { cookieToInitialState } from "wagmi";
 import { fontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { config } from "@/lib/wagmi";
 
 const frame = {
   version: minikitConfig.miniapp.version,
@@ -56,6 +59,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default async function RootLayout({
@@ -64,13 +72,15 @@ export default async function RootLayout({
   children: ReactNode;
 }>) {
   preconnect("https://auth.farcaster.xyz");
+  preconnect("wss://maincloud.spacetimedb.com");
+
+  const initialState = cookieToInitialState(
+    config,
+    (await headers()).get("cookie")
+  );
 
   return (
-    <html
-      className="no-scrollbar layout-fixed"
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html className="no-scrollbar layout-fixed" lang="en">
       <body
         className={cn(
           "flex min-h-screen flex-col overscroll-none font-sans antialiased",
@@ -78,7 +88,7 @@ export default async function RootLayout({
         )}
         cz-shortcut-listen="true"
       >
-        <RootProvider>{children}</RootProvider>
+        <RootProvider initialState={initialState}>{children}</RootProvider>
       </body>
     </html>
   );
