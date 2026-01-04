@@ -42,22 +42,13 @@ const WalletLoadingView = () => (
 const WalletConnectedView = ({
   user,
   address,
-  ensName,
-  ensAvatar,
   isConnected,
 }: {
   user: UserInfoProps["user"];
   address: Address;
-  ensName: string | undefined | null;
-  ensAvatar: string | undefined | null;
   isConnected: boolean;
 }) => {
-  const { avatarUrl, displayName } = getWalletConnectedDisplay(
-    user,
-    address,
-    ensName,
-    ensAvatar
-  );
+  const { avatarUrl, displayName } = getWalletConnectedDisplay(user, address);
 
   return (
     <div className="flex items-center gap-2">
@@ -72,7 +63,7 @@ const WalletConnectedView = ({
 };
 
 export const UserInfo = ({ user, address: addressProp }: UserInfoProps) => {
-  const { address, ensName, ensAvatar, isConnected, state } = useUserInfoLogic({
+  const { address, isConnected, state } = useUserInfoLogic({
     user,
     address: addressProp,
   });
@@ -92,8 +83,6 @@ export const UserInfo = ({ user, address: addressProp }: UserInfoProps) => {
   return (
     <WalletConnectedView
       address={address}
-      ensAvatar={ensAvatar}
-      ensName={ensName}
       isConnected={isConnected}
       user={user}
     />

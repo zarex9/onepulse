@@ -46,17 +46,16 @@ export function UserAvatar({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-40">
         <DropdownMenuItem
-            disabled={disconnect.isPending}
-            inset
-            onSelect={() => {
-              disconnect.mutate();
-            }}
-            variant="destructive"
-          >
-            Disconnect
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
+          disabled={disconnect.isPending}
+          inset
+          onSelect={() => {
+            disconnect.mutate();
+          }}
+          variant="destructive"
+        >
+          Disconnect
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

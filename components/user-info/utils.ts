@@ -7,16 +7,13 @@ export type UserInfoProps = {
   address?: Address | string;
 };
 
-export const getAvatarUrl = (
-  userPfp: string | undefined,
-  ensAvatar: string | null | undefined
-): string | undefined => userPfp || ensAvatar || undefined;
+export const getAvatarUrl = (userPfp: string | undefined): string | undefined =>
+  userPfp || undefined;
 
 export const getDisplayName = (
   userDisplayName: string | undefined,
-  ensName: string | null | undefined,
   address: `0x${string}`
-): string => userDisplayName || ensName || getSlicedAddress(address);
+): string => userDisplayName || getSlicedAddress(address);
 
 export const getMiniAppUserDisplay = (user: UserInfoProps["user"]) => ({
   displayName: user?.displayName || "Unknown",
@@ -26,27 +23,21 @@ export const getMiniAppUserDisplay = (user: UserInfoProps["user"]) => ({
 
 export const getWalletConnectedDisplay = (
   user: UserInfoProps["user"],
-  address: Address,
-  ensName: string | null | undefined,
-  ensAvatar: string | null | undefined
+  address: Address
 ) => ({
-  avatarUrl: getAvatarUrl(user?.pfpUrl, ensAvatar),
-  displayName: getDisplayName(user?.displayName, ensName, address),
+  avatarUrl: getAvatarUrl(user?.pfpUrl),
+  displayName: getDisplayName(user?.displayName, address),
 });
 
 export type DisplayState = "hidden" | "miniapp" | "loading" | "wallet";
 
 export const determineDisplayState = (
   user: UserInfoProps["user"],
-  address: Address | undefined,
-  isLoading: boolean
+  address: Address | undefined
 ): DisplayState => {
   const hasIdentity = Boolean(user || address);
   if (!hasIdentity) {
     return "hidden";
-  }
-  if (isLoading) {
-    return "loading";
   }
   if (address && !user) {
     return "wallet";
