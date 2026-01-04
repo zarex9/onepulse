@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
-import { isAddress } from "viem";
+import { isAddress } from "viem/utils";
 import { z } from "zod";
-import { SUPPORTED_CHAINS } from "@/lib/constants";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { handleError } from "@/lib/error-handling";
 import { fetchFarcasterUser } from "@/lib/farcaster";
 import { getCachedGoogleFont, setCachedGoogleFont } from "@/lib/kv";
@@ -160,10 +160,6 @@ async function loadGoogleFont(
   throw new Error("Failed to load font");
 }
 
-function getChainName(chainId: number): string {
-  return SUPPORTED_CHAINS.find((c) => c.id === chainId)?.name || "Unknown";
-}
-
 function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
@@ -172,7 +168,7 @@ async function getDataFromAddress(address: string): Promise<GMStatusParams> {
   let displayName = formatAddress(address);
   let username = formatAddress(address);
   let pfp: string | null = null;
-  let stats: {
+  const stats: {
     name: string;
     currentStreak: number;
     highestStreak: number;
@@ -182,27 +178,16 @@ async function getDataFromAddress(address: string): Promise<GMStatusParams> {
   try {
     const rows = await getGmRows(address);
 
-    // Process chains using keyed structure
-    const gmStats: Record<
-      string,
-      {
-        name: string;
-        currentStreak: number;
-        highestStreak: number;
-        allTimeGmCount: number;
-      }
-    > = {};
-    for (const r of rows) {
-      gmStats[String(r.chainId)] = {
-        name: getChainName(r.chainId),
-        currentStreak: r.currentStreak ?? 0,
-        highestStreak: r.highestStreak ?? 0,
-        allTimeGmCount: r.allTimeGmCount ?? 0,
-      };
-    }
+    const baseRow = rows.find((r) => r.chainId === BASE_CHAIN_ID);
 
-    // Convert to sorted chains array for OG image
-    stats = Object.values(gmStats).sort((a, b) => a.name.localeCompare(b.name));
+    if (baseRow) {
+      stats.push({
+        name: "Base",
+        currentStreak: baseRow.currentStreak ?? 0,
+        highestStreak: baseRow.highestStreak ?? 0,
+        allTimeGmCount: baseRow.allTimeGmCount ?? 0,
+      });
+    }
 
     // Find FID and fetch Farcaster profile
     const fid = rows.find((r) => r.fid)?.fid;
@@ -367,16 +352,6 @@ const CHAIN_COLORS: Record<
   base: {
     bg: "rgba(0, 0, 255, 1)",
     border: "rgba(0, 0, 255, 0.3)",
-    text: "#0a0a0a",
-  },
-  celo: {
-    bg: "rgba(252, 255, 82, 1)",
-    border: "rgba(252, 255, 82, 0.3)",
-    text: "#0a0a0a",
-  },
-  optimism: {
-    bg: "rgba(255, 4, 32, 1)",
-    border: "rgba(255, 4, 32, 0.3)",
     text: "#0a0a0a",
   },
 };
