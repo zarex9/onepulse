@@ -11,7 +11,6 @@ export function OnchainKitProvider({ children }: { children: ReactNode }) {
 
   return (
     <Provider
-      analytics={false}
       apiKey={apiKey}
       chain={chain}
       config={config}

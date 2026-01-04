@@ -19,8 +19,6 @@ export function useOnchainKitProviderLogic() {
       preference: "all" as const,
       supportedWallets: {
         rabby: true,
-        trust: true,
-        frame: true,
       },
     },
     paymaster,
