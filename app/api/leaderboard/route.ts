@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import type { Infer } from "spacetimedb";
 import type {
@@ -164,21 +165,34 @@ function filterToPrimaryWallets(
   return filtered;
 }
 
-function getUserRank(
-  fullLeaderboard: LeaderboardEntry[],
-  userAddress: string
-): number | null {
-  // Filter to primary wallets and assign ranks
-  const filtered = filterToPrimaryWallets(fullLeaderboard);
-  assignRanks(filtered);
+type SerializableLeaderboardEntry = Omit<LeaderboardEntry, "fid"> & {
+  fid: string | null;
+};
 
-  // Find user's rank in filtered leaderboard
-  const userRank = filtered.find(
-    (entry) => entry.address.toLowerCase() === userAddress.toLowerCase()
-  )?.rank;
+const getCachedLeaderboard = unstable_cache(
+  async (): Promise<SerializableLeaderboardEntry[]> => {
+    const conn = await connectServerDbConnection(30_000);
+    try {
+      const allRows = await fetchAllGmStats(conn);
+      const fullLeaderboard = aggregateByAddress(allRows);
+      const filtered = filterToPrimaryWallets(fullLeaderboard);
+      assignRanks(filtered);
 
-  return userRank ?? null;
-}
+      return filtered.map((entry) => ({
+        ...entry,
+        fid: entry.fid ? entry.fid.toString() : null,
+      }));
+    } finally {
+      try {
+        conn.disconnect();
+      } catch {
+        // Silent fail
+      }
+    }
+  },
+  ["leaderboard-full-v1"],
+  { revalidate: 60, tags: ["leaderboard"] }
+);
 
 export async function GET(req: NextRequest) {
   try {
@@ -187,51 +201,29 @@ export async function GET(req: NextRequest) {
     const userAddress = url.searchParams.get("user");
     const limit = limitStr ? Math.min(Number.parseInt(limitStr, 10), 100) : 10;
 
-    const conn = await connectServerDbConnection(30_000);
+    const filtered = await getCachedLeaderboard();
 
-    try {
-      const allRows = await fetchAllGmStats(conn);
-      const fullLeaderboard = aggregateByAddress(allRows);
+    // Take top 10 from filtered results
+    const top10 = filtered.slice(0, limit);
 
-      // Filter to keep only primary wallet entries per user
-      const filtered = filterToPrimaryWallets(fullLeaderboard);
+    // Get user's rank if they're not in top 10
+    const userRank =
+      userAddress &&
+      !top10.some((e) => e.address.toLowerCase() === userAddress.toLowerCase())
+        ? (filtered.find(
+            (entry) => entry.address.toLowerCase() === userAddress.toLowerCase()
+          )?.rank ?? null)
+        : null;
 
-      // Assign ranks to filtered entries
-      assignRanks(filtered);
+    // Calculate total count
+    const totalCount = filtered.length;
 
-      // Take top 10 from filtered results
-      const top10 = filtered.slice(0, limit);
-
-      // Get user's rank if they're not in top 10
-      const userRank =
-        userAddress &&
-        !top10.some(
-          (e) => e.address.toLowerCase() === userAddress.toLowerCase()
-        )
-          ? getUserRank(filtered, userAddress)
-          : null;
-
-      // Calculate total count
-      const totalCount = userRank ?? top10.length;
-
-      const serializable = top10.map((entry) => ({
-        ...entry,
-        fid: entry.fid ? entry.fid.toString() : null,
-      }));
-
-      return NextResponse.json({
-        leaderboard: serializable,
-        userRank,
-        total: totalCount,
-        timestamp: new Date().toISOString(),
-      });
-    } finally {
-      try {
-        conn.disconnect();
-      } catch {
-        // Silent fail on disconnect
-      }
-    }
+    return NextResponse.json({
+      leaderboard: top10,
+      userRank,
+      total: totalCount,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("[Leaderboard API] Error:", error);
     const message =
