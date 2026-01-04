@@ -12,7 +12,6 @@ import {
   deleteUserNotificationDetails,
   setUserNotificationDetails,
 } from "@/lib/kv";
-import { sendMiniAppNotification } from "@/lib/notifications";
 
 function handleParseError(error: ParseWebhookEvent.ErrorType) {
   switch (error.name) {
@@ -47,12 +46,6 @@ async function handleMiniAppAdded(
 ) {
   if (notificationDetails) {
     await setUserNotificationDetails(fid, appFid, notificationDetails);
-    await sendMiniAppNotification({
-      fid,
-      appFid,
-      title: "Welcome to OnePulse",
-      body: "Thank you for adding OnePulse",
-    });
   } else {
     await deleteUserNotificationDetails(fid, appFid);
   }
@@ -64,12 +57,6 @@ async function handleNotificationsEnabled(
   notificationDetails: MiniAppNotificationDetails
 ) {
   await setUserNotificationDetails(fid, appFid, notificationDetails);
-  await sendMiniAppNotification({
-    fid,
-    appFid,
-    title: "Ding ding ding",
-    body: "Notifications are now enabled",
-  });
 }
 
 async function processWebhookEvent(
