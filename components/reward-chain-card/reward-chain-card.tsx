@@ -13,10 +13,6 @@ import {
   ItemMedia,
 } from "@/components/ui/item";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import { useGMSharing } from "@/hooks/use-gm-sharing";
-import { useGmStats } from "@/hooks/use-gm-stats";
-import { useMiniAppSharing } from "@/hooks/use-mini-app-sharing";
-import { useShareActions } from "@/hooks/use-share-actions";
 import type { ChainId } from "@/lib/constants";
 
 export type RewardChainCardProps = {
@@ -54,19 +50,7 @@ export function RewardChainCard(props: RewardChainCardProps) {
     address,
   });
 
-  const { hasSharedToday, markAsShared } = useMiniAppSharing();
-
   // Now that claimState is available, get stats and sharing logic
-  const { stats } = useGmStats(address);
-  const claimedToday = Boolean(hasAlreadyClaimed);
-  const completedAllChains = address
-    ? Object.values(stats).every((s) => s.currentStreak > 0)
-    : false;
-  const { shareText, shareUrl } = useGMSharing(
-    claimedToday,
-    completedAllChains
-  );
-  const { shareToCast } = useShareActions();
 
   const isEligible = claimState?.isEligible ?? false;
   const BASE_CHAIN_ID = 8453;
@@ -75,20 +59,6 @@ export function RewardChainCard(props: RewardChainCardProps) {
     toast.error(`Failed to claim reward on ${name}`, {
       description: error.message || "Please try again later",
     });
-  };
-
-  const handleShareMiniApp = async () => {
-    if (!shareUrl) {
-      toast.error("Unable to generate share link. Please try again.");
-      return;
-    }
-    const success = await shareToCast(shareText, shareUrl);
-    if (success) {
-      toast.success("Mini app shared successfully!");
-      markAsShared();
-    } else {
-      toast.error("Failed to share mini app. Please try again.");
-    }
   };
 
   return (
@@ -150,18 +120,6 @@ export function RewardChainCard(props: RewardChainCardProps) {
                 size="lg"
               >
                 {buttonState?.label || "Already claimed"}
-              </Button>
-            );
-          }
-
-          if (!hasSharedToday) {
-            return (
-              <Button
-                className={`w-full ${chainBtnClasses}`}
-                onClick={handleShareMiniApp}
-                size="lg"
-              >
-                Share Mini App
               </Button>
             );
           }

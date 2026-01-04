@@ -6,7 +6,6 @@ import {
   useReadDailyRewardsV2CanClaimToday,
   useReadDailyRewardsV2DailyClaimCount,
 } from "@/helpers/contracts";
-import { useMiniAppSharing } from "@/hooks/use-mini-app-sharing";
 import type { ChainId } from "@/lib/constants";
 
 type UseClaimEligibilityProps = {
@@ -28,9 +27,7 @@ type ContractClaimEligibility = {
   globalClaimLimit: bigint;
 };
 
-type ClaimEligibility = ContractClaimEligibility & {
-  hasSharedMiniAppToday: boolean;
-};
+type ClaimEligibility = ContractClaimEligibility;
 
 const SIGNATURE_DEADLINE_SECONDS = 300; // 5 minutes
 const REFETCH_ELIGIBILITY_MS = 1000; // 1 second (more responsive)
@@ -43,17 +40,14 @@ type FormattedClaimEligibility = {
 };
 
 function formatClaimEligibility(
-  claimStatus: ContractClaimEligibility | undefined,
-  hasSharedToday: boolean
+  claimStatus: ContractClaimEligibility | undefined
 ): FormattedClaimEligibility {
   const baseCanClaim = claimStatus?.ok ?? false;
   // User must have sent GM, shared the mini app, and meet other criteria
-  const canClaim = baseCanClaim && hasSharedToday;
+  const canClaim = baseCanClaim;
 
   return {
-    claimStatus: claimStatus
-      ? { ...claimStatus, hasSharedMiniAppToday: hasSharedToday }
-      : undefined,
+    claimStatus: claimStatus ? { ...claimStatus } : undefined,
     canClaim,
     reward: claimStatus?.reward ?? 0n,
     vaultBalance: claimStatus?.vaultBalance ?? 0n,
@@ -91,7 +85,6 @@ export function useClaimEligibility({
   chainId,
 }: UseClaimEligibilityProps) {
   const { address } = useConnection();
-  const { hasSharedToday } = useMiniAppSharing();
 
   const contractAddress = dailyRewardsV2Address[chainId];
 
@@ -120,7 +113,7 @@ export function useClaimEligibility({
   const refetch = refetchContract;
 
   return {
-    ...formatClaimEligibility(claimStatus, hasSharedToday),
+    ...formatClaimEligibility(claimStatus),
     hasSentGMToday: claimStatus?.hasSentGMToday ?? false,
     isPending,
     isError,
