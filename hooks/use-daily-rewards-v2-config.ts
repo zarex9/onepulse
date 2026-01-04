@@ -1,77 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
-import type { Address } from "viem";
-import { useChainId, useSwitchChain } from "wagmi";
 import {
   BASE_CHAIN_ID,
-  CELO_CHAIN_ID,
-  DAILY_REWARDS_V2_ADDRESSES,
-  OPTIMISM_CHAIN_ID,
+  DAILY_REWARDS_V2_ADDRESS,
+  REWARD_TOKEN,
   REWARD_TOKEN_DECIMALS,
-  REWARD_TOKEN_SYMBOLS,
-  REWARD_TOKENS,
+  REWARD_TOKEN_SYMBOL,
 } from "@/lib/constants";
 
 export function useDailyRewardsV2Config() {
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
-  const [selectedChainId, setSelectedChainId] = useState<number>(chainId);
-
-  useEffect(() => {
-    setSelectedChainId(chainId);
-  }, [chainId]);
-
-  const handleChainChange = useCallback(
-    (newChainId: number) => {
-      setSelectedChainId(newChainId);
-      switchChain?.({ chainId: newChainId });
-    },
-    [switchChain]
-  );
-
-  const getChainName = useCallback((id: number): string => {
-    switch (id) {
-      case BASE_CHAIN_ID:
-        return "Base";
-      case CELO_CHAIN_ID:
-        return "Celo";
-      case OPTIMISM_CHAIN_ID:
-        return "Optimism";
-      default:
-        return "Unknown";
-    }
-  }, []);
-
-  const getContractAddress = useCallback(
-    (id: number): Address | "" => DAILY_REWARDS_V2_ADDRESSES[id] || "",
-    []
-  );
-
-  const getRewardTokenSymbol = useCallback(
-    (id: number): string => REWARD_TOKEN_SYMBOLS[id] || "TOKEN",
-    []
-  );
-
-  const getRewardTokenDecimals = useCallback(
-    (id: number): number => REWARD_TOKEN_DECIMALS[id] || 18,
-    []
-  );
-
-  const currentContractAddress = getContractAddress(selectedChainId);
-  const currentTokenSymbol = getRewardTokenSymbol(selectedChainId);
-  const currentTokenDecimals = getRewardTokenDecimals(selectedChainId);
-  const currentTokenAddress = REWARD_TOKENS[selectedChainId] || "";
+  const getChainName = () => "Base";
+  const currentContractAddress = DAILY_REWARDS_V2_ADDRESS;
+  const currentTokenSymbol = REWARD_TOKEN_SYMBOL;
+  const currentTokenDecimals = REWARD_TOKEN_DECIMALS;
+  const currentTokenAddress = REWARD_TOKEN;
 
   return {
-    selectedChainId,
-    setSelectedChainId: handleChainChange,
+    selectedChainId: BASE_CHAIN_ID,
     currentContractAddress,
     currentTokenAddress,
     currentTokenSymbol,
     currentTokenDecimals,
     getChainName,
-    getContractAddress,
-    getRewardTokenSymbol,
-    getRewardTokenDecimals,
-    supportedChains: [BASE_CHAIN_ID, CELO_CHAIN_ID, OPTIMISM_CHAIN_ID],
   };
 }

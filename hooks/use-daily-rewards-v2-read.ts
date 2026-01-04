@@ -1,162 +1,98 @@
-import { useCallback, useEffect, useState } from "react";
-import type { Address } from "viem";
-import { useReadContract } from "wagmi";
-import { dailyRewardsV2Abi } from "@/lib/abi/daily-rewards-v2";
-
-type DailyRewardsV2Status = {
-  backendSigner: string | undefined;
-  rewardToken: string | undefined;
-  claimRewardAmount: bigint | undefined;
-  minVaultBalance: bigint | undefined;
-  dailyClaimLimit: bigint | undefined;
-  dailyGMContract: string | undefined;
-  vaultStatus:
-    | {
-        currentBalance: bigint;
-        minReserve: bigint;
-        availableForClaims: bigint;
-      }
-    | undefined;
-  owner: string | undefined;
-  pendingOwner: string | undefined;
-  isLoading: boolean;
-  refetch: () => void;
-};
-
-export function useDailyRewardsV2Read(
-  contractAddress: Address | "",
-  chainId?: number
-) {
-  const [status, setStatus] = useState<DailyRewardsV2Status>({
-    backendSigner: undefined,
-    rewardToken: undefined,
-    claimRewardAmount: undefined,
-    minVaultBalance: undefined,
-    dailyClaimLimit: undefined,
-    dailyGMContract: undefined,
-    vaultStatus: undefined,
-    owner: undefined,
-    pendingOwner: undefined,
-    isLoading: true,
-    refetch: () => {
-      // No-op initial refetch function
-    },
-  });
-
-  const enabled = !!contractAddress;
-  const validAddress = (enabled ? contractAddress : undefined) as
-    | Address
-    | undefined;
-
+import {
+  useReadDailyRewardsV2BackendSigner,
+  useReadDailyRewardsV2ClaimRewardAmount,
+  useReadDailyRewardsV2DailyClaimLimit,
+  useReadDailyRewardsV2DailyGmContract,
+  useReadDailyRewardsV2GetVaultStatus,
+  useReadDailyRewardsV2MinVaultBalance,
+  useReadDailyRewardsV2Owner,
+  useReadDailyRewardsV2PendingOwner,
+  useReadDailyRewardsV2RewardToken,
+} from "@/helpers/contracts";
+import type { ChainId } from "@/lib/constants";
+export function useDailyRewardsV2Read(chainId: ChainId) {
   const {
-    data: backendSignerData,
+    data: backendSigner,
     isLoading: loadingBackendSigner,
     refetch: refetchBackendSigner,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "backendSigner",
+  } = useReadDailyRewardsV2BackendSigner({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: rewardTokenData,
+    data: rewardToken,
     isLoading: loadingRewardToken,
     refetch: refetchRewardToken,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "rewardToken",
+  } = useReadDailyRewardsV2RewardToken({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: claimRewardAmountData,
+    data: claimRewardAmount,
     isLoading: loadingClaimRewardAmount,
     refetch: refetchClaimRewardAmount,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "claimRewardAmount",
+  } = useReadDailyRewardsV2ClaimRewardAmount({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: minVaultBalanceData,
+    data: minVaultBalance,
     isLoading: loadingMinVaultBalance,
     refetch: refetchMinVaultBalance,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "minVaultBalance",
+  } = useReadDailyRewardsV2MinVaultBalance({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: dailyClaimLimitData,
+    data: dailyClaimLimit,
     isLoading: loadingDailyClaimLimit,
     refetch: refetchDailyClaimLimit,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "dailyClaimLimit",
+  } = useReadDailyRewardsV2DailyClaimLimit({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: dailyGMContractData,
+    data: dailyGMContract,
     isLoading: loadingDailyGMContract,
     refetch: refetchDailyGMContract,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "dailyGMContract",
+  } = useReadDailyRewardsV2DailyGmContract({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: vaultStatusData,
+    data: vaultStatus,
     isLoading: loadingVaultStatus,
     refetch: refetchVaultStatus,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "getVaultStatus",
+  } = useReadDailyRewardsV2GetVaultStatus({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: ownerData,
+    data: owner,
     isLoading: loadingOwner,
     refetch: refetchOwner,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "owner",
+  } = useReadDailyRewardsV2Owner({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
   const {
-    data: pendingOwnerData,
+    data: pendingOwner,
     isLoading: loadingPendingOwner,
     refetch: refetchPendingOwner,
-  } = useReadContract({
-    address: validAddress,
-    abi: dailyRewardsV2Abi,
-    functionName: "pendingOwner",
+  } = useReadDailyRewardsV2PendingOwner({
     chainId,
-    query: { enabled },
+    query: { enabled: true },
   });
 
-  const handleRefetch = useCallback(() => {
+  const handleRefetch = () => {
     refetchBackendSigner?.();
     refetchRewardToken?.();
     refetchClaimRewardAmount?.();
@@ -166,68 +102,34 @@ export function useDailyRewardsV2Read(
     refetchVaultStatus?.();
     refetchOwner?.();
     refetchPendingOwner?.();
-  }, [
-    refetchBackendSigner,
-    refetchRewardToken,
-    refetchClaimRewardAmount,
-    refetchMinVaultBalance,
-    refetchDailyClaimLimit,
-    refetchDailyGMContract,
-    refetchVaultStatus,
-    refetchOwner,
-    refetchPendingOwner,
-  ]);
+  };
 
-  useEffect(() => {
-    setStatus({
-      backendSigner: backendSignerData as string | undefined,
-      rewardToken: rewardTokenData as string | undefined,
-      claimRewardAmount: claimRewardAmountData as bigint | undefined,
-      minVaultBalance: minVaultBalanceData as bigint | undefined,
-      dailyClaimLimit: dailyClaimLimitData as bigint | undefined,
-      dailyGMContract: dailyGMContractData as string | undefined,
-      vaultStatus: vaultStatusData
-        ? {
-            currentBalance: vaultStatusData[0],
-            minReserve: vaultStatusData[1],
-            availableForClaims: vaultStatusData[2],
-          }
-        : undefined,
-      owner: ownerData as string | undefined,
-      pendingOwner: pendingOwnerData as string | undefined,
-      isLoading:
-        loadingBackendSigner ||
-        loadingRewardToken ||
-        loadingClaimRewardAmount ||
-        loadingMinVaultBalance ||
-        loadingDailyClaimLimit ||
-        loadingDailyGMContract ||
-        loadingVaultStatus ||
-        loadingOwner ||
-        loadingPendingOwner,
-      refetch: handleRefetch,
-    });
-  }, [
-    backendSignerData,
-    rewardTokenData,
-    claimRewardAmountData,
-    minVaultBalanceData,
-    dailyClaimLimitData,
-    dailyGMContractData,
-    vaultStatusData,
-    ownerData,
-    pendingOwnerData,
-    loadingBackendSigner,
-    loadingRewardToken,
-    loadingClaimRewardAmount,
-    loadingMinVaultBalance,
-    loadingDailyClaimLimit,
-    loadingDailyGMContract,
-    loadingVaultStatus,
-    loadingOwner,
-    loadingPendingOwner,
-    handleRefetch,
-  ]);
-
-  return status;
+  return {
+    backendSigner,
+    rewardToken,
+    claimRewardAmount,
+    minVaultBalance,
+    dailyClaimLimit,
+    dailyGMContract,
+    vaultStatus: vaultStatus
+      ? {
+          currentBalance: vaultStatus[0],
+          minReserve: vaultStatus[1],
+          availableForClaims: vaultStatus[2],
+        }
+      : undefined,
+    owner,
+    pendingOwner,
+    isLoading:
+      loadingBackendSigner ||
+      loadingRewardToken ||
+      loadingClaimRewardAmount ||
+      loadingMinVaultBalance ||
+      loadingDailyClaimLimit ||
+      loadingDailyGMContract ||
+      loadingVaultStatus ||
+      loadingOwner ||
+      loadingPendingOwner,
+    refetch: handleRefetch,
+  };
 }
