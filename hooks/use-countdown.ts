@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SECONDS_PER_DAY } from "@/lib/constants";
 import { getCurrentTimestampSeconds, timestampToDayNumber } from "@/lib/utils";
 
@@ -10,21 +10,7 @@ export const useCountdown = () => {
     timestampToDayNumber(getCurrentTimestampSeconds())
   );
 
-  const targetSec = useMemo(
-    () => (currentDay + 1) * SECONDS_PER_DAY,
-    [currentDay]
-  );
-
-  const update = useCallback(() => {
-    const nowSec = Math.floor(Date.now() / 1000);
-    const ms = Math.max(0, (targetSec - nowSec) * 1000);
-    const total = Math.max(0, Math.floor(ms / 1000));
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    const s = total % 60;
-    const pad = (n: number) => String(n).padStart(2, "0");
-    setText(`${pad(h)}:${pad(m)}:${pad(s)}`);
-  }, [targetSec]);
+  const targetSec = (currentDay + 1) * SECONDS_PER_DAY;
 
   useEffect(() => {
     const currentSec = getCurrentTimestampSeconds();
@@ -39,6 +25,17 @@ export const useCountdown = () => {
   }, [currentDay]);
 
   useEffect(() => {
+    const update = () => {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const ms = Math.max(0, (targetSec - nowSec) * 1000);
+      const total = Math.max(0, Math.floor(ms / 1000));
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      const pad = (n: number) => String(n).padStart(2, "0");
+      setText(`${pad(h)}:${pad(m)}:${pad(s)}`);
+    };
+
     // Initial update
     update();
 
@@ -50,7 +47,7 @@ export const useCountdown = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [update]);
+  }, [targetSec]);
 
   return text;
 };

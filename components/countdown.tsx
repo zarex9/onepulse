@@ -1,10 +1,7 @@
-"use client";
-
 import { ClockIcon } from "lucide-react";
-import { memo } from "react";
 import { useCountdown } from "@/hooks/use-countdown";
 
-export const Countdown = memo(() => {
+export function Countdown() {
   const text = useCountdown();
 
   return (
@@ -20,6 +17,4 @@ export const Countdown = memo(() => {
       </div>
     </div>
   );
-});
-
-Countdown.displayName = "Countdown";
+}
