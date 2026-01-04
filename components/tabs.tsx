@@ -1,6 +1,6 @@
 "use client";
 
-import { Gift, House, MessageCircle, TrendingUp } from "lucide-react";
+import { House, MessageCircle, TrendingUp } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useChainId, useSwitchChain } from "wagmi";
 import { Home } from "@/components/home";
@@ -38,13 +38,6 @@ const OnChatWidget = dynamic(
   }
 );
 
-const Rewards = dynamic(
-  () => import("@/components/rewards").then((mod) => mod.Rewards),
-  {
-    loading: () => <Skeleton className="h-125 w-full rounded-xl" />,
-  }
-);
-
 type TabsProps = {
   tab: string;
   onTabChangeAction: (tab: string) => void;
@@ -71,9 +64,6 @@ export function Tabs({
             sponsored={isBaseApp}
           />
         </TabsContent>
-        <TabsContent value="rewards">
-          <Rewards sponsored={isBaseApp} />
-        </TabsContent>
         <TabsContent value="leaderboard">
           <Leaderboard />
         </TabsContent>
@@ -86,13 +76,6 @@ export function Tabs({
               >
                 <House className="h-5 w-5" />
                 <span className="text-xs">Home</span>
-              </TabsTrigger>
-              <TabsTrigger
-                className="flex h-full flex-col items-center justify-center gap-1 border-0 data-[state=active]:bg-foreground/10"
-                value="rewards"
-              >
-                <Gift className="h-5 w-5" />
-                <span className="text-xs">Rewards</span>
               </TabsTrigger>
               <TabsTrigger
                 className="flex h-full flex-col items-center justify-center gap-1 border-0 data-[state=active]:bg-foreground/10"
