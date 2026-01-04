@@ -1,4 +1,3 @@
-import { memo } from "react";
 
 type FallbackUIProps = {
   type:
@@ -13,7 +12,7 @@ type FallbackUIProps = {
 /**
  * Fallback UI shown when user cannot claim due to missing prerequisites.
  */
-export const ClaimFallbackUI = memo(({ type, chainName }: FallbackUIProps) => {
+export function ClaimFallbackUI({ type, chainName }: FallbackUIProps) {
   if (!type) {
     return null;
   }
@@ -33,4 +32,4 @@ export const ClaimFallbackUI = memo(({ type, chainName }: FallbackUIProps) => {
       {message}
     </div>
   );
-});
+}
