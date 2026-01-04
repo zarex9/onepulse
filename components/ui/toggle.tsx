@@ -2,7 +2,7 @@
 
 import { Root } from "@radix-ui/react-toggle";
 import { cva, type VariantProps } from "class-variance-authority";
-import { type ComponentProps, type ComponentRef, forwardRef } from "react";
+import type { ComponentProps, ComponentRef } from "react";
 import { cn } from "@/lib/utils";
 
 const toggleVariants = cva(
@@ -27,10 +27,16 @@ const toggleVariants = cva(
   }
 );
 
-const Toggle = forwardRef<
-  ComponentRef<typeof Root>,
-  ComponentProps<typeof Root> & VariantProps<typeof toggleVariants>
->(function Toggle({ className, variant, size, ...props }, ref) {
+const Toggle = function Toggle({
+  className,
+  variant,
+  size,
+  ref,
+  ...props
+}: ComponentProps<typeof Root> &
+  VariantProps<typeof toggleVariants> & {
+    ref?: React.Ref<ComponentRef<typeof Root>>;
+  }) {
   return (
     <Root
       className={cn(toggleVariants({ variant, size, className }))}
@@ -39,6 +45,6 @@ const Toggle = forwardRef<
       {...props}
     />
   );
-});
+};
 
 export { Toggle, toggleVariants };
