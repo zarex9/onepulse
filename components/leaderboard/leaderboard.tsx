@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,7 +93,7 @@ function LeaderboardSkeleton() {
 }
 
 export function Leaderboard({ userAddress }: { userAddress?: string }) {
-  const { address } = useAccount();
+  const { address } = useConnection();
   const currentUserAddress = userAddress || address;
 
   const apiUrl = currentUserAddress
@@ -109,7 +108,7 @@ export function Leaderboard({ userAddress }: { userAddress?: string }) {
     refetchOnReconnect: false,
   });
 
-  const { topEntries, userEntry } = useMemo(() => {
+  const { topEntries, userEntry } = (() => {
     if (!data?.leaderboard) {
       return { topEntries: [], userEntry: undefined };
     }
@@ -128,7 +127,7 @@ export function Leaderboard({ userAddress }: { userAddress?: string }) {
 
     // If user is outside top 10, show them first, then top 10
     return { topEntries: top10, userEntry: user };
-  }, [data?.leaderboard, currentUserAddress]);
+  })();
 
   if (isLoading) {
     return <LeaderboardSkeleton />;
