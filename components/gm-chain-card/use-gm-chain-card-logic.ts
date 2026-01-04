@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useChainId } from "wagmi";
 import type { ChainId } from "@/lib/constants";
 import { getChainBtnClasses, getChainIconName } from "@/lib/utils";
@@ -9,7 +9,6 @@ type UseGMChainCardLogicProps = {
   contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: `0x${string}`;
-  onStatusChange?: (status: { chainId: ChainId; hasGmToday: boolean }) => void;
 };
 
 export function useGMChainCardLogic({
@@ -17,7 +16,6 @@ export function useGMChainCardLogic({
   contractAddress,
   isConnected,
   address,
-  onStatusChange,
 }: UseGMChainCardLogicProps) {
   const currentChainId = useChainId();
   const onCorrectChain = currentChainId === chainId;
@@ -29,10 +27,6 @@ export function useGMChainCardLogic({
     isConnected,
     address
   );
-
-  useEffect(() => {
-    onStatusChange?.({ chainId, hasGmToday });
-  }, [chainId, hasGmToday, onStatusChange]);
 
   const chainBtnClasses = getChainBtnClasses();
 

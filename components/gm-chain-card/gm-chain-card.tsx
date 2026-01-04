@@ -20,10 +20,6 @@ export type GMChainCardProps = {
   contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: `0x${string}`;
-  onStatusChangeAction?: (status: {
-    chainId: ChainId;
-    hasGmToday: boolean;
-  }) => void;
   stats: GmStats;
   isStatsReady: boolean;
   isSponsored?: boolean;
@@ -35,7 +31,6 @@ export const GMChainCard = ({
   contractAddress,
   isConnected,
   address,
-  onStatusChangeAction,
   stats,
   isStatsReady,
   isSponsored = false,
@@ -54,7 +49,6 @@ export const GMChainCard = ({
     contractAddress,
     isConnected,
     address,
-    onStatusChange: onStatusChangeAction,
   });
 
   return (
