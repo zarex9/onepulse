@@ -1,12 +1,16 @@
 "use client";
 
 import { OnchainKitProvider as Provider } from "@coinbase/onchainkit";
-import type { ReactNode } from "react";
-import "@/styles/onchainkit.css";
 import { base } from "@wagmi/core/chains";
+import type { ReactNode } from "react";
 import { minikitConfig } from "@/minikit.config";
+import "@/styles/onchainkit.css";
 
-export function OnchainKitProvider({ children }: { children: ReactNode }) {
+type OnchainKitProviderProps = {
+  children: ReactNode;
+};
+
+export function OnchainKitProvider({ children }: OnchainKitProviderProps) {
   const apiKey = process.env.ONCHAINKIT_API_KEY;
   const projectId = process.env.ONCHAINKIT_PROJECT_ID;
   const paymaster = process.env.PAYMASTER_ENDPOINT;
