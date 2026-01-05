@@ -2,19 +2,27 @@ import { useConnection } from "wagmi";
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 import type { MiniAppContext, UserContext } from "@/types/miniapp";
 
-const extractUserFromContext = (
+function extractUserFromContext(
   context: MiniAppContext | null | undefined
-): UserContext | undefined =>
-  context?.user
-    ? {
-        fid: context.user.fid,
-        displayName: context.user.displayName,
-        username: context.user.username,
-        pfpUrl: context.user.pfpUrl,
-      }
-    : undefined;
+): UserContext | undefined {
+  if (!context?.user) {
+    return undefined;
+  }
+  return {
+    fid: context.user.fid,
+    displayName: context.user.displayName,
+    username: context.user.username,
+    pfpUrl: context.user.pfpUrl,
+  };
+}
 
-export const useHeaderLogic = () => {
+type UseHeaderLogicReturn = {
+  address: `0x${string}` | undefined;
+  user: UserContext | undefined;
+  shouldShowUserInfo: boolean;
+};
+
+export function useHeaderLogic(): UseHeaderLogicReturn {
   const { address } = useConnection();
   const miniAppContext = useMiniAppContext();
 
@@ -26,4 +34,4 @@ export const useHeaderLogic = () => {
     user,
     shouldShowUserInfo,
   };
-};
+}
