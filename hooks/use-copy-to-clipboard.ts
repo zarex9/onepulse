@@ -2,16 +2,23 @@
 
 import { useState } from "react";
 
+type UseCopyToClipboardOptions = {
+  timeout?: number;
+  onCopyAction?: () => void;
+};
+
+type UseCopyToClipboardReturn = {
+  isCopied: boolean;
+  copyToClipboard: (value: string) => void;
+};
+
 export function useCopyToClipboard({
   timeout = 2000,
   onCopyAction,
-}: {
-  timeout?: number;
-  onCopyAction?: () => void;
-} = {}) {
+}: UseCopyToClipboardOptions = {}): UseCopyToClipboardReturn {
   const [isCopied, setIsCopied] = useState(false);
 
-  const copyToClipboard = (value: string) => {
+  function copyToClipboard(value: string): void {
     if (typeof window === "undefined" || !navigator.clipboard.writeText) {
       return;
     }
@@ -20,20 +27,24 @@ export function useCopyToClipboard({
       return;
     }
 
-    navigator.clipboard.writeText(value).then(() => {
-      setIsCopied(true);
+    navigator.clipboard.writeText(value).then(
+      () => {
+        setIsCopied(true);
 
-      if (onCopyAction) {
-        onCopyAction();
-      }
+        onCopyAction?.();
 
-      if (timeout !== 0) {
-        setTimeout(() => {
-          setIsCopied(false);
-        }, timeout);
+        if (timeout !== 0) {
+          setTimeout(() => {
+            setIsCopied(false);
+          }, timeout);
+        }
+      },
+      (_error) => {
+        // Clipboard write failed - user can retry
+        // Don't throw to prevent component crash
       }
-    }, console.error);
-  };
+    );
+  }
 
   return { isCopied, copyToClipboard };
 }

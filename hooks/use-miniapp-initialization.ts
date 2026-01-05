@@ -8,7 +8,7 @@ type UseMiniAppInitializationProps = {
 export function useMiniAppInitialization({
   isMiniAppReady,
   setMiniAppReady,
-}: UseMiniAppInitializationProps) {
+}: UseMiniAppInitializationProps): void {
   useEffect(() => {
     if (!isMiniAppReady) {
       setMiniAppReady();

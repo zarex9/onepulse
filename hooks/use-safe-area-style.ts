@@ -1,6 +1,13 @@
 import { useMiniAppContext } from "@/components/providers/miniapp-provider";
 
-export function useSafeAreaStyle() {
+type SafeAreaStyle = {
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+};
+
+export function useSafeAreaStyle(): SafeAreaStyle {
   const miniAppContext = useMiniAppContext();
   const insets = miniAppContext?.context?.client.safeAreaInsets;
 
