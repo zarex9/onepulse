@@ -16,11 +16,11 @@ import { base } from "@wagmi/core/chains";
 import { cn, getChainExplorer } from "@/lib/utils";
 import { Spinner } from "./spinner";
 
-export const getPaymasterUrl = (
-  capabilities?: Capabilities,
-): string | null => {
-  return capabilities?.paymasterService?.url || null;
-};
+export function getPaymasterUrl(
+  capabilities?: Capabilities
+): string | null {
+  return capabilities?.paymasterService?.url ?? null;
+}
 
 export function useValue<T>(object: T): T {
   return object;
@@ -425,12 +425,12 @@ export const sendSingleTransactions = async ({
   }
 };
 
-export const useSendWalletTransactions = ({
+export function useSendWalletTransactions({
   capabilities,
   sendCallAsync,
   sendCallsAsync,
   walletCapabilities,
-}: UseSendWalletTransactionsParams) => {
+}: UseSendWalletTransactionsParams) {
   const config = useConfig();
   return async (
     transactions?:
@@ -438,7 +438,7 @@ export const useSendWalletTransactions = ({
       | ContractFunctionParameters[]
       | Promise<Call[]>
       | Promise<ContractFunctionParameters[]>
-      | Array<Call | ContractFunctionParameters>,
+      | Array<Call | ContractFunctionParameters>
   ) => {
     if (!transactions) {
       return;
@@ -462,7 +462,7 @@ export const useSendWalletTransactions = ({
       });
     }
   };
-};
+}
 
 export function normalizeStatus(status?: string) {
   if (status === 'CONFIRMED') {
@@ -770,12 +770,15 @@ function TransactionProvider({
         });
         receipts.push(txnReceipt);
       } catch (err) {
-        console.error(err);
+        // Log to development console for debugging, don't expose in production
+        if (process.env.NODE_ENV === "development") {
+          console.error("Transaction error:", err);
+        }
 
         setLifecycleStatus({
-          statusName: 'error',
+          statusName: "error",
           statusData: {
-            code: 'TmTPc01', // Transaction module TransactionProvider component 01 error
+            code: "TmTPc01", // Transaction module TransactionProvider component 01 error
             error: JSON.stringify(err),
             message: GENERIC_ERROR_MESSAGE,
           },
