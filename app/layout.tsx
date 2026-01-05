@@ -1,13 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { minikitConfig } from "@/minikit.config";
-import { RootProvider } from "./root-provider";
-
-import "@/styles/globals.css";
-
 import type { ReactNode } from "react";
 import { preconnect } from "react-dom";
 import { fontVariables } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { minikitConfig } from "@/minikit.config";
+import { RootProvider } from "./root-provider";
+import "@/styles/globals.css";
 
 const frame = {
   version: minikitConfig.miniapp.version,
@@ -63,11 +61,12 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  // Preconnect to critical third-party origins for performance
   preconnect("https://auth.farcaster.xyz");
   preconnect("wss://maincloud.spacetimedb.com");
 
