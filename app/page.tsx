@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/header";
 import { Tabs } from "@/components/tabs";
-import { useContentLogic, useHomePage } from "@/hooks/use-home-page";
+import { useHomePage } from "@/hooks/use-home-page";
 
 type ContentProps = {
   tab: string;
@@ -10,16 +10,10 @@ type ContentProps = {
 };
 
 function Content({ tab, setTab }: ContentProps) {
-  const { setGmStats } = useContentLogic();
-
   return (
     <div className="mx-auto w-[95%] max-w-lg px-4 py-4">
       <Header />
-      <Tabs
-        onGmStatsChangeAction={setGmStats}
-        onTabChangeAction={setTab}
-        tab={tab}
-      />
+      <Tabs onTabChangeAction={setTab} tab={tab} />
     </div>
   );
 }
