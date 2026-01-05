@@ -1,14 +1,10 @@
-import { dailyGmAbi } from "@/helpers/contracts";
+import { dailyGmAbi, dailyGmAddress } from "@/helpers/contracts";
 
-type UseGMCallsParams = {
-  contractAddress: `0x${string}`;
-};
-
-export const useGMCalls = ({ contractAddress }: UseGMCallsParams) => {
+export const useGMCalls = () => {
   return [
     {
       abi: dailyGmAbi,
-      address: contractAddress,
+      address: dailyGmAddress[8453],
       functionName: "gm" as const,
     },
   ];

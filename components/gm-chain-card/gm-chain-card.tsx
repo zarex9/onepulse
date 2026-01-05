@@ -65,7 +65,6 @@ export const GMChainCard = ({
           address={address}
           chainBtnClasses={chainBtnClasses}
           chainId={chainId}
-          contractAddress={contractAddress}
           gmDisabled={gmDisabled}
           hasGmToday={hasGmToday}
           isConnected={isConnected}

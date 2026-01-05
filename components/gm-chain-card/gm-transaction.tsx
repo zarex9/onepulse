@@ -13,7 +13,6 @@ import { useGMTransactionLogic } from "./use-gm-transaction-logic";
 
 type GMTransactionProps = {
   chainId: ChainId;
-  contractAddress: `0x${string}`;
   isSponsored: boolean;
   isContractReady: boolean;
   processing: boolean;
@@ -25,7 +24,6 @@ type GMTransactionProps = {
 
 export function GMTransaction({
   chainId,
-  contractAddress,
   isSponsored,
   isContractReady,
   processing,
@@ -34,9 +32,7 @@ export function GMTransaction({
   address,
   setProcessingAction,
 }: GMTransactionProps) {
-  const { calls, hasCalls } = useGMTransactionLogic({
-    contractAddress,
-  });
+  const { calls, hasCalls } = useGMTransactionLogic();
 
   if (!hasCalls) {
     return null;

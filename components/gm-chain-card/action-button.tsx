@@ -1,12 +1,11 @@
 "use client";
 
-import type { Address } from "viem/accounts";
+import { useSwitchChain } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
 import type { ChainId } from "@/lib/constants";
 import { GMTransaction } from "./gm-transaction";
-import { useActionButtonLogic } from "./use-action-button-logic";
 
 type ActionButtonProps = {
   isConnected: boolean;
@@ -16,7 +15,6 @@ type ActionButtonProps = {
   hasGmToday: boolean;
   gmDisabled: boolean;
   chainBtnClasses: string;
-  contractAddress: Address;
   isSponsored: boolean;
   processing: boolean;
   address?: `0x${string}`;
@@ -31,16 +29,13 @@ export function ActionButton({
   hasGmToday,
   gmDisabled,
   chainBtnClasses,
-  contractAddress,
   isSponsored,
   processing,
   address,
   setProcessingAction,
 }: ActionButtonProps) {
-  const { doSwitch, isLoading } = useActionButtonLogic({
-    chainId,
-    gmDisabled,
-  });
+  const switchChain = useSwitchChain();
+  const isLoading = switchChain.isPending;
 
   if (!isConnected) {
     return <ConnectWallet className={`${chainBtnClasses}`} />;
@@ -60,7 +55,7 @@ export function ActionButton({
         aria-busy={isLoading}
         className={`w-full ${chainBtnClasses}`}
         disabled={isLoading}
-        onClick={() => doSwitch}
+        onClick={() => switchChain.mutateAsync({ chainId })}
         size="lg"
       >
         {isLoading ? (
@@ -84,7 +79,6 @@ export function ActionButton({
       buttonLabel={`GM on ${name}`}
       chainBtnClasses={chainBtnClasses}
       chainId={chainId}
-      contractAddress={contractAddress}
       isContractReady={!gmDisabled}
       isSponsored={isSponsored}
       processing={processing}
