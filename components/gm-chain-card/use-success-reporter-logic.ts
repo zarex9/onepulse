@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useReducer } from "spacetimedb/react";
 import { useReadDailyGmLastGmDay } from "@/helpers/contracts";
-import type { ChainId } from "@/lib/constants";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { handleError } from "@/lib/error-handling";
 import { reducers } from "@/spacetimedb";
 import type { TransactionStatus } from "@/types/transaction";
@@ -9,19 +9,20 @@ import type { TransactionStatus } from "@/types/transaction";
 type UseSuccessReporterLogicProps = {
   status: TransactionStatus;
   address: `0x${string}`;
-  chainId: ChainId;
   txHash?: string;
 };
 
 export const useSuccessReporterLogic = ({
   status,
   address,
-  chainId,
   txHash,
 }: UseSuccessReporterLogicProps) => {
   const didReport = useRef(false);
 
-  const lastGmDay = useReadDailyGmLastGmDay({ chainId, args: [address] });
+  const lastGmDay = useReadDailyGmLastGmDay({
+    chainId: BASE_CHAIN_ID,
+    args: [address],
+  });
 
   const reportGm = useReducer(reducers.report);
 
@@ -36,7 +37,7 @@ export const useSuccessReporterLogic = ({
         {
           operation: "gm/reporting/missing-last-gm-day",
           address,
-          chainId,
+          BASE_CHAIN_ID,
           txHash,
         },
         { silent: true }
@@ -47,5 +48,5 @@ export const useSuccessReporterLogic = ({
     didReport.current = true;
 
     reportGm({ address, lastGmDay: lastGmDay.data });
-  }, [status, address, lastGmDay.data, chainId, txHash, reportGm]);
+  }, [status, address, lastGmDay.data, txHash, reportGm]);
 };

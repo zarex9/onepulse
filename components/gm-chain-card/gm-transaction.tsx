@@ -8,11 +8,10 @@ import {
   TransactionButton,
 } from "@/components/ui/custom-transaction";
 import { Spinner } from "@/components/ui/spinner";
-import type { ChainId } from "@/lib/constants";
+import { BASE_CHAIN_ID } from "@/lib/constants";
 import { useGMTransactionLogic } from "./use-gm-transaction-logic";
 
 type GMTransactionProps = {
-  chainId: ChainId;
   isSponsored: boolean;
   isContractReady: boolean;
   processing: boolean;
@@ -23,7 +22,6 @@ type GMTransactionProps = {
 };
 
 export function GMTransaction({
-  chainId,
   isSponsored,
   isContractReady,
   processing,
@@ -39,7 +37,11 @@ export function GMTransaction({
   }
 
   return (
-    <Transaction calls={calls} chainId={chainId} isSponsored={isSponsored}>
+    <Transaction
+      calls={calls}
+      chainId={BASE_CHAIN_ID}
+      isSponsored={isSponsored}
+    >
       <TransactionButton
         disabled={!isContractReady || processing}
         renderAction={({ onSubmit, isDisabled, status, context }) => (
@@ -63,7 +65,6 @@ export function GMTransaction({
             </Button>
             <SuccessReporter
               address={address}
-              chainId={chainId}
               status={status}
               txHash={context?.transactionHash}
             />

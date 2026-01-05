@@ -4,13 +4,11 @@ import { useSwitchChain } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ConnectWallet } from "@/components/wallet";
-import type { ChainId } from "@/lib/constants";
+import { BASE_CHAIN_ID } from "../../lib/constants";
 import { GMTransaction } from "./gm-transaction";
 
 type ActionButtonProps = {
   isConnected: boolean;
-  chainId: ChainId;
-  name: string;
   onCorrectChain: boolean;
   hasGmToday: boolean;
   gmDisabled: boolean;
@@ -23,8 +21,6 @@ type ActionButtonProps = {
 
 export function ActionButton({
   isConnected,
-  chainId,
-  name,
   onCorrectChain,
   hasGmToday,
   gmDisabled,
@@ -55,7 +51,7 @@ export function ActionButton({
         aria-busy={isLoading}
         className={`w-full ${chainBtnClasses}`}
         disabled={isLoading}
-        onClick={() => switchChain.mutateAsync({ chainId })}
+        onClick={() => switchChain.mutateAsync({ chainId: BASE_CHAIN_ID })}
         size="lg"
       >
         {isLoading ? (
@@ -63,7 +59,7 @@ export function ActionButton({
             <Spinner /> Switching…
           </>
         ) : (
-          `Switch to ${name}`
+          "Switch to Base"
         )}
       </Button>
     );
@@ -76,9 +72,8 @@ export function ActionButton({
   return (
     <GMTransaction
       address={address}
-      buttonLabel={`GM on ${name}`}
+      buttonLabel={"GM on Base"}
       chainBtnClasses={chainBtnClasses}
-      chainId={chainId}
       isContractReady={!gmDisabled}
       isSponsored={isSponsored}
       processing={processing}

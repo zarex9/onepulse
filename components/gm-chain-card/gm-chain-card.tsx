@@ -8,24 +8,17 @@ import {
   ItemFooter,
   ItemMedia,
 } from "@/components/ui/item";
-import type { ChainId } from "@/lib/constants";
 import { ActionButton } from "./action-button";
 import { StatsDisplay } from "./stats-display";
 import { useGMChainCardLogic } from "./use-gm-chain-card-logic";
 
 export type GMChainCardProps = {
-  chainId: ChainId;
-  name: string;
-  contractAddress: `0x${string}`;
   isConnected: boolean;
   address?: `0x${string}`;
   isSponsored?: boolean;
 };
 
 export const GMChainCard = ({
-  chainId,
-  name,
-  contractAddress,
   isConnected,
   address,
   isSponsored = false,
@@ -39,8 +32,6 @@ export const GMChainCard = ({
     processing,
     setProcessing,
   } = useGMChainCardLogic({
-    chainId,
-    contractAddress,
     isConnected,
     address,
   });
@@ -52,7 +43,7 @@ export const GMChainCard = ({
           {Icons[chainIconName as keyof typeof Icons]?.({
             className: "h-8 w-24 text-current",
             role: "img",
-            "aria-label": `${name} wordmark`,
+            "aria-label": "Base wordmark",
             focusable: false,
           })}
         </ItemMedia>
@@ -64,12 +55,10 @@ export const GMChainCard = ({
         <ActionButton
           address={address}
           chainBtnClasses={chainBtnClasses}
-          chainId={chainId}
           gmDisabled={gmDisabled}
           hasGmToday={hasGmToday}
           isConnected={isConnected}
           isSponsored={isSponsored}
-          name={name}
           onCorrectChain={onCorrectChain}
           processing={processing}
           setProcessingAction={setProcessing}
