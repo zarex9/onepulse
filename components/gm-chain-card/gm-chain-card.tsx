@@ -1,5 +1,6 @@
 "use client";
 
+import type { JSX } from "react";
 import { Icons } from "@/components/icons";
 import {
   Item,
@@ -18,11 +19,11 @@ export type GMChainCardProps = {
   isSponsored?: boolean;
 };
 
-export const GMChainCard = ({
+export function GMChainCard({
   isConnected,
   address,
   isSponsored = false,
-}: GMChainCardProps) => {
+}: GMChainCardProps): JSX.Element {
   const {
     onCorrectChain,
     hasGmToday,
@@ -66,4 +67,4 @@ export const GMChainCard = ({
       </ItemFooter>
     </Item>
   );
-};
+}

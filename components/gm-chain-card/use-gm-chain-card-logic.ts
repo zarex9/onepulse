@@ -9,10 +9,20 @@ type UseGMChainCardLogicProps = {
   address?: `0x${string}`;
 };
 
+type UseGMChainCardLogicReturn = {
+  onCorrectChain: boolean;
+  hasGmToday: boolean;
+  gmDisabled: boolean;
+  chainBtnClasses: string;
+  chainIconName: string;
+  processing: boolean;
+  setProcessing: (processing: boolean) => void;
+};
+
 export function useGMChainCardLogic({
   isConnected,
   address,
-}: UseGMChainCardLogicProps) {
+}: UseGMChainCardLogicProps): UseGMChainCardLogicReturn {
   const currentChainId = useChainId();
   const onCorrectChain = currentChainId === BASE_CHAIN_ID;
   const [processing, setProcessing] = useState(false);
@@ -20,7 +30,6 @@ export function useGMChainCardLogic({
   const { hasGmToday, gmDisabled } = useGMState(isConnected, address);
 
   const chainBtnClasses = getChainBtnClasses();
-
   const chainIconName = getChainIconName();
 
   return {

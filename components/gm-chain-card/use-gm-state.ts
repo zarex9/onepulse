@@ -40,7 +40,10 @@ const computeGMState = (params: ComputeGMStateParams): GMState => {
   };
 };
 
-export const useGMState = (isConnected: boolean, address?: `0x${string}`) => {
+export function useGMState(
+  isConnected: boolean,
+  address?: `0x${string}`
+): GMState {
   const { data: lastGmDayData, isPending: isPendingLastGm } =
     useReadDailyGmLastGmDay({
       chainId: BASE_CHAIN_ID,
@@ -59,4 +62,4 @@ export const useGMState = (isConnected: boolean, address?: `0x${string}`) => {
     hasGmToday,
     gmDisabled,
   };
-};
+}

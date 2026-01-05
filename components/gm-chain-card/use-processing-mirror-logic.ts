@@ -6,11 +6,11 @@ type UseProcessingMirrorLogicProps = {
   onChange: (pending: boolean) => void;
 };
 
-export const useProcessingMirrorLogic = ({
+export function useProcessingMirrorLogic({
   status,
   onChange,
-}: UseProcessingMirrorLogicProps) => {
+}: UseProcessingMirrorLogicProps): void {
   useEffect(() => {
     onChange(status === "pending");
   }, [status, onChange]);
-};
+}

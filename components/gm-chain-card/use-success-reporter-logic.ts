@@ -12,11 +12,11 @@ type UseSuccessReporterLogicProps = {
   txHash?: string;
 };
 
-export const useSuccessReporterLogic = ({
+export function useSuccessReporterLogic({
   status,
   address,
   txHash,
-}: UseSuccessReporterLogicProps) => {
+}: UseSuccessReporterLogicProps): void {
   const didReport = useRef(false);
 
   const lastGmDay = useReadDailyGmLastGmDay({
@@ -49,4 +49,4 @@ export const useSuccessReporterLogic = ({
 
     reportGm({ address, lastGmDay: lastGmDay.data });
   }, [status, address, lastGmDay.data, txHash, reportGm]);
-};
+}
