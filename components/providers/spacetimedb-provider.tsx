@@ -5,9 +5,10 @@ import type { Identity } from "spacetimedb";
 import { SpacetimeDBProvider as Provider } from "spacetimedb/react";
 import { DbConnection, type ErrorContext } from "@/spacetimedb";
 
-const HOST = process.env.SPACETIMEDB_HOST || "wss://maincloud.spacetimedb.com";
-const MODULE = process.env.SPACETIMEDB_MODULE || "onepulse-v2";
+const HOST = process.env.SPACETIMEDB_HOST ?? "wss://maincloud.spacetimedb.com";
+const MODULE = process.env.SPACETIMEDB_MODULE ?? "onepulse-v2";
 
+// Validate required environment variables
 if (!HOST) {
   throw new Error("SPACETIMEDB_HOST is not defined");
 }
@@ -16,37 +17,41 @@ if (!MODULE) {
   throw new Error("SPACETIMEDB_MODULE is not defined");
 }
 
-const getToken = (): string | undefined => {
-  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-    return localStorage.getItem("auth_token") || undefined;
+function getToken(): string | undefined {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    return undefined;
   }
-  return undefined;
-};
+  return localStorage.getItem("auth_token") ?? undefined;
+}
 
-const setToken = (token: string) => {
-  if (typeof window !== "undefined" && typeof localStorage !== "undefined") {
-    localStorage.setItem("auth_token", token);
+function setToken(token: string): void {
+  if (typeof window === "undefined" || typeof localStorage === "undefined") {
+    return;
   }
-};
+  localStorage.setItem("auth_token", token);
+}
 
-const onConnect = (conn: DbConnection, identity: Identity, token: string) => {
+function onConnect(
+  conn: DbConnection,
+  _identity: Identity,
+  token: string
+): void {
   setToken(token);
-  console.log(
-    "Connected to SpacetimeDB with identity:",
-    identity.toHexString()
-  );
   conn.reducers.onReport(() => {
-    console.log("Report sent.");
+    // Report successfully sent
   });
-};
+}
 
-const onDisconnect = () => {
-  console.log("Disconnected from SpacetimeDB");
-};
+function onDisconnect(): void {
+  // Connection closed
+}
 
-const onConnectError = (_ctx: ErrorContext, err: Error) => {
-  console.log("Error connecting to SpacetimeDB:", err);
-};
+function onConnectError(_ctx: ErrorContext, err: Error): void {
+  // Log error for monitoring, but don't throw in production
+  if (process.env.NODE_ENV === "development") {
+    console.error("SpacetimeDB connection error:", err);
+  }
+}
 
 const connectionBuilder = DbConnection.builder()
   .withUri(HOST)
@@ -56,6 +61,10 @@ const connectionBuilder = DbConnection.builder()
   .onDisconnect(onDisconnect)
   .onConnectError(onConnectError);
 
-export const SpacetimeDBProvider = ({ children }: { children: ReactNode }) => {
-  return <Provider connectionBuilder={connectionBuilder}>{children}</Provider>;
+type SpacetimeDBProviderProps = {
+  children: ReactNode;
 };
+
+export function SpacetimeDBProvider({ children }: SpacetimeDBProviderProps) {
+  return <Provider connectionBuilder={connectionBuilder}>{children}</Provider>;
+}
