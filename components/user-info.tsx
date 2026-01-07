@@ -6,30 +6,9 @@ import { UserAvatar } from "./user-info/user-avatar";
 import { UserData } from "./user-info/user-data";
 import { UserInfoSkeleton } from "./user-info/user-info-skeleton";
 import {
-  getMiniAppUserDisplay,
   getWalletConnectedDisplay,
   type UserInfoProps,
 } from "./user-info/utils";
-
-const MiniAppUserView = ({
-  user,
-  isConnected,
-}: {
-  user: UserInfoProps["user"];
-  isConnected: boolean;
-}) => {
-  const { displayName, avatarUrl, username } = getMiniAppUserDisplay(user);
-  return (
-    <div className="flex items-center gap-2">
-      <UserAvatar
-        isConnected={isConnected}
-        name={displayName}
-        url={avatarUrl}
-      />
-      <UserData displayName={displayName} username={username} />
-    </div>
-  );
-};
 
 const WalletLoadingView = () => (
   <div className="flex items-center gap-2">
@@ -39,15 +18,13 @@ const WalletLoadingView = () => (
 );
 
 const WalletConnectedView = ({
-  user,
   address,
   isConnected,
 }: {
-  user: UserInfoProps["user"];
   address: `0x${string}`;
   isConnected: boolean;
 }) => {
-  const { avatarUrl, displayName } = getWalletConnectedDisplay(user, address);
+  const { avatarUrl, displayName } = getWalletConnectedDisplay(address);
 
   return (
     <div className="flex items-center gap-2">
@@ -61,9 +38,8 @@ const WalletConnectedView = ({
   );
 };
 
-export function UserInfo({ user, address: addressProp }: UserInfoProps) {
+export function UserInfo({ address: addressProp }: UserInfoProps) {
   const { address, isConnected, state } = useUserInfoLogic({
-    user,
     address: addressProp,
   });
 
@@ -71,19 +47,9 @@ export function UserInfo({ user, address: addressProp }: UserInfoProps) {
     return null;
   }
 
-  if (state === "miniapp") {
-    return <MiniAppUserView isConnected={isConnected} user={user} />;
-  }
-
   if (state === "loading") {
     return <WalletLoadingView />;
   }
 
-  return (
-    <WalletConnectedView
-      address={address}
-      isConnected={isConnected}
-      user={user}
-    />
-  );
+  return <WalletConnectedView address={address} isConnected={isConnected} />;
 }
