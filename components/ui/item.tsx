@@ -4,12 +4,11 @@ import type { ComponentProps } from "react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-function ItemGroup({ className, ...props }: ComponentProps<"div">) {
+function ItemGroup({ className, ...props }: ComponentProps<"ul">) {
   return (
-    <div
+    <ul
       className={cn("group/item-group flex flex-col", className)}
       data-slot="item-group"
-      role="list"
       {...props}
     />
   );
@@ -56,9 +55,9 @@ function Item({
   size = "default",
   asChild = false,
   ...props
-}: ComponentProps<"div"> &
+}: ComponentProps<"li"> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : "div";
+  const Comp = asChild ? Slot : "li";
   return (
     <Comp
       className={cn(itemVariants({ variant, size, className }))}
