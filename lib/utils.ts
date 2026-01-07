@@ -66,15 +66,6 @@ export function isSponsoredOnChain(sponsored: boolean): boolean {
   return Boolean(sponsored);
 }
 
-export function canSaveMiniApp(params: {
-  isMiniAppReady: boolean;
-  inMiniApp: boolean;
-  clientAdded: boolean | undefined;
-}): boolean {
-  const { isMiniAppReady, inMiniApp, clientAdded } = params;
-  return isMiniAppReady && inMiniApp && clientAdded !== true;
-}
-
 /**
  * Get the icon name for a given chain ID
  */
