@@ -3,12 +3,7 @@
 
 /* eslint-disable */
 /* tslint:disable */
-import {
-  TypeBuilder as __TypeBuilder,
-  t as __t,
-  type AlgebraicTypeType as __AlgebraicTypeType,
-  type Infer as __Infer,
-} from "spacetimedb";
+import { t as __t } from "spacetimedb";
 
 export default __t.object("Stats", {
   address: __t.string(),
@@ -18,5 +13,3 @@ export default __t.object("Stats", {
   lastGmDay: __t.u256(),
   updatedAt: __t.timestamp(),
 });
-
-
