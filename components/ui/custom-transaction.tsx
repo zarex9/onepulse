@@ -1,24 +1,42 @@
 "use client";
 
+import { waitForTransactionReceipt } from "@wagmi/core/actions";
+import { base } from "@wagmi/core/chains";
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useState,
-  type ReactNode,
 } from "react";
-import { encodeFunctionData, TransactionExecutionError, type Capabilities, type ContractFunctionParameters, type Hex, type TransactionReceipt } from "viem";
-import { useCapabilities, useConfig, useConnection, useSwitchChain, useWaitForTransactionReceipt, type Config, useCallsStatus as useCallsStatusWagmi, useSendTransaction, useChainId } from 'wagmi';
-import { useSendCalls as useSendCallsWagmi } from "wagmi";
-import type { SendTransactionMutateAsync } from "wagmi/query";
-import { waitForTransactionReceipt } from '@wagmi/core/actions';
-import { base } from "@wagmi/core/chains";
+import {
+  type Capabilities,
+  type ContractFunctionParameters,
+  encodeFunctionData,
+  type Hex,
+  type TransactionExecutionError,
+  type TransactionReceipt,
+} from "viem";
+import {
+  type Config,
+  useCallsStatus as useCallsStatusWagmi,
+  useCapabilities,
+  useChainId,
+  useConfig,
+  useConnection,
+  useSendCalls as useSendCallsWagmi,
+  useSendTransaction,
+  useSwitchChain,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import type {
+  SendCallsMutateAsync,
+  SendTransactionMutateAsync,
+} from "wagmi/query";
 import { cn, getChainExplorer } from "@/lib/utils";
 import { Spinner } from "./spinner";
 
-export function getPaymasterUrl(
-  capabilities?: Capabilities
-): string | null {
+export function getPaymasterUrl(capabilities?: Capabilities): string | null {
   return capabilities?.paymasterService?.url ?? null;
 }
 
@@ -26,13 +44,13 @@ export function useValue<T>(object: T): T {
   return object;
 }
 
-export const GENERIC_ERROR_MESSAGE = 'Something went wrong. Please try again.';
+export const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
 // Most likely EOAexport const genericErrorMessage = 'Something went wrong. Please try again.';
 export const METHOD_NOT_SUPPORTED_ERROR_SUBSTRING =
-  'this request method is not supported';
-export const SEND_CALLS_NOT_SUPPORTED_ERROR = 'SEND_CALLS_NOT_SUPPORTED_ERROR';
-export const TRANSACTION_TYPE_CALLS = 'TRANSACTION_TYPE_CALLS';
-export const TRANSACTION_TYPE_CONTRACTS = 'TRANSACTION_TYPE_CONTRACTS';
+  "this request method is not supported";
+export const SEND_CALLS_NOT_SUPPORTED_ERROR = "SEND_CALLS_NOT_SUPPORTED_ERROR";
+export const TRANSACTION_TYPE_CALLS = "TRANSACTION_TYPE_CALLS";
+export const TRANSACTION_TYPE_CONTRACTS = "TRANSACTION_TYPE_CONTRACTS";
 
 /**
  * Note: exported as public Type
@@ -66,39 +84,39 @@ type TransactionButtonOverride = {
  */
 export type LifecycleStatus =
   | {
-      statusName: 'init';
+      statusName: "init";
       statusData: null;
     }
   | {
-      statusName: 'error';
+      statusName: "error";
       statusData: TransactionError;
     }
   | {
-      statusName: 'transactionIdle'; // initial status prior to the mutation function executing
+      statusName: "transactionIdle"; // initial status prior to the mutation function executing
       statusData: null;
     }
   | {
-      statusName: 'buildingTransaction';
+      statusName: "buildingTransaction";
       statusData: null;
     }
   | {
-      statusName: 'transactionPending'; // if the mutation is currently executing
+      statusName: "transactionPending"; // if the mutation is currently executing
       statusData: null;
     }
   | {
-      statusName: 'transactionLegacyExecuted';
+      statusName: "transactionLegacyExecuted";
       statusData: {
         transactionHashList: `0x${string}`[];
       };
     }
   | {
-      statusName: 'success'; // if the last mutation attempt was successful
+      statusName: "success"; // if the last mutation attempt was successful
       statusData: {
         transactionReceipts: TransactionReceipt[];
       };
     }
   | {
-      statusName: 'reset';
+      statusName: "reset";
       statusData: null;
     };
 
@@ -110,7 +128,7 @@ export type IsSpinnerDisplayedProps = {
   transactionId?: string;
 };
 
-type TransactionButtonState = 'default' | 'success' | 'error' | 'pending';
+type TransactionButtonState = "default" | "success" | "error" | "pending";
 
 export type TransactionButtonRenderParams = {
   /** The current state of the button */
@@ -140,7 +158,7 @@ export type TransactionButtonProps = {
   /** Optional overrides for text and onClick handler in success state (default is view txn on block explorer) */
   successOverride?: TransactionButtonOverride;
   /** Optional overrides for text in pending state (default is loading spinner) */
-  pendingOverride?: Pick<TransactionButtonOverride, 'text'>;
+  pendingOverride?: Pick<TransactionButtonOverride, "text">;
   /** Optional render prop to customize the button content */
   renderAction?: (params: TransactionButtonRenderParams) => ReactNode;
 };
@@ -186,8 +204,7 @@ type PaymasterService = {
 
 export type SendBatchedTransactionsParams = {
   capabilities?: WalletCapabilities;
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  sendCallsAsync: any;
+  sendCallsAsync: SendCallsMutateAsync<Config, unknown> | (() => void);
   transactions?: Array<Call | ContractFunctionParameters>;
 };
 
@@ -294,8 +311,7 @@ export type UseSendCallsParams = {
 
 export type UseSendWalletTransactionsParams = {
   capabilities?: WalletCapabilities;
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  sendCallsAsync: any;
+  sendCallsAsync: SendCallsMutateAsync<Config, unknown> | (() => void);
   sendCallAsync: SendTransactionMutateAsync<Config, unknown> | (() => void);
   walletCapabilities: Capabilities;
 };
@@ -322,7 +338,7 @@ export function useTransactionContext() {
   const context = useContext(TransactionContext);
   if (context === emptyContext) {
     throw new Error(
-      'useTransactionContext must be used within a Transaction component',
+      "useTransactionContext must be used within a Transaction component"
     );
   }
   return context;
@@ -331,13 +347,13 @@ export function useTransactionContext() {
 export function isUserRejectedRequestError(err: unknown) {
   if (
     (err as TransactionExecutionError)?.cause?.name ===
-    'UserRejectedRequestError'
+    "UserRejectedRequestError"
   ) {
     return true;
   }
   if (
     (err as TransactionExecutionError)?.shortMessage?.includes(
-      'User rejected the request.',
+      "User rejected the request."
     )
   ) {
     return true;
@@ -364,9 +380,9 @@ export function useCapabilitiesSafe({
 }
 
 export function isContract(
-  transaction: Call | ContractFunctionParameters,
+  transaction: Call | ContractFunctionParameters
 ): transaction is ContractFunctionParameters {
-  return 'abi' in transaction;
+  return "abi" in transaction;
 }
 
 export const sendBatchedTransactions = async ({
@@ -446,7 +462,7 @@ export function useSendWalletTransactions({
 
     const resolvedTransactions = await Promise.resolve(transactions);
 
-    if (walletCapabilities["atomicBatch"]?.supported) {
+    if (walletCapabilities.atomicBatch?.supported) {
       // Batched transactions
       await sendBatchedTransactions({
         capabilities,
@@ -465,18 +481,18 @@ export function useSendWalletTransactions({
 }
 
 export function normalizeStatus(status?: string) {
-  if (status === 'CONFIRMED') {
-    return 'success';
+  if (status === "CONFIRMED") {
+    return "success";
   }
-  if (status === 'PENDING') {
-    return 'pending';
+  if (status === "PENDING") {
+    return "pending";
   }
 
   return status;
 }
 
 export function normalizeTransactionId(data: { id: string } | string) {
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     return data;
   }
   return data.id;
@@ -487,12 +503,12 @@ export function useCallsStatus({
   transactionId,
 }: UseCallsStatusParams) {
   try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+    // biome-ignore lint/correctness/useHookAtTopLevel: ignored to wrap in try/catch
     const { data } = useCallsStatusWagmi({
       id: transactionId,
       query: {
         refetchInterval: (query) => {
-          return normalizeStatus(query.state.data?.status) === 'success'
+          return normalizeStatus(query.state.data?.status) === "success"
             ? false
             : 1000;
         },
@@ -503,14 +519,14 @@ export function useCallsStatus({
     return { status: data?.status, transactionHash };
   } catch (err) {
     setLifecycleStatusAction({
-      statusName: 'error',
+      statusName: "error",
       statusData: {
-        code: 'TmUCSh01',
+        code: "TmUCSh01",
         error: JSON.stringify(err),
-        message: '',
+        message: "",
       },
     });
-    return { status: 'error', transactionHash: undefined };
+    return { status: "error", transactionHash: undefined };
   }
 }
 
@@ -522,12 +538,12 @@ export function useSendCall({
     mutation: {
       onError: (e) => {
         const errorMessage = isUserRejectedRequestError(e)
-          ? 'Request denied.'
+          ? "Request denied."
           : GENERIC_ERROR_MESSAGE;
         setLifecycleStatusAction({
-          statusName: 'error',
+          statusName: "error",
           statusData: {
-            code: 'TmUSCh01', // Transaction module UseSendCall hook 01 error
+            code: "TmUSCh01", // Transaction module UseSendCall hook 01 error
             error: e.message,
             message: errorMessage,
           },
@@ -535,7 +551,7 @@ export function useSendCall({
       },
       onSuccess: (hash: `0x${string}`) => {
         setLifecycleStatusAction({
-          statusName: 'transactionLegacyExecuted',
+          statusName: "transactionLegacyExecuted",
           statusData: {
             transactionHashList: [...transactionHashList, hash],
           },
@@ -558,12 +574,12 @@ export function useSendCalls({
     mutation: {
       onError: (e) => {
         const errorMessage = isUserRejectedRequestError(e)
-          ? 'Request denied.'
+          ? "Request denied."
           : GENERIC_ERROR_MESSAGE;
         setLifecycleStatusAction({
-          statusName: 'error',
+          statusName: "error",
           statusData: {
-            code: 'TmUSCSh01', // Transaction module UseSendCalls hook 01 error
+            code: "TmUSCSh01", // Transaction module UseSendCalls hook 01 error
             error: e.message,
             message: errorMessage,
           },
@@ -575,9 +591,9 @@ export function useSendCalls({
     },
   });
   const sendCallsAsync = sendCalls.mutateAsync;
-    const status = sendCalls.status;
-    const data = sendCalls.data;
-    const reset = sendCalls.reset;
+  const status = sendCalls.status;
+  const data = sendCalls.data;
+  const reset = sendCalls.reset;
   return { status, sendCallsAsync, data, reset };
 }
 
@@ -607,18 +623,20 @@ function TransactionProvider({
 
   const paymaster = process.env.NEXT_PUBLIC_PAYMASTER_URL;
 
-  const [errorMessage, setErrorMessage] = useState('');
-  const [errorCode, setErrorCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [errorCode, setErrorCode] = useState("");
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [lifecycleStatus, setLifecycleStatus] = useState<LifecycleStatus>({
-    statusName: 'init',
+    statusName: "init",
     statusData: null,
   }); // Component lifecycle
-  const [transactionId, setTransactionId] = useState('');
+  const [transactionId, setTransactionId] = useState("");
   const [transactionCount, setTransactionCount] = useState<
     number | undefined
   >();
-  const [transactionHashList, setTransactionHashList] = useState<`0x${string}`[]>([]);
+  const [transactionHashList, setTransactionHashList] = useState<
+    `0x${string}`[]
+  >([]);
 
   // Retrieve wallet capabilities
   const walletCapabilities = useCapabilitiesSafe({
@@ -628,7 +646,7 @@ function TransactionProvider({
   // Validate `calls` and `contracts` props
   if (!calls) {
     throw new Error(
-      'Transaction: calls must be provided as a prop to the Transaction component.',
+      "Transaction: calls must be provided as a prop to the Transaction component."
     );
   }
 
@@ -657,7 +675,7 @@ function TransactionProvider({
   // For batched, use statusSendCalls
   // For single, use statusSendCall
   const transactionStatus = (() => {
-    if (walletCapabilities["atomicBatch"]?.supported) {
+    if (walletCapabilities.atomicBatch?.supported) {
       return statusSendCalls;
     }
     return statusSendCall;
@@ -694,19 +712,19 @@ function TransactionProvider({
 
   // Component lifecycle emitters
   useEffect(() => {
-    setErrorMessage('');
+    setErrorMessage("");
     // Error
-    if (lifecycleStatus.statusName === 'error') {
+    if (lifecycleStatus.statusName === "error") {
       setErrorMessage(lifecycleStatus.statusData.message);
       setErrorCode(lifecycleStatus.statusData.code);
       onError?.(lifecycleStatus.statusData);
     }
     // Transaction Legacy Executed
-    if (lifecycleStatus.statusName === 'transactionLegacyExecuted') {
+    if (lifecycleStatus.statusName === "transactionLegacyExecuted") {
       setTransactionHashList(lifecycleStatus.statusData.transactionHashList);
     }
     // Success
-    if (lifecycleStatus.statusName === 'success') {
+    if (lifecycleStatus.statusName === "success") {
       onSuccess?.({
         transactionReceipts: lifecycleStatus.statusData.transactionReceipts,
       });
@@ -724,9 +742,9 @@ function TransactionProvider({
 
   // Set transaction pending status when writeContracts or writeContract is pending
   useEffect(() => {
-    if (transactionStatus === 'pending') {
+    if (transactionStatus === "pending") {
       setLifecycleStatus({
-        statusName: 'transactionPending',
+        statusName: "transactionPending",
         statusData: null,
       });
     }
@@ -738,7 +756,7 @@ function TransactionProvider({
       return;
     }
     setLifecycleStatus({
-      statusName: 'success',
+      statusName: "success",
       statusData: {
         transactionReceipts: [receipt],
       },
@@ -746,10 +764,10 @@ function TransactionProvider({
     if (resetAfter) {
       // Reset all internal state
       const timeoutId = setTimeout(() => {
-        setErrorMessage('');
-        setErrorCode('');
+        setErrorMessage("");
+        setErrorCode("");
         setIsToastVisible(false);
-        setTransactionId('');
+        setTransactionId("");
         setTransactionHashList([]);
         setTransactionCount(undefined);
         resetSendCalls();
@@ -761,7 +779,7 @@ function TransactionProvider({
   }, [receipt, resetAfter, resetSendCalls, resetSendCall]);
 
   const getTransactionLegacyReceipts = async () => {
-    const receipts = [];
+    const receipts: TransactionReceipt[] = [];
     for (const hash of transactionHashList) {
       try {
         const txnReceipt = await waitForTransactionReceipt(config, {
@@ -787,7 +805,7 @@ function TransactionProvider({
       }
     }
     setLifecycleStatus({
-      statusName: 'success',
+      statusName: "success",
       statusData: {
         transactionReceipts: receipts,
       },
@@ -808,6 +826,7 @@ function TransactionProvider({
     calls,
     transactionCount,
     transactionHashList,
+    // biome-ignore lint/correctness/useExhaustiveDependencies: ignored to avoid adding getTransactionLegacyReceipts
     getTransactionLegacyReceipts,
   ]);
 
@@ -819,22 +838,22 @@ function TransactionProvider({
 
   const buildTransaction = async () => {
     setLifecycleStatus({
-      statusName: 'buildingTransaction',
+      statusName: "buildingTransaction",
       statusData: null,
     });
     try {
-      const resolvedTransactions = await (typeof calls === 'function'
+      const resolvedTransactions = await (typeof calls === "function"
         ? calls()
         : Promise.resolve(calls));
       setTransactionCount(resolvedTransactions?.length);
       return resolvedTransactions;
     } catch (err) {
       setLifecycleStatus({
-        statusName: 'error',
+        statusName: "error",
         statusData: {
-          code: 'TmTPc04', // Transaction module TransactionProvider component 04 error
+          code: "TmTPc04", // Transaction module TransactionProvider component 04 error
           error: JSON.stringify(err),
-          message: 'Error building transactions',
+          message: "Error building transactions",
         },
       });
       return undefined;
@@ -842,7 +861,7 @@ function TransactionProvider({
   };
 
   const handleSubmit = async () => {
-    setErrorMessage('');
+    setErrorMessage("");
     setIsToastVisible(true);
     try {
       // Switch chain before attempting transactions
@@ -851,12 +870,12 @@ function TransactionProvider({
       await sendWalletTransactions(resolvedTransactions);
     } catch (err) {
       const errorMessage = isUserRejectedRequestError(err)
-        ? 'Request denied.'
+        ? "Request denied."
         : GENERIC_ERROR_MESSAGE;
       setLifecycleStatus({
-        statusName: 'error',
+        statusName: "error",
         statusData: {
-          code: 'TmTPc03', // Transaction module TransactionProvider component 03 error
+          code: "TmTPc03", // Transaction module TransactionProvider component 03 error
           error: JSON.stringify(err),
           message: errorMessage,
         },
@@ -866,9 +885,9 @@ function TransactionProvider({
 
   const isLoading =
     callStatus === "pending" ||
-    lifecycleStatus.statusName === 'buildingTransaction' ||
-    lifecycleStatus.statusName === 'transactionPending' ||
-    (lifecycleStatus.statusName === 'transactionLegacyExecuted' &&
+    lifecycleStatus.statusName === "buildingTransaction" ||
+    lifecycleStatus.statusName === "transactionPending" ||
+    (lifecycleStatus.statusName === "transactionLegacyExecuted" &&
       transactionCount !==
         lifecycleStatus?.statusData?.transactionHashList?.length) ||
     ((!!transactionId || !!singleTransactionHash || !!batchedTransactionHash) &&
@@ -894,24 +913,18 @@ function TransactionProvider({
   });
 
   useEffect(() => {
-      if (!receipt) {
-        return;
-      }
-    }, [
-      receipt,
-    ]);
+    if (!receipt) {
+      return;
+    }
+  }, [receipt]);
 
-    return (
-      <TransactionContext value={value}>
-        {children}
-      </TransactionContext>
-    );
+  return <TransactionContext value={value}>{children}</TransactionContext>;
 }
 
 export function TransactionButton({
   className,
   disabled = false,
-  text: idleText = 'Transact',
+  text: idleText = "Transact",
   renderAction,
 }: TransactionButtonProps) {
   const context = useTransactionContext();
@@ -930,7 +943,7 @@ export function TransactionButton({
   const currentChainId = useChainId();
   const accountChainId = chainId ?? currentChainId;
 
-  const isMissingProps = !transactions || !address;
+  const isMissingProps = !(transactions && address);
   const isWaitingForReceipt = !!transactionId || !!transactionHash;
 
   const isDisabled =
@@ -939,29 +952,38 @@ export function TransactionButton({
 
   const handleSuccess = () => {
     // SW will have txn id so open in wallet
-    if (receipt && transactionId && transactionHash && chainId && address) {
-      const url = new URL('https://wallet.coinbase.com/assets/transactions');
-      url.searchParams.set('contentParams[txHash]', transactionHash);
-      url.searchParams.set('contentParams[chainId]', JSON.stringify(chainId));
-      url.searchParams.set('contentParams[fromAddress]', address);
-      return window.open(url, '_blank', 'noopener,noreferrer');
+    if (
+      receipt &&
+      transactionId &&
+      transactionHash &&
+      accountChainId &&
+      address
+    ) {
+      const url = new URL("https://wallet.coinbase.com/assets/transactions");
+      url.searchParams.set("contentParams[txHash]", transactionHash);
+      url.searchParams.set(
+        "contentParams[chainId]",
+        JSON.stringify(accountChainId)
+      );
+      url.searchParams.set("contentParams[fromAddress]", address);
+      return window.open(url, "_blank", "noopener,noreferrer");
     }
     // EOA will not have txn id so open in explorer
     const chainExplorer = getChainExplorer();
     return window.open(
       `${chainExplorer}/tx/${transactionHash}`,
-      '_blank',
-      'noopener,noreferrer',
+      "_blank",
+      "noopener,noreferrer"
     );
   };
 
   const buttonContent = (() => {
     // txn successful
     if (receipt) {
-      return 'View transaction';
+      return "View transaction";
     }
     if (errorMessage) {
-      return 'Try again';
+      return "Try again";
     }
     if (isLoading) {
       return <Spinner />;
@@ -979,15 +1001,15 @@ export function TransactionButton({
 
   const status = (() => {
     if (receipt) {
-      return 'success';
+      return "success";
     }
     if (errorMessage) {
-      return 'error';
+      return "error";
     }
     if (isLoading) {
-      return 'pending';
+      return "pending";
     }
-    return 'default';
+    return "default";
   })();
 
   if (renderAction) {
@@ -1003,18 +1025,18 @@ export function TransactionButton({
   return (
     <button
       className={cn(
-        "cursor-pointer bg-primary hover:bg-primary-hover active:bg-primary-active focus:bg-primary-active",
-        'rounded-default',
-        'w-full rounded-xl',
-        'px-4 py-3 font-medium leading-6',
-        isDisabled && "opacity-[0.38] pointer-events-none",
+        "cursor-pointer bg-primary hover:bg-primary-hover focus:bg-primary-active active:bg-primary-active",
+        "rounded-default",
+        "w-full rounded-xl",
+        "px-4 py-3 font-medium leading-6",
+        isDisabled && "pointer-events-none opacity-[0.38]",
         "font-semibold",
-        'text-foreground-inverse',
-        className,
+        "text-foreground-inverse",
+        className
       )}
+      disabled={isDisabled}
       onClick={handleSubmit}
       type="button"
-      disabled={isDisabled}
     >
       {buttonContent}
     </button>
@@ -1045,7 +1067,7 @@ export function Transaction({
       onSuccess={onSuccess}
       resetAfter={resetAfter}
     >
-      <div className={`flex w-full flex-col gap-2 ${className || ''}`}>
+      <div className={`flex w-full flex-col gap-2 ${className || ""}`}>
         {children ?? <TransactionButton disabled={disabled} />}
       </div>
     </TransactionProvider>
