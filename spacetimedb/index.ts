@@ -25,11 +25,11 @@ import {
 } from "spacetimedb";
 
 // Import and reexport all reducer arg types
-import ReportReducer from "./report_reducer";
+import ReportReducer from "./report-reducer";
 // Import and reexport all procedure arg types
 
 // Import and reexport all table handle types
-import StatsRow from "./stats_table";
+import StatsRow from "./stats-table";
 
 /** The schema information for all tables in this module. This is defined the same was as the tables would have been defined in the server. */
 const tablesSchema = __schema(
